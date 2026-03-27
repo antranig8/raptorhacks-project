@@ -1,0 +1,12 @@
+# Python
+venv/
+backend/venv/
+__pycache__/
+*.pyc
+
+# PyCharm
+.idea/
+*.iml
+
+# OS
+.DS_Store
