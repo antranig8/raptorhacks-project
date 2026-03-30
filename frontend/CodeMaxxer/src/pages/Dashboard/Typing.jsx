@@ -14,7 +14,7 @@ export default function Typing() {
         <section className={styles.container}>
             <div className={styles.top}>
                 <div className={`${styles.topMain} ${isTopActive ? styles.active : ''}`}>
-                    <h1>Typing</h1>
+                    <h1>Practice Typing</h1>
                     <textarea
                         className={styles.inputArea}
                         value={input}
