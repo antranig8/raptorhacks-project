@@ -42,7 +42,7 @@
 .logo:hover,
 .logo:focus-visible {
     color: #111;
-    text-decoration: underline;
+    text-decoration: none;
 }
 
 .navButton {
