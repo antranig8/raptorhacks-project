@@ -19,6 +19,12 @@
             ],
             "@home": [
                 "src/pages/Home"
+            ],
+            "@dashboard/*": [
+                "src/pages/Dashboard/*"
+            ],
+            "@dashboard": [
+                "src/pages/Dashboard"
             ]
         }
     },
