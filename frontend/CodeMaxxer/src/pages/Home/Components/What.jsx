@@ -2,7 +2,7 @@ import styles from '@home/styles/What.module.css'
 import useInViewAnimation from '@/hooks/useInViewAnimation'
 
 const cardData = [
-    { title: 'Placeholder 1', description: 'What.' },
+    { title: 'Placeholder 1', description: 'Lorem ipsum lalalalaaaaLorem ipsum lalalalaaaaLorem ipsum lalalalaaaaLorem ipsum lalalalaaaaLorem ipsum lalalalaaaaLorem ipsum lalalalaaaaLorem ipsum lalalalaaaaLorem ipsum lalalalaaaaLorem ipsum lalalalaaaaLorem ipsum lalalalaaaaLorem ipsum lalalalaaaaLorem ipsum lalalalaaaaLorem ipsum lalalalaaaaLorem ipsum lalalalaaaaLorem ipsum lalalalaaaaLorem ipsum lalalalaaaaLorem ipsum lalalalaaaaLorem ipsum lalalalaaaaLorem ipsum lalalalaaaaLorem ipsum lalalalaaaaLorem ipsum lalalalaaaa' },
     { title: 'Placeholder 2', description: 'The,' },
     { title: 'Placeholder 3', description: 'Heck;' },
 ]

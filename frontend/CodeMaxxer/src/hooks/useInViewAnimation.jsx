@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 
-export default function useInViewAnimation({ threshold = 0.2, rootMargin = '0px', once = true, onVisible } = {}) {
+export default function useInViewAnimation({ threshold = 0.2, rootMargin = '0px', root = null, once = true, onVisible } = {}) {
     const ref = useRef(null)
     const [isVisible, setIsVisible] = useState(false)
 
@@ -23,6 +23,7 @@ export default function useInViewAnimation({ threshold = 0.2, rootMargin = '0px'
                 }
             },
             {
+                root,
                 threshold,
                 rootMargin,
             }

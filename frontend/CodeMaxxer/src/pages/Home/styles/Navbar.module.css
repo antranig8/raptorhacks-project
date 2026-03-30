@@ -2,12 +2,15 @@
     font-family: inherit;
     font-weight: 700;
     display: grid;
-    grid-template-columns: 1fr auto 1fr;
+    grid-template-columns: 1fr 1fr 1fr;
     align-items: center;
     width: 100%;
     padding: 1rem 1.5rem;
     background-color: #fff;
     box-sizing: border-box;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
 }
 
 .leftGroup,
@@ -18,9 +21,13 @@
 }
 
 .centerGroup {
-    justify-content: center;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    justify-items: center;
     gap: 0.6rem;
     justify-self: center;
+    width: 100%;
+    max-width: 560px;
 }
 
 .leftGroup {
