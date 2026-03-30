@@ -10,6 +10,7 @@
   padding: 2rem;
   border: 5px solid #f8fafc;
   border-radius: 1.5rem;
+  overflow: hidden;
 }
 
 .content {

@@ -3,6 +3,13 @@
 :global(html) {
   --global-font-scale: 1.5;
   font-size: calc(100% * var(--global-font-scale));
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+:global(html::-webkit-scrollbar),
+:global(body::-webkit-scrollbar) {
+  display: none;
 }
 
 :global(body, #root) {
@@ -12,9 +19,15 @@
   background: #fcfdff;
   font-family: 'Mona Sans', Helvetica, Arial, sans-serif;
   color: #121212;
+  overflow: auto;
 }
 
 :global(*) {
   box-sizing: border-box;
   margin: 0px;
+  scrollbar-width: none;
+}
+
+:global(*::-webkit-scrollbar) {
+  display: none;
 }
