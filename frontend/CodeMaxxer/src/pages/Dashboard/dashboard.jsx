@@ -1,6 +1,6 @@
 import { Outlet } from 'react-router-dom'
 import DashboardNav from './components/DashboardNav'
-import styles from './styles/dashboard.module.css'
+import styles from '@dashboard/styles/dashboard.module.css'
 
 export default function Dashboard() {
     return (

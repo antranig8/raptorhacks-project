@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { FaHome, FaSeedling, FaGraduationCap, FaCog, FaQuestionCircle, FaKeyboard } from 'react-icons/fa'
 import Logo from '@/components/Logo/Logo'
-import styles from './DashboardNav.module.css'
+import styles from '@dashboard/styles/DashboardNav.module.css'
 
 const navSections = [
     {

@@ -1,4 +1,4 @@
-import styles from './styles/SkillTree.module.css'
+import styles from '@dashboard/styles/SkillTree.module.css'
 
 export default function SkillTree() {
     return (
