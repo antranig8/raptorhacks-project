@@ -30,9 +30,20 @@
 
 .topMain {
     width: 100%;
+    height: 100%;
     min-height: 0;
     display: flex;
     flex-direction: column;
+}
+
+.topMain > h1 {
+    margin-bottom: 1rem;
+    flex: 0;
+}
+
+.topMain > :not(h1) {
+    flex: 1;
+    min-height: 0;
 }
 
 .bottom {

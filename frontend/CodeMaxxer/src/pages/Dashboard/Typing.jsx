@@ -1,27 +1,23 @@
 import { useState, useRef } from 'react'
 import styles from './styles/Typing.module.css'
+import TextArea from './components/TextArea'
 
 export default function Typing() {
     const keyboard = useRef(null)
     const [input, setInput] = useState('')
     const [isTopActive, setIsTopActive] = useState(false)
 
-    const onChangeInput = (event) => {
-        const value = event.target.value
-        setInput(value)
-    }
+    const practiceTemplate = 'hello world'
+
     return (
         <section className={styles.container}>
             <div className={styles.top}>
                 <div className={`${styles.topMain} ${isTopActive ? styles.active : ''}`}>
                     <h1>Practice Typing</h1>
-                    <textarea
-                        className={styles.inputArea}
-                        value={input}
-                        onFocus={() => setIsTopActive(true)}
-                        onBlur={() => setIsTopActive(false)}
-                        onChange={onChangeInput}
-                        placeholder="Start typing..."
+                    <TextArea
+                        target={practiceTemplate}
+                        onChange={setInput}
+                        onActiveChange={setIsTopActive}
                     />
                 </div>
                 <div className={styles.topSide}>
