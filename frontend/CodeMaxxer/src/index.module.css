@@ -1,0 +1,43 @@
+@import url('https://fonts.cdnfonts.com/css/mona-sans');
+
+:global(html) {
+  --global-font-scale: 1.5;
+  font-size: calc(100% * var(--global-font-scale));
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+  overflow: auto;
+}
+
+:global(html::-webkit-scrollbar),
+:global(body::-webkit-scrollbar) {
+  display: none !important;
+  width: 0 !important;
+  background: transparent !important;
+}
+
+:global(html, body, #root) {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: #fcfdff;
+  font-family: 'Mona Sans', Helvetica, Arial, sans-serif;
+  color: #121212;
+  overflow: hidden;
+}
+
+:global(*) {
+  box-sizing: border-box;
+  margin: 0px;
+  scrollbar-width: none;
+}
+
+:global(*::-webkit-scrollbar) {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
+}
+
+:global(*::-webkit-scrollbar) {
+  display: none;
+}

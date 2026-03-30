@@ -1,0 +1,93 @@
+﻿.stackSection {
+  width: 100%;
+  max-width: 1000px;
+  margin: 1.5rem auto 0;
+  padding: 1rem;
+  box-sizing: border-box;
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(225, 230, 235, 0.45);
+  border-radius: 16px;
+}
+
+.stackTitle {
+  text-align: center;
+  font-size: 1.35rem;
+  color: #0f172a;
+  margin-bottom: 1rem;
+  font-weight: 700;
+}
+
+.stackGrid {
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  gap: 0.85rem;
+  padding-bottom: 0.2rem;
+  margin: 0 -0.75rem;
+}
+
+.stackGrid::-webkit-scrollbar {
+  height: 8px;
+}
+
+.stackGrid::-webkit-scrollbar-thumb {
+  background: rgba(100, 116, 139, 0.5);
+  border-radius: 999px;
+}
+
+.stackCard {
+  flex: 0 0 auto;
+  min-width: 140px;
+  scroll-snap-align: start;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  padding: 0.9rem 0.7rem;
+  text-align: center;
+  min-height: 122px;
+}
+
+.iconWrapper {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: #f8fafc;
+  display: grid;
+  place-items: center;
+}
+
+.stackImage {
+  width: 100%;
+  max-width: 36px;
+  max-height: 36px;
+  object-fit: contain;
+}
+
+.stackIconPlaceholder {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: #c7d2fe;
+  color: #1e3a8a;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+}
+
+.stackName {
+  color: #0f172a;
+  font-size: 1rem;
+  margin: 0;
+}
+
+.stackSubtitle {
+  color: #64748b;
+  font-size: 0.82rem;
+  margin: 0;
+}
