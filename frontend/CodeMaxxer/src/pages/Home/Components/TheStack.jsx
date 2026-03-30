@@ -1,10 +1,10 @@
-import styles from './styles/TheStack.module.css'
-import reactLogo from '../../../assets/react.svg'
-import flaskLogo from '../../../assets/flask.svg'
-import pistonLogo from '../../../assets/piston.svg'
-import vercelLogo from '../../../assets/vercel.svg'
-import supabaseLogo from '../../../assets/supabase.svg'
-import groqLogo from '../../../assets/groq.svg'
+import styles from '@home/styles/TheStack.module.css'
+import reactLogo from '@/assets/react.svg'
+import flaskLogo from '@/assets/flask.svg'
+import pistonLogo from '@/assets/piston.svg'
+import vercelLogo from '@/assets/vercel.svg'
+import supabaseLogo from '@/assets/supabase.svg'
+import groqLogo from '@/assets/groq.svg'
 
 const stackItems = [
     { title: 'React', subtitle: '', imgPath: reactLogo },

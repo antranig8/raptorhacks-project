@@ -1,7 +1,6 @@
-import Navbar from './Components/Navbar'
-import Hero from './Components/Hero'
-import TheStack from './Components/TheStack'
-import styles from '../../App.module.css'
+import Navbar from '@home/Components/Navbar'
+import Hero from '@home/Components/Hero'
+import styles from '@/App.module.css'
 
 function Home() {
     return (
