@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { FaTachometerAlt, FaSeedling, FaBook, FaCog, FaLifeRing } from 'react-icons/fa'
+import { FaHome, FaSeedling, FaGraduationCap, FaCog, FaQuestionCircle } from 'react-icons/fa'
 import Logo from '@/components/Logo/Logo'
 import styles from './DashboardNav.module.css'
 
@@ -7,16 +7,16 @@ const navSections = [
     {
         title: 'General',
         items: [
-            { section: 'General', label: 'Dashboard', route: '/dashboard', icon: <FaTachometerAlt /> },
+            { section: 'General', label: 'Dashboard', route: '/dashboard', icon: <FaHome /> },
             { section: 'General', label: 'Skill Tree', route: '/dashboard/skill-tree', icon: <FaSeedling /> },
-            { section: 'General', label: 'Study', route: '/dashboard/study', icon: <FaBook /> },
+            { section: 'General', label: 'Study', route: '/dashboard/study', icon: <FaGraduationCap /> },
         ],
     },
     {
         title: 'Support',
         items: [
             { section: 'Support', label: 'Settings', route: '/dashboard/settings', icon: <FaCog /> },
-            { section: 'Support', label: 'Help', route: '/dashboard/help', icon: <FaLifeRing /> },
+            { section: 'Support', label: 'Help', route: '/dashboard/help', icon: <FaQuestionCircle /> },
         ],
     },
 ]
@@ -24,7 +24,7 @@ const navSections = [
 export default function DashboardNav() {
     return (
         <aside className={styles.sidebar}>
-            <div className={styles.brand}><Logo /></div>
+            <Logo fontSize={'1.2rem'} />
             <nav className={styles.nav}>
                 {navSections.map((section, sectionIndex) => (
                     <div key={section.title} className={styles.sectionGroup}>
