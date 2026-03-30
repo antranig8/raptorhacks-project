@@ -1,0 +1,113 @@
+.navbar {
+    font-family: inherit;
+    font-weight: 700;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    width: 100%;
+    padding: 1rem 1.5rem;
+    background-color: #fff;
+    box-sizing: border-box;
+}
+
+.leftGroup,
+.centerGroup,
+.rightGroup {
+    display: flex;
+    align-items: center;
+}
+
+.centerGroup {
+    justify-content: center;
+    gap: 0.6rem;
+    justify-self: center;
+}
+
+.leftGroup {
+    justify-content: flex-start;
+}
+
+.rightGroup {
+    justify-content: flex-end;
+}
+
+.logo {
+    font-weight: 700;
+    font-size: 1.3rem;
+    margin-right: 2rem;
+    color: #000;
+    text-decoration: none;
+}
+
+.logo:hover,
+.logo:focus-visible {
+    color: #111;
+    text-decoration: underline;
+}
+
+.navButton {
+    font-family: inherit;
+    font-weight: inherit;
+    background: none;
+    border: none;
+    color: #000;
+    font-size: 1rem;
+    margin-right: 0;
+    padding: 0.5rem 0.7rem;
+    cursor: pointer;
+    position: relative;
+    transition: color 0.2s ease;
+}
+
+.navButton::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 2px;
+    width: 0;
+    background-color: #000;
+    transition: width 0.25s ease;
+}
+
+.navButton:hover,
+.navButton:focus-visible {
+    color: #111;
+    background-color: transparent;
+}
+
+.navButton:hover::after,
+.navButton:focus-visible::after {
+    width: 100%;
+}
+
+.ctaButton {
+    font-family: inherit;
+    background-color: #000;
+    color: #fff;
+    border: none;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 1rem;
+    padding: 0.6rem 1rem;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.ctaButton:hover,
+.ctaButton:focus-visible {
+    transform: scale(1.07);
+    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.2);
+    background-color: #222;
+}
+
+.ctaArrow {
+    display: inline-block;
+    margin-left: 0.3rem;
+    transition: transform 0.2s ease;
+}
+
+.ctaButton:hover .ctaArrow,
+.ctaButton:focus-visible .ctaArrow {
+    transform: translateX(2px);
+}

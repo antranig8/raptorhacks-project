@@ -1,0 +1,15 @@
+@import url('https://fonts.cdnfonts.com/css/mona-sans');
+
+:global(html, body, #root) {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  background: #fcfdff;
+  font-family: 'Mona Sans', Helvetica, Arial, sans-serif;
+  color: #121212;
+}
+
+:global(*) {
+  box-sizing: border-box;
+  margin: 0px;
+}
