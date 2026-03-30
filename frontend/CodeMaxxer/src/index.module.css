@@ -1,6 +1,11 @@
 @import url('https://fonts.cdnfonts.com/css/mona-sans');
 
-:global(html, body, #root) {
+:global(html) {
+  --global-font-scale: 1.5;
+  font-size: calc(100% * var(--global-font-scale));
+}
+
+:global(body, #root) {
   margin: 0;
   padding: 0;
   min-height: 100%;
