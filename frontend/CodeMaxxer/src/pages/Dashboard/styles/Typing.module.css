@@ -1,0 +1,117 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+    background: #ffffff;
+    border: 1px solid #e5e9f0;
+    border-radius: 14px;
+    padding: 1.5rem;
+    gap: 1rem;
+}
+
+.top {
+    flex: 0 0 60%;
+    min-height: 0;
+    overflow: hidden;
+    display: grid;
+    grid-template-columns: 7fr 3fr;
+    gap: 1rem;
+}
+
+.topMain,
+.topSide {
+    background: #f8fbff;
+    border: 1px solid #e5e9f0;
+    border-radius: 10px;
+    padding: 1rem;
+    overflow: auto;
+}
+
+.topMain {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.topMain>h1 {
+    margin-bottom: 1rem;
+    flex: 0;
+}
+
+.topMain> :not(h1) {
+    flex: 1;
+    min-height: 0;
+}
+
+.bottom {
+    flex: 0 0 40%;
+    min-height: 0;
+    overflow: hidden;
+    display: flex;
+    background: #f8fbff;
+    border: 1px solid #e5e9f0;
+    border-radius: 10px;
+    padding: 1rem;
+}
+
+.hg-theme-default {
+    height: 100% !important;
+}
+
+.hg-main {
+    height: 100% !important;
+}
+
+.hg-layout-default {
+    height: 100% !important;
+}
+
+.hg-row {
+    height: 100% !important;
+    display: flex !important;
+    align-items: stretch !important;
+}
+
+.hg-button {
+    user-select: none;
+    flex: 1 !important;
+    height: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-width: 0 !important;
+}
+
+
+.hg-active-key {
+    background-color: #2563eb !important;
+    color: #fff !important;
+    box-shadow: 0 0 10px rgba(37, 99, 235, 0.4);
+}
+
+.topMain h1 {
+    margin: 0 0 0.75rem;
+    font-size: 2rem;
+}
+
+.inputArea {
+    width: 100%;
+    height: calc(100% - 2.5rem);
+    min-height: 140px;
+    border-radius: 8px;
+    border: 1px solid #cbd5e1;
+    padding: 0.8rem;
+    font-size: 1rem;
+    resize: none;
+    box-sizing: border-box;
+}
+
+.topMain p,
+.topSide p,
+.bottom p {
+    margin: 0;
+    color: #475569;
+}

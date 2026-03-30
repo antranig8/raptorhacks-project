@@ -1,5 +1,5 @@
 ﻿import Form from './components/Form.jsx'
-import styles from './styles/login.module.css'
+import styles from '@login/styles/login.module.css'
 
 export default function Login() {
     return (

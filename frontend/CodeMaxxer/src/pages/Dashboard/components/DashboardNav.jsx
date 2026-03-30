@@ -1,15 +1,26 @@
 import { Link } from 'react-router-dom'
-import { FaHome, FaSeedling, FaGraduationCap, FaCog, FaQuestionCircle } from 'react-icons/fa'
+import { FaHome, FaSeedling, FaGraduationCap, FaCog, FaQuestionCircle, FaKeyboard } from 'react-icons/fa'
 import Logo from '@/components/Logo/Logo'
-import styles from './DashboardNav.module.css'
+import styles from '@dashboard/styles/DashboardNav.module.css'
 
 const navSections = [
     {
         title: 'General',
         items: [
-            { section: 'General', label: 'Dashboard', route: '/dashboard', icon: <FaHome /> },
+            {
+                section: 'General',
+                label: 'Dashboard',
+                route: '/dashboard',
+                icon: <FaHome />,
+                notification: {
+                    enabled: true,
+                    color: '#ef4444',
+                    size: '0.35rem',
+                },
+            },
             { section: 'General', label: 'Skill Tree', route: '/dashboard/skill-tree', icon: <FaSeedling /> },
             { section: 'General', label: 'Study', route: '/dashboard/study', icon: <FaGraduationCap /> },
+            { section: 'General', label: 'Typing', route: '/dashboard/typing', icon: <FaKeyboard /> },
         ],
     },
     {
@@ -31,7 +42,19 @@ export default function DashboardNav() {
                         <div className={styles.sectionTitle}>{section.title}</div>
                         {section.items.map((item) => (
                             <Link key={item.label} to={item.route} className={styles.navItem}>
-                                <span className={styles.icon}>{item.icon}</span>
+                                <span className={styles.iconWrapper}>
+                                    <span className={styles.icon}>{item.icon}</span>
+                                    {item.notification?.enabled && (
+                                        <span
+                                            className={styles.notificationDot}
+                                            style={{
+                                                backgroundColor: item.notification.color || '#ef4444',
+                                                width: item.notification.size || '0.35rem',
+                                                height: item.notification.size || '0.35rem',
+                                            }}
+                                        />
+                                    )}
+                                </span>
                                 <span>{item.label}</span>
                             </Link>
                         ))}

@@ -1,4 +1,4 @@
-import styles from './styles/Help.module.css'
+import styles from '@dashboard/styles/Help.module.css'
 
 export default function Help() {
     return (
