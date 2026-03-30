@@ -7,6 +7,7 @@ import SkillTree from '@dashboard/SkillTree.jsx'
 import Study from '@dashboard/Study.jsx'
 import Settings from '@dashboard/Settings.jsx'
 import Help from '@dashboard/Help.jsx'
+import Typing from '@dashboard/Typing.jsx'
 import styles from '@/App.module.css'
 
 function App() {
@@ -22,6 +23,7 @@ function App() {
             <Route path="study" element={<Study />} />
             <Route path="settings" element={<Settings />} />
             <Route path="help" element={<Help />} />
+            <Route path="typing" element={<Typing />} />
           </Route>
         </Routes>
       </div>
