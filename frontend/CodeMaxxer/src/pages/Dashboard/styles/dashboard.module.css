@@ -16,13 +16,6 @@
     gap: 1.8rem;
 }
 
-.brand {
-    font-size: 1.8rem;
-    font-weight: 700;
-    color: #000;
-    margin-bottom: 1rem;
-}
-
 .nav {
     display: flex;
     flex-direction: column;
