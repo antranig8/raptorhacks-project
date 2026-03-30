@@ -4,13 +4,16 @@
 
 .homePageContent {
     margin: 0 50px;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
 }
 
-.homePageContent > * {
+.homePageContent>* {
     margin-top: 0;
 }
 
-.homePageContent > *:first-child {
+.homePageContent>*:first-child {
     margin-top: 0;
 }
 
