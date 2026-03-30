@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom'
+import Logo from '@/components/Logo/Logo'
 import styles from '@home/styles/Navbar.module.css'
 import useInViewAnimation from '@/hooks/useInViewAnimation'
 
@@ -9,7 +10,7 @@ function Navbar() {
   return (
     <nav ref={ref} className={`${styles.navbar} ${isVisible ? styles.visible : styles.hidden}`}>
       <div className={styles.leftGroup}>
-        <a href="/" className={styles.logo}>CodeMaxxer</a>
+        <Logo />
       </div>
       <div className={styles.centerGroup}>
         <button className={styles.navButton}>Home</button>

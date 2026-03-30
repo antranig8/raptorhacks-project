@@ -1,9 +1,11 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { FaEye, FaEyeSlash, FaGoogle } from 'react-icons/fa'
 import styles from '../styles/login.module.css'
 
 export default function Form() {
     const [showPassword, setShowPassword] = useState(false)
+    const navigate = useNavigate()
 
     return (
         <div className={styles.formContainer}>
@@ -41,7 +43,7 @@ export default function Form() {
                 </div>
 
                 <button type="submit" className={styles.loginButton}>Log In</button>
-                <button type="button" className={styles.bypassButton}>Bypass</button>
+                <button type="button" className={styles.bypassButton} onClick={() => navigate('/dashboard')}>Bypass</button>
 
                 <div className={styles.divider}>
                     <hr />
