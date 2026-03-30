@@ -1,6 +1,6 @@
-import Navbar from '@home/Components/Navbar'
-import Hero from '@home/Components/Hero'
-import What from '@home/Components/What'
+import Navbar from '@/pages/Home/components/Navbar'
+import Hero from '@/pages/Home/components/Hero'
+import What from '@/pages/Home/components/What'
 import styles from '@/App.module.css'
 
 function Home() {
