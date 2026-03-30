@@ -13,6 +13,21 @@
 
 .content {
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  height: 100%;
+  max-width: 1000px;
+  width: 100%;
+  gap: 1.2rem;
+}
+
+.topContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.9rem;
 }
 
 .title {
