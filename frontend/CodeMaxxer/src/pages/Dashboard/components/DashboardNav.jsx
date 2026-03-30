@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { FaHome, FaSeedling, FaGraduationCap, FaCog, FaQuestionCircle } from 'react-icons/fa'
+import { FaHome, FaSeedling, FaGraduationCap, FaCog, FaQuestionCircle, FaKeyboard } from 'react-icons/fa'
 import Logo from '@/components/Logo/Logo'
 import styles from './DashboardNav.module.css'
 
@@ -10,6 +10,7 @@ const navSections = [
             { section: 'General', label: 'Dashboard', route: '/dashboard', icon: <FaHome /> },
             { section: 'General', label: 'Skill Tree', route: '/dashboard/skill-tree', icon: <FaSeedling /> },
             { section: 'General', label: 'Study', route: '/dashboard/study', icon: <FaGraduationCap /> },
+            { section: 'General', label: 'Typing', route: '/dashboard/typing', icon: <FaKeyboard /> },
         ],
     },
     {
