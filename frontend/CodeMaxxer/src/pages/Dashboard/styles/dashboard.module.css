@@ -42,8 +42,16 @@
 
 .content {
     flex: 1;
+    min-height: 100vh;
     padding: 1rem;
     overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.content > * {
+    flex: 1;
+    min-height: 0;
 }
 
 .header h1 {
