@@ -8,7 +8,6 @@
   backdrop-filter: blur(10px);
   border: 1px solid rgba(225, 230, 235, 0.45);
   border-radius: 16px;
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
 }
 
 .stackTitle {
