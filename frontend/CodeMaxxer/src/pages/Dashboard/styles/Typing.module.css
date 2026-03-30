@@ -36,12 +36,12 @@
     flex-direction: column;
 }
 
-.topMain > h1 {
+.topMain>h1 {
     margin-bottom: 1rem;
     flex: 0;
 }
 
-.topMain > :not(h1) {
+.topMain> :not(h1) {
     flex: 1;
     min-height: 0;
 }
@@ -55,12 +55,6 @@
     border: 1px solid #e5e9f0;
     border-radius: 10px;
     padding: 1rem;
-}
-
-.keyboardWrapper {
-    flex: 1;
-    min-height: 0;
-    width: 100%;
 }
 
 .hg-theme-default {

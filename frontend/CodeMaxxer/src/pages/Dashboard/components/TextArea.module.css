@@ -17,10 +17,23 @@
     box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15);
 }
 
+.wpmBadge {
+    position: relative;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    padding: 0.5rem 0.75rem;
+    margin: 0.8rem;
+    color: #1d4ed8;
+    font-weight: 700;
+    font-size: 0.92rem;
+    box-shadow: 0 4px 10px rgba(30, 41, 59, 0.1);
+}
+
 .content {
     width: 100%;
     height: 100%;
-    padding: 1rem;
+    padding: 1.2rem 1rem 1rem;
     box-sizing: border-box;
     position: relative;
     background: transparent;
@@ -69,6 +82,57 @@
     backdrop-filter: blur(1px);
 }
 
+.statusOverlay {
+    position: absolute;
+    inset: auto 1rem 1rem 1rem;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    padding: 0.75rem;
+    margin-top: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    box-shadow: 0 6px 20px rgba(30, 41, 59, 0.15);
+}
+
+.completedText {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.wpmText {
+    margin: 0;
+    font-size: 0.95rem;
+    color: #334155;
+    font-weight: 600;
+}
+
+.toolbar {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    border: 1px solid #cbd5e1;
+    background: #f8fbff;
+    color: #1f2937;
+    padding: 0.4rem 0.7rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.95rem;
+}
+
+.button:hover {
+    background: #ebf2ff;
+    border-color: #9fbaf4;
+}
+
 .icon {
     width: 1rem;
     height: 1rem;
@@ -85,7 +149,14 @@
 }
 
 @keyframes blink {
-    0%, 50% { opacity: 1; }
-    50.1%, 100% { opacity: 0; }
-}
 
+    0%,
+    50% {
+        opacity: 1;
+    }
+
+    50.1%,
+    100% {
+        opacity: 0;
+    }
+}
