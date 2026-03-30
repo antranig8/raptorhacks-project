@@ -65,3 +65,26 @@
   font-size: .9rem;
   line-height: 1.5;
 }
+
+.cardHidden {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.cardVisible {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.hidden {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+
+.visible {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}

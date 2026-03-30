@@ -1,8 +1,11 @@
 import styles from '@home/styles/Navbar.module.css'
+import useInViewAnimation from '@/hooks/useInViewAnimation'
 
 function Navbar() {
+  const { ref, isVisible } = useInViewAnimation({ threshold: 0.1, rootMargin: '0px 0px -40px 0px' })
+
   return (
-    <nav className={styles.navbar}>
+    <nav ref={ref} className={`${styles.navbar} ${isVisible ? styles.visible : styles.hidden}`}>
       <div className={styles.leftGroup}>
         <a href="/" className={styles.logo}>CodeMaxxer</a>
       </div>
