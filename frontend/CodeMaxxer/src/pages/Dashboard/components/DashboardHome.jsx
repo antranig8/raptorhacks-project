@@ -1,4 +1,4 @@
-import styles from './styles/DashboardHome.module.css'
+import styles from '@dashboard/styles/DashboardHome.module.css'
 
 export default function DashboardHome() {
     return (

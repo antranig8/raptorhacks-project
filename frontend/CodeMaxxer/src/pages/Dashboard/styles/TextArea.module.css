@@ -63,6 +63,10 @@
     background: rgba(220, 38, 38, 0.16);
 }
 
+.templateChar {
+    color: rgba(100, 116, 139, 0.45);
+}
+
 .remaining {
     color: rgba(30, 41, 59, 0.4);
 }

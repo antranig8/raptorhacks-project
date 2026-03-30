@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FaEye, FaEyeSlash, FaGoogle } from 'react-icons/fa'
-import styles from '../styles/login.module.css'
+import styles from '@login/styles/login.module.css'
 
 export default function Form() {
     const [showPassword, setShowPassword] = useState(false)

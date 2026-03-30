@@ -1,4 +1,4 @@
-import styles from './styles/Study.module.css'
+import styles from '@dashboard/styles/Study.module.css'
 
 export default function Study() {
     return (

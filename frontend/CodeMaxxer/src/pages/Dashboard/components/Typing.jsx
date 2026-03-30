@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react'
-import styles from './styles/Typing.module.css'
-import TextArea from './components/TextArea'
+import styles from '@dashboard/styles/Typing.module.css'
+import TextArea from './TextArea'
 
 export default function Typing() {
     const keyboard = useRef(null)

@@ -1,4 +1,4 @@
-import styles from './styles/Settings.module.css'
+import styles from '@dashboard/styles/Settings.module.css'
 
 export default function Settings() {
     return (

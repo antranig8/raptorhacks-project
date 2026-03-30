@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { FaMousePointer, FaRedo } from 'react-icons/fa'
-import styles from './TextArea.module.css'
+import styles from '@dashboard/styles/TextArea.module.css'
 
 export default function TextArea({ target = 'hello world', onChange, onActiveChange }) {
     const [active, setActive] = useState(false)
