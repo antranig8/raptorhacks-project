@@ -14,12 +14,13 @@
 }
 
 .leftCol {
-    background: #f3f4f6;
+    background: #ffffff;
     border-radius: 0.5rem;
 }
 
 .rightCol {
-    background: #f3f4f6;
+    background: #ffffff;
     border-radius: 0.5rem;
     height: 100%;
+    border: 3px solid #f3f4f6;
 }
