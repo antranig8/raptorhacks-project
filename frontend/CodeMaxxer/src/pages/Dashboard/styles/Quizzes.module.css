@@ -23,4 +23,12 @@
     border-radius: 0.5rem;
     height: 100%;
     border: 3px solid #f3f4f6;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.questionSection {
+    margin-top: 0.5rem;
 }
