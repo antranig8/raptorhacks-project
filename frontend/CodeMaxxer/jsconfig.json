@@ -5,26 +5,23 @@
             "@/*": [
                 "src/*"
             ],
-            "@": [
-                "src"
-            ],
             "@pages/*": [
                 "src/pages/*"
-            ],
-            "@pages": [
-                "src/pages"
             ],
             "@home/*": [
                 "src/pages/Home/*"
             ],
-            "@home": [
-                "src/pages/Home"
-            ],
             "@dashboard/*": [
                 "src/pages/Dashboard/*"
             ],
-            "@dashboard": [
-                "src/pages/Dashboard"
+            "@d_general/*": [
+                "src/pages/Dashboard/components/general/*"
+            ],
+            "@d_study/*": [
+                "src/pages/Dashboard/components/study/*"
+            ],
+            "@d_support/*": [
+                "src/pages/Dashboard/components/support/*"
             ]
         }
     },
