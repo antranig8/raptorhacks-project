@@ -1,12 +1,18 @@
-# Backend (Flask)
+# Backend (FastAPI)
 
 ## Overview
-This is the Flask backend. It handles API routes, business logic, and any machine learning functionality.
+This is the FastAPI backend for the RaptorHacks project.  
+It handles requests from the frontend, sends prompts to the Groq API, and returns structured JSON skill trees.
 
 ## Runs On
 http://localhost: TBD
 
+## Current Tech Stack
+- FastAPI
+- Groq API
+- Pydantic
+- Python
+
 ## Notes
 - Define API routes here
-- Connect to Supabase or database
-- Handle ML processing if needed
+- Connect to supabase
