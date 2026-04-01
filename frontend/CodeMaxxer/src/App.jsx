@@ -8,6 +8,7 @@ import Study from '@dashboard/components/Study.jsx'
 import Settings from '@dashboard/components/Settings.jsx'
 import Help from '@dashboard/components/Help.jsx'
 import Typing from '@dashboard/components/Typing.jsx'
+import Quizzes from '@dashboard/components/Quizzes.jsx'
 import styles from '@/App.module.css'
 
 function App() {
@@ -21,6 +22,7 @@ function App() {
             <Route index element={<DashboardHome />} />
             <Route path="skill-tree" element={<SkillTree />} />
             <Route path="study" element={<Study />} />
+            <Route path="quizzes" element={<Quizzes />} />
             <Route path="settings" element={<Settings />} />
             <Route path="help" element={<Help />} />
             <Route path="typing" element={<Typing />} />
