@@ -5,10 +5,7 @@ export default function Quizzes() {
         <section className={styles.container}>
             <div className={styles.grid}>
                 <div className={styles.leftCol} />
-                <div className={styles.rightCol}>
-                    <div className={styles.topRow} />
-                    <div className={styles.bottomRow} />
-                </div>
+                <div className={styles.rightCol} />
             </div>
         </section>
     )

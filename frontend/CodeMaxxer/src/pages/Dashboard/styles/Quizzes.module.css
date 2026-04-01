@@ -19,18 +19,7 @@
 }
 
 .rightCol {
-    display: grid;
-    grid-template-rows: 1fr 8fr;
-    gap: 0.75rem;
+    background: #f3f4f6;
+    border-radius: 0.5rem;
     height: 100%;
-}
-
-.topRow {
-    background: #f3f4f6;
-    border-radius: 0.5rem;
-}
-
-.bottomRow {
-    background: #f3f4f6;
-    border-radius: 0.5rem;
 }
