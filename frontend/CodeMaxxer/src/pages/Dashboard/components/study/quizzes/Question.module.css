@@ -42,7 +42,7 @@
 .choiceHeader {
     display: flex;
     gap: 0.75rem;
-    align-items: flex-start;
+    align-items: center;
 }
 
 .choiceId {
@@ -86,7 +86,8 @@
 
 /* Response variants */
 .choice.correct {
-    background-color: #dcfce7; /* Light green */
+    background-color: #dcfce7;
+    /* Light green */
     border-color: #86efac;
     cursor: default;
 }
@@ -100,7 +101,8 @@
 }
 
 .choice.wrong {
-    background-color: #fee2e2; /* Light red */
+    background-color: #fee2e2;
+    /* Light red */
     border-color: #fca5a5;
     cursor: default;
 }
@@ -140,8 +142,10 @@
     cursor: not-allowed;
 }
 
-.nextBtn, .submitBtn {
-    background-color: #0b57d0; /* Darker blue from the image */
+.nextBtn,
+.submitBtn {
+    background-color: #0b57d0;
+    /* Darker blue from the image */
     color: white;
     padding: 0.6rem 2.5rem;
     border-radius: 999px;
@@ -152,11 +156,13 @@
     transition: background-color 0.2s;
 }
 
-.nextBtn:hover, .submitBtn:hover {
+.nextBtn:hover,
+.submitBtn:hover {
     background-color: #0842a0;
 }
 
-.nextBtn:disabled, .submitBtn:disabled {
+.nextBtn:disabled,
+.submitBtn:disabled {
     background-color: #e5e7eb;
     color: #9ca3af;
     cursor: not-allowed;

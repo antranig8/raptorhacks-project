@@ -51,16 +51,16 @@ export default function Quizzes() {
             <div className={styles.grid}>
                 <div className={styles.leftCol} />
                 <div className={styles.rightCol}>
-                    <ProgressSummary 
-                        title="Computer Architecture Quiz" 
-                        answered={answeredCount} 
-                        correct={correctCount} 
-                        wrong={wrongCount} 
-                        total={total} 
+                    <ProgressSummary
+                        title="Computer Architecture Quiz"
+                        answered={answeredCount}
+                        correct={correctCount}
+                        wrong={wrongCount}
+                        total={total}
                         results={results}
                     />
                     <div className={styles.questionSection}>
-                        <Question 
+                        <Question
                             key={currentIdx}
                             {...currentQuestion}
                             isFirst={currentIdx === 0}

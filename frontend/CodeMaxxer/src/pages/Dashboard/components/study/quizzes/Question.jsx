@@ -10,11 +10,11 @@ import styles from './Question.module.css';
  * - choices: array of { id, label, isCorrect, reasoning }
  * - onResult: callback(result: boolean)
  */
-export default function Question({ 
-    number = 1, 
-    prompt = '', 
-    type = 'Single', 
-    choices = [], 
+export default function Question({
+    number = 1,
+    prompt = '',
+    type = 'Single',
+    choices = [],
     onResult,
     isSkippable = true,
     isFirst = false,
@@ -30,7 +30,7 @@ export default function Question({
         if (isSubmitted) return;
         setSelectedId(id);
         setIsSubmitted(true);
-        
+
         const choice = choices.find(c => c.id === id);
         if (onResult) {
             onResult(choice?.isCorrect || false);
@@ -40,16 +40,16 @@ export default function Question({
     const renderChoice = (choice) => {
         const isSelected = selectedId === choice.id;
         const showResult = isSubmitted && isSelected;
-        
+
         let containerClass = styles.choice;
         if (showResult) {
             containerClass += choice.isCorrect ? ` ${styles.correct}` : ` ${styles.wrong}`;
         }
 
         return (
-            <div 
-                key={choice.id} 
-                className={containerClass} 
+            <div
+                key={choice.id}
+                className={containerClass}
                 onClick={() => handleSelect(choice.id)}
             >
                 <div className={styles.choiceHeader}>
@@ -87,8 +87,8 @@ export default function Question({
             </div>
 
             <div className={styles.footer}>
-                <button 
-                    className={styles.backBtn} 
+                <button
+                    className={styles.backBtn}
                     onClick={onBack}
                     disabled={isFirst}
                 >
@@ -96,16 +96,16 @@ export default function Question({
                 </button>
                 <div className={styles.rightActions}>
                     {isLast ? (
-                        <button 
-                            className={styles.submitBtn} 
+                        <button
+                            className={styles.submitBtn}
                             onClick={onSubmit}
                             disabled={!isSubmitted && !isSkippable}
                         >
                             Submit
                         </button>
                     ) : (
-                        <button 
-                            className={styles.nextBtn} 
+                        <button
+                            className={styles.nextBtn}
                             onClick={onNext}
                             disabled={!isSubmitted && !isSkippable}
                         >
