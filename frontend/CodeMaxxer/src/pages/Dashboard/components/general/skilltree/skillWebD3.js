@@ -11,7 +11,7 @@ export const initSkillWeb = (svgRef, data, width, height, zoom) => {
     svg.selectAll("*").remove();
 
     const canvas = svg.append("g");
-    svg.call(zoom);
+    svg.call(zoom).on("dblclick.zoom", null); // Disable default double-click zoom
 
     const root = d3.hierarchy(data);
     const measureCanvas = document.createElement("canvas");
@@ -47,95 +47,129 @@ export const initSkillWeb = (svgRef, data, width, height, zoom) => {
             const angle = (index / siblings.length) * 2 * Math.PI;
             d.x = width / 2 + Math.cos(angle) * ring1Radius;
             d.y = height / 2 + Math.sin(angle) * ring1Radius;
-        } else if (d.depth === 2) {
-            const leafOrbitRadius = 150;
+        } else if (d.depth >= 2) {
+            const orbitRadius = d.depth === 2 ? 180 : 120; // Level 2 and Level 3 have their own radius around their parent
             const siblings = d.parent.children;
             const index = siblings.indexOf(d);
-            const parentAngle = Math.atan2(d.parent.y - height / 2, d.parent.x - width / 2);
-            const spread = Math.PI / 2;
+            // Calculate angle pointing away from the grandparent to spread outward
+            const parentAngle = Math.atan2(d.parent.y - d.parent.parent.y, d.parent.x - d.parent.parent.x);
+            const spread = Math.PI / 1.5; // Spread angle
             const step = siblings.length > 1 ? spread / (siblings.length - 1) : 0;
             const angle = parentAngle - (spread / 2) + (index * step);
-            d.x = d.parent.x + Math.cos(angle) * leafOrbitRadius;
-            d.y = d.parent.y + Math.sin(angle) * leafOrbitRadius;
+            d.x = d.parent.x + Math.cos(angle) * orbitRadius;
+            d.y = d.parent.y + Math.sin(angle) * orbitRadius;
         }
     });
 
     const links = root.links();
     const nodes = root.descendants();
 
+    const linkColorScale = d3.scaleLinear().domain([0, 0.5, 1]).range(["#ef4444", "#fbbf24", "#22c55e"]).interpolate(d3.interpolateRgb);
+
     const link = canvas.append("g")
-        .attr("stroke", "#444")
         .attr("stroke-opacity", 0.6)
         .selectAll("line")
         .data(links)
         .join("line")
+        .attr("stroke", d => linkColorScale(d.target.levelData.progressPercentage))
         .attr("stroke-width", d => Math.max(1, 4 - d.source.depth))
         .attr("x1", d => d.source.x)
         .attr("y1", d => d.source.y)
         .attr("x2", d => d.target.x)
         .attr("y2", d => d.target.y);
 
+    const selectedNodes = new Set();
+    
+    svg.on("click", () => {
+        if (selectedNodes.size > 0) {
+            selectedNodes.clear();
+            updateSelectionState();
+        }
+    });
+
     const node = canvas.append("g")
         .selectAll("g")
         .data(nodes)
         .join("g")
         .attr("transform", d => `translate(${d.x},${d.y})`)
+        .style("cursor", "pointer")
         .call(d3.drag()
             .on("start", (event, d) => {
                 if (d.depth === 0) return;
-                d3.select(event.sourceEvent.target.parentNode).raise();
+                // Removed .raise() from start because removing/reinserting the DOM element 
+                // between mousedown and mouseup causes the browser to swallow the initial click event.
             })
             .on("drag", function (event, d) {
                 if (d.depth === 0) return;
-                let newX = event.x;
-                let newY = event.y;
-                const margin = 1;
+                
+                // Raise the element to the front only when actually dragging to preserve clicks
+                d3.select(this).raise();
+                
+                const dx = event.dx;
+                const dy = event.dy;
+                
+                const targets = selectedNodes.has(d) ? Array.from(selectedNodes).filter(n => n.depth !== 0) : [d];
 
-                nodes.forEach(other => {
-                    if (d === other) return;
-                    const dL = newX - d.dims.w / 2 - margin;
-                    const dR = newX + d.dims.w / 2 + margin;
-                    const dT = newY - d.dims.h / 2 - margin;
-                    const dB = newY + d.dims.h / 2 + margin;
-                    const oL = other.x - other.dims.w / 2 - margin;
-                    const oR = other.x + other.dims.w / 2 + margin;
-                    const oT = other.y - other.dims.h / 2 - margin;
-                    const oB = other.y + other.dims.h / 2 + margin;
-
-                    if (dL < oR && dR > oL && dT < oB && dB > oT) {
-                        const overlapX = Math.min(dR - oL, oR - dL);
-                        const overlapY = Math.min(dB - oT, oB - dT);
-                        if (overlapX < overlapY) { newX += (newX > other.x) ? overlapX : -overlapX; }
-                        else { newY += (newY > other.y) ? overlapY : -overlapY; }
-                    }
+                targets.forEach(targetNode => {
+                    targetNode.x += dx;
+                    targetNode.y += dy;
                 });
 
-                d.x = newX; d.y = newY;
-                d3.select(this).attr("transform", `translate(${d.x},${d.y})`);
-                link.filter(l => l.source === d).attr("x1", d.x).attr("y1", d.y);
-                link.filter(l => l.target === d).attr("x2", d.x).attr("y2", d.y);
+                node.attr("transform", n => `translate(${n.x},${n.y})`);
+                link.attr("x1", l => l.source.x)
+                    .attr("y1", l => l.source.y)
+                    .attr("x2", l => l.target.x)
+                    .attr("y2", l => l.target.y);
             }))
         .on("click", (event, d) => {
             event.stopPropagation();
-            const scale = 1.2;
-            const tx = width / 2 - d.x * scale;
-            const ty = height / 2 - d.y * scale;
-            svg.transition().duration(750).call(
-                zoom.transform,
-                d3.zoomIdentity.translate(tx, ty).scale(scale)
-            );
+            if (selectedNodes.has(d)) {
+                selectedNodes.delete(d);
+            } else {
+                selectedNodes.add(d);
+            }
+            updateSelectionState();
+        })
+        .on("dblclick", (event, d) => {
+            event.stopPropagation();
+            d.descendants().forEach(child => selectedNodes.add(child));
+            updateSelectionState();
         });
 
-    node.append("rect")
+    const mainRects = node.append("rect")
         .attr("width", d => d.dims.w)
         .attr("height", d => d.dims.h)
         .attr("x", d => -d.dims.w / 2)
         .attr("y", d => -d.dims.h / 2)
         .attr("rx", d => d.dims.rx)
         .attr("ry", d => d.dims.rx)
-        .attr("fill", d => d.depth === 0 ? "#8b5cf6" : (d.depth === 1 ? "#3b82f6" : "#10b981"))
-        .attr("stroke", "#1e1e1e")
-        .attr("stroke-width", 2);
+        .attr("fill", d => {
+            if (d.depth === 0) return "#4f46e5"; // Indigo for Root
+            if (d.depth === 1) return "#2563eb"; // Blue for Topics
+            if (d.depth === 2) return "#059669"; // Green for Skills
+            return "#d97706"; // Amber for Subskills (Depth 3+)
+        })
+        .style("filter", "drop-shadow(0px 4px 6px rgba(0, 0, 0, 0.3))"); // Replaced border with soft shadow
+
+    function updateSelectionState() {
+        mainRects.each(function(d) {
+            const isSelected = selectedNodes.has(d);
+            const rect = d3.select(this);
+            const currSelected = rect.attr("data-selected") === "true";
+            
+            if (isSelected !== currSelected) {
+                rect.attr("data-selected", isSelected ? "true" : "false")
+                    .transition().duration(200)
+                    .style("stroke", isSelected ? "#000" : "none")
+                    .style("stroke-width", isSelected ? "3px" : "0px")
+                    .style("filter", isSelected ? "none" : "drop-shadow(0px 4px 6px rgba(0, 0, 0, 0.3))");
+                
+                const parentNode = d3.select(this.parentNode);
+                parentNode.selectAll(".progress-rect")
+                    .style("display", isSelected ? "none" : "block");
+            }
+        });
+    }
 
     node.each(function (d) {
         const group = d3.select(this);
@@ -148,9 +182,34 @@ export const initSkillWeb = (svgRef, data, width, height, zoom) => {
         const colorScale = d3.scaleLinear().domain([0, 0.5, 1]).range(["#ef4444", "#fbbf24", "#22c55e"]).interpolate(d3.interpolateRgb);
 
         group.append("rect")
+            .attr("class", "progress-rect")
             .attr("width", pw).attr("height", ph).attr("x", -pw / 2).attr("y", -ph / 2).attr("rx", prx).attr("ry", prx)
             .attr("fill", "none").attr("stroke", colorScale(d.levelData.progressPercentage))
             .attr("stroke-width", 5).attr("stroke-linecap", "round").attr("stroke-dasharray", dashArray).attr("stroke-dashoffset", 0);
+            
+        // Skill Level Circle Indicator
+        const radius = 12;
+        const cx = d.dims.w / 2;
+        const cy = -d.dims.h / 2;
+
+        group.append("circle")
+            .attr("cx", cx)
+            .attr("cy", cy)
+            .attr("r", radius)
+            .attr("fill", "#1e1e1e")
+            .attr("stroke", colorScale(d.levelData.progressPercentage))
+            .attr("stroke-width", 2);
+
+        group.append("text")
+            .attr("x", cx)
+            .attr("y", cy)
+            .attr("dy", "0.3em")
+            .attr("text-anchor", "middle")
+            .text(d.levelData.currentLevel)
+            .style("font-size", "11px")
+            .style("font-weight", "bold")
+            .style("fill", "#fff")
+            .style("pointer-events", "none");
     });
 
     node.append("text").attr("dy", "-0.2em").attr("text-anchor", "middle").text(d => d.data.name).style("font-size", d => d.depth === 0 ? "16px" : "14px").style("font-weight", "600").style("fill", "#fff").style("pointer-events", "none");
