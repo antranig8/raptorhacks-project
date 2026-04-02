@@ -61,6 +61,36 @@ export const initSkillWeb = (svgRef, data, width, height, zoom) => {
         }
     });
 
+    let history = [];
+    let historyIndex = -1;
+
+    function saveHistory() {
+        const state = {};
+        root.descendants().forEach(n => {
+            state[n.data.name] = { x: n.x, y: n.y };
+        });
+
+        // Avoid duplicate states in history (no effective move)
+        if (historyIndex >= 0) {
+            const currentState = history[historyIndex];
+            let identical = true;
+            for (const key in state) {
+                if (!currentState[key] || currentState[key].x !== state[key].x || currentState[key].y !== state[key].y) {
+                    identical = false;
+                    break;
+                }
+            }
+            if (identical) return;
+        }
+
+        if (historyIndex < history.length - 1) {
+            history = history.slice(0, historyIndex + 1);
+        }
+        history.push(state);
+        historyIndex++;
+    }
+
+
     const links = root.links();
     const nodes = root.descendants();
 
@@ -79,7 +109,7 @@ export const initSkillWeb = (svgRef, data, width, height, zoom) => {
         .attr("y2", d => d.target.y);
 
     const selectedNodes = new Set();
-    
+
     svg.on("click", () => {
         if (selectedNodes.size > 0) {
             selectedNodes.clear();
@@ -96,18 +126,21 @@ export const initSkillWeb = (svgRef, data, width, height, zoom) => {
         .call(d3.drag()
             .on("start", (event, d) => {
                 if (d.depth === 0) return;
-                // Removed .raise() from start because removing/reinserting the DOM element 
-                // between mousedown and mouseup causes the browser to swallow the initial click event.
+                d._didMove = false;
             })
             .on("drag", function (event, d) {
                 if (d.depth === 0) return;
-                
+
                 // Raise the element to the front only when actually dragging to preserve clicks
                 d3.select(this).raise();
-                
+
                 const dx = event.dx;
                 const dy = event.dy;
-                
+
+                if (dx !== 0 || dy !== 0) {
+                    d._didMove = true;
+                }
+
                 const targets = selectedNodes.has(d) ? Array.from(selectedNodes).filter(n => n.depth !== 0) : [d];
 
                 targets.forEach(targetNode => {
@@ -120,6 +153,12 @@ export const initSkillWeb = (svgRef, data, width, height, zoom) => {
                     .attr("y1", l => l.source.y)
                     .attr("x2", l => l.target.x)
                     .attr("y2", l => l.target.y);
+            })
+            .on("end", (event, d) => {
+                if (d.depth === 0) return;
+                if (d._didMove) {
+                    saveHistory();
+                }
             }))
         .on("click", (event, d) => {
             event.stopPropagation();
@@ -152,18 +191,18 @@ export const initSkillWeb = (svgRef, data, width, height, zoom) => {
         .style("filter", "drop-shadow(0px 4px 6px rgba(0, 0, 0, 0.3))"); // Replaced border with soft shadow
 
     function updateSelectionState() {
-        mainRects.each(function(d) {
+        mainRects.each(function (d) {
             const isSelected = selectedNodes.has(d);
             const rect = d3.select(this);
             const currSelected = rect.attr("data-selected") === "true";
-            
+
             if (isSelected !== currSelected) {
                 rect.attr("data-selected", isSelected ? "true" : "false")
                     .transition().duration(200)
                     .style("stroke", isSelected ? "#000" : "none")
                     .style("stroke-width", isSelected ? "3px" : "0px")
                     .style("filter", isSelected ? "none" : "drop-shadow(0px 4px 6px rgba(0, 0, 0, 0.3))");
-                
+
                 const parentNode = d3.select(this.parentNode);
                 parentNode.selectAll(".progress-rect")
                     .style("display", isSelected ? "none" : "block");
@@ -186,7 +225,7 @@ export const initSkillWeb = (svgRef, data, width, height, zoom) => {
             .attr("width", pw).attr("height", ph).attr("x", -pw / 2).attr("y", -ph / 2).attr("rx", prx).attr("ry", prx)
             .attr("fill", "none").attr("stroke", colorScale(d.levelData.progressPercentage))
             .attr("stroke-width", 5).attr("stroke-linecap", "round").attr("stroke-dasharray", dashArray).attr("stroke-dashoffset", 0);
-            
+
         // Skill Level Circle Indicator
         const radius = 12;
         const cx = d.dims.w / 2;
@@ -215,5 +254,37 @@ export const initSkillWeb = (svgRef, data, width, height, zoom) => {
     node.append("text").attr("dy", "-0.2em").attr("text-anchor", "middle").text(d => d.data.name).style("font-size", d => d.depth === 0 ? "16px" : "14px").style("font-weight", "600").style("fill", "#fff").style("pointer-events", "none");
     node.append("text").attr("dy", "1.4em").attr("text-anchor", "middle").text(d => `${d.levelData.xpInCurrentLevel} / ${d.levelData.xpRequiredForNextLevel} xp`).style("font-size", "12px").style("fill", "rgba(255,255,255,0.7)").style("pointer-events", "none");
 
-    return canvas;
+    const controller = {
+        undo: () => {
+            if (historyIndex > 0) {
+                historyIndex--;
+                const prevState = history[historyIndex];
+                applyState(prevState);
+            }
+        },
+        redo: () => {
+            if (historyIndex < history.length - 1) {
+                historyIndex++;
+                const nextState = history[historyIndex];
+                applyState(nextState);
+            }
+        }
+    };
+
+    function applyState(state) {
+        nodes.forEach(n => {
+            if (state[n.data.name]) {
+                n.x = state[n.data.name].x;
+                n.y = state[n.data.name].y;
+            }
+        });
+        node.transition().duration(300).attr("transform", n => `translate(${n.x},${n.y})`);
+        link.transition().duration(300)
+            .attr("x1", l => l.source.x)
+            .attr("y1", l => l.source.y)
+            .attr("x2", l => l.target.x)
+            .attr("y2", l => l.target.y);
+    }
+
+    return controller;
 };

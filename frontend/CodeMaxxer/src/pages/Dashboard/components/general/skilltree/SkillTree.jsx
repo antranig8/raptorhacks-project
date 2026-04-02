@@ -8,6 +8,7 @@ import SkillTreeHeader from "./SkillTreeHeader";
 export default function SkillTree() {
     const svgRef = useRef(null);
     const zoomRef = useRef(null);
+    const apiRef = useRef(null);
 
     useEffect(() => {
         if (!svgRef.current) return;
@@ -22,8 +23,21 @@ export default function SkillTree() {
                 d3.select(svgRef.current).select("g").attr("transform", event.transform);
             });
 
-        initSkillWeb(svgRef, mockData, width, height, zoomRef.current);
+        apiRef.current = initSkillWeb(svgRef, mockData, width, height, zoomRef.current);
 
+        const handleKeyDown = (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
+                e.preventDefault();
+                apiRef.current?.undo();
+            }
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') {
+                e.preventDefault();
+                apiRef.current?.redo();
+            }
+        };
+
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
     }, []);
 
     const handleZoomIn = () => {
@@ -45,9 +59,12 @@ export default function SkillTree() {
         }
     };
 
+    const handleUndo = () => apiRef.current?.undo();
+    const handleRedo = () => apiRef.current?.redo();
+
     return (
         <section className={styles.container} style={{ width: "100%", height: "calc(100vh - 100px)", overflow: "hidden", display: "flex", flexDirection: "column", padding: 0 }}>
-            <SkillTreeHeader onZoomIn={handleZoomIn} onZoomOut={handleZoomOut} onReset={handleReset} />
+            <SkillTreeHeader onZoomIn={handleZoomIn} onZoomOut={handleZoomOut} onReset={handleReset} onUndo={handleUndo} onRedo={handleRedo} />
             <div style={{ flex: 1, position: "relative", overflow: "hidden" }}>
                 <svg ref={svgRef}></svg>
             </div>
