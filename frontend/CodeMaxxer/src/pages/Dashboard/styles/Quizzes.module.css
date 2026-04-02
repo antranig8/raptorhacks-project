@@ -3,16 +3,35 @@
     background: white;
     border-radius: 0.75rem;
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+    height: 100%;
 }
 
-.title {
-    margin: 0 0 0.75rem;
-    font-size: 2rem;
-    color: #111827;
+.grid {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 1rem;
+    height: 100%;
 }
 
-.description {
-    margin: 0;
-    color: #4b5563;
-    line-height: 1.6;
+.leftCol {
+    background: #ffffff;
+    border-radius: 0.5rem;
+    overflow-y: auto;
+}
+
+.rightCol {
+    background: #ffffff;
+    border-radius: 0.5rem;
+    height: 100%;
+    border: 3px solid #f3f4f6;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    overflow-y: auto;
+}
+
+.questionSection {
+    margin-top: 0.5rem;
+    overflow-y: auto;
 }
