@@ -4,4 +4,7 @@ pydantic
 python-dotenv
 groq
 PyJWT==2.12.1
+supabase
 python-multipart
+certifi
+httpx

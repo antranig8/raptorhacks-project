@@ -1,11 +1,21 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { FaEye, FaEyeSlash, FaGoogle } from 'react-icons/fa'
+import { FaDiscord, FaEye, FaEyeSlash, FaGoogle } from 'react-icons/fa'
+import supabase from '@/utils/supabase'
 import styles from '@login/styles/login.module.css'
 
 export default function Form() {
     const [showPassword, setShowPassword] = useState(false)
     const navigate = useNavigate()
+
+    async function loginThrough(provider) {
+        await supabase.auth.signInWithOAuth({
+            provider,
+            options: {
+                redirectTo: 'http://localhost:5173/login/callback',
+            }
+        })
+    }
 
     return (
         <div className={styles.formContainer}>
@@ -51,8 +61,11 @@ export default function Form() {
                     <hr />
                 </div>
 
-                <button type="button" className={styles.googleButton}>
+                <button type="button" className={styles.googleButton} onClick={() => loginThrough("google")}>
                     <FaGoogle /> Google
+                </button>
+                 <button type="button" className={styles.googleButton} onClick={() => loginThrough("discord")}>
+                    <FaDiscord /> Discord
                 </button>
             </form>
         </div>
