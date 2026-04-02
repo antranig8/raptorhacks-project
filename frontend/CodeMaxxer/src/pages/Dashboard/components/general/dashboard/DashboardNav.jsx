@@ -45,6 +45,13 @@ const navSections = [
 export default function DashboardNav() {
     const [user, setUser] = useState(null)
 
+    const formatTimestamp = (value) => {
+        if (!value) return 'Unknown'
+        const date = new Date(value)
+        if (Number.isNaN(date.getTime())) return 'Invalid date'
+        return date.toLocaleString()
+    }
+
     useEffect(() => {
         const fetchUser = async () => {
             const { data: { user } } = await supabase.auth.getUser()
@@ -91,6 +98,7 @@ export default function DashboardNav() {
                             <span className={styles.userName}>{user.user_metadata.full_name}</span>
                         )}
                         <span className={styles.userEmail}>{user.email}</span>
+                        <span className={styles.userSession}>Session started: {formatTimestamp(user.last_sign_in_at || user.created_at)}</span>
                     </div>
                 ) : (
                     <div className={styles.userInfo}>

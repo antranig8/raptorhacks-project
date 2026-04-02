@@ -121,3 +121,10 @@
     font-weight: 500;
     word-break: break-all;
 }
+
+.userSession {
+    font-size: 0.53rem;
+    color: #94a3b8;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+}
