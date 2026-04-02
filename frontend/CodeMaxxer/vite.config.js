@@ -11,6 +11,7 @@ export default defineConfig({
       '@pages': path.resolve(__dirname, './src/pages'),
       '@home': path.resolve(__dirname, './src/pages/Home'),
       '@login': path.resolve(__dirname, './src/pages/Login'),
+      '@callback': path.resolve(__dirname, './src/pages/LoginCallback'),
       '@dashboard': path.resolve(__dirname, './src/pages/Dashboard'),
     },
   },

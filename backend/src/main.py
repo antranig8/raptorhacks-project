@@ -1,17 +1,34 @@
 # Imports
 from fastapi import FastAPI, Depends
+from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
+load_dotenv()
 from pydantic import BaseModel
 from .ai.groq import GroqAI
 from .router import public, private
 from .auth.auth import get_current_user
 import os
 #load the env for api_key
-load_dotenv()
 groq_api_key = os.getenv("GROQ_API_KEY")
 # create the app
 app = FastAPI()
 # start on default host
+
+origins = [
+    "http://localhost:5173",  # Vite default
+    "http://localhost:3000",  # Vite default
+    "http://127.0.0.1:5173",
+]
+
+# 2. Add the middleware to your FastAPI app
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,        # Or use ["*"] for development only
+    allow_credentials=True,
+    allow_methods=["*"],           # Allows all methods (GET, POST, etc.)
+    allow_headers=["*"],           # Allows all headers
+)
+
 
 app.include_router(
     private.router,
