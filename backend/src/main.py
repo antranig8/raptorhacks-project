@@ -6,7 +6,11 @@ load_dotenv()
 from pydantic import BaseModel
 from .ai.groq import GroqAI
 from .router import public, private
-from .auth.auth import get_current_user
+from .auth.throttling import (
+    rate_limit_authenticated,
+    rate_limit_chat,
+    rate_limit_public,
+)
 import os
 #load the env for api_key
 groq_api_key = os.getenv("GROQ_API_KEY")
@@ -33,12 +37,13 @@ app.add_middleware(
 app.include_router(
     private.router,
     prefix="/api/v1/private",
-    dependencies=[Depends(get_current_user)]
+    dependencies=[Depends(rate_limit_authenticated)]
 )
 
 app.include_router(
     public.router,
-    prefix="/api/v1/public"
+    prefix="/api/v1/public",
+    dependencies=[Depends(rate_limit_public)]
 )
 
 @app.get("/")
@@ -63,7 +68,7 @@ def load_system_prompt():
 system_prompt = load_system_prompt()
 
 # API endpoint
-@app.post("/chat", response_model=ChatResponse)
+@app.post("/chat", response_model=ChatResponse, dependencies=[Depends(rate_limit_chat)])
 async def chat(request: ChatRequest):
     response_text = ai_platform.chat(request.prompt)
     return ChatResponse(response=response_text)

@@ -8,24 +8,11 @@ fastapi dev src/main.py
 
 ## Environment Variables
 GROQ_API_KEY = groq api key for LLM
-JWT_SECRET_KEY = secret key for jwt (required)
-
-## Mock Auth (for now)
-The backend uses an in-memory (mock) user DB, seeded with a default user:
-- username: `test`
-- password: `test`
-
-Override via env vars:
-- DEV_AUTH_USERNAME
-- DEV_AUTH_PASSWORD
-- DEV_AUTH_UUID (optional UUID string)
-- JWT_ACCESS_TOKEN_EXPIRE_MINUTES (default: 30)
-
-### Get a token
-`POST /api/v1/public/token` (form-encoded: `username`, `password`)
+SUPABASE_URL = project URL
+SUPABASE_KEY = project anon or service key for backend Supabase client
 
 ### Call a protected route
-Send `Authorization: Bearer <token>` to any `/api/v1/private/*` route.
+Send `Authorization: Bearer <supabase access token>` to any `/api/v1/private/*` route.
 
 ## Overview
 This is the FastAPI backend for the RaptorHacks project.  
@@ -38,6 +25,7 @@ http://localhost: TBD
 - FastAPI
 - Groq API
 - Pydantic
+- Supabase Auth
 - Python
 
 ## Notes
