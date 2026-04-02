@@ -1,7 +1,6 @@
 import jwt
 from uuid import UUID
 
-from .db import get_user_by_uuid
 from .security import verify_token
 from .user import User
 from fastapi import Depends, HTTPException, status
