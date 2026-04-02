@@ -1,21 +1,84 @@
 export const mockData = {
-    "name": "user",
-    "xp": 5450,
+    "name": "User",
+    "xp": 12500,
     "children": [
         {
-            "name": "Systems Programming",
-            "xp": 1950,
+            "name": "Programming Concepts",
+            "xp": 4500,
             "children": [
-                { "name": "C Programming", "xp": 1250 },
-                { "name": "Assembly (Y86-64)", "xp": 700 }
+                {
+                    "name": "Algorithms",
+                    "xp": 2500,
+                    "children": [
+                        { "name": "Sorting", "xp": 1000 },
+                        { "name": "Graph Theory", "xp": 800 },
+                        { "name": "Dynamic Programming", "xp": 700 }
+                    ]
+                },
+                {
+                    "name": "Data Structures",
+                    "xp": 2000,
+                    "children": [
+                        { "name": "Trees", "xp": 900 },
+                        { "name": "Hash Tables", "xp": 600 },
+                        { "name": "Linked Lists", "xp": 500 }
+                    ]
+                }
             ]
         },
         {
-            "name": "Algorithms",
-            "xp": 2800,
+            "name": "Languages",
+            "xp": 5000,
             "children": [
-                { "name": "Graph Theory", "xp": 1300 },
-                { "name": "Dynamic Programming", "xp": 1500 }
+                {
+                    "name": "C",
+                    "xp": 1500,
+                    "children": [
+                        { "name": "Pointers", "xp": 800 },
+                        { "name": "Memory Management", "xp": 700 }
+                    ]
+                },
+                {
+                    "name": "JavaScript",
+                    "xp": 2000,
+                    "children": [
+                        { "name": "Closures", "xp": 600 },
+                        { "name": "Asynchronous JS", "xp": 800 },
+                        { "name": "DOM Manipulation", "xp": 600 }
+                    ]
+                },
+                {
+                    "name": "Python",
+                    "xp": 1500,
+                    "children": [
+                        { "name": "List Comprehensions", "xp": 500 },
+                        { "name": "Decorators", "xp": 600 },
+                        { "name": "Generators", "xp": 400 }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "Tools & Frameworks",
+            "xp": 3000,
+            "children": [
+                {
+                    "name": "React",
+                    "xp": 1800,
+                    "children": [
+                        { "name": "Hooks", "xp": 800 },
+                        { "name": "Context API", "xp": 500 },
+                        { "name": "Component Lifecycle", "xp": 500 }
+                    ]
+                },
+                {
+                    "name": "Git",
+                    "xp": 1200,
+                    "children": [
+                        { "name": "Branching", "xp": 500 },
+                        { "name": "Merging & Rebasing", "xp": 700 }
+                    ]
+                }
             ]
         }
     ]
