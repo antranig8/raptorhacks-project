@@ -1,16 +1,16 @@
 import styles from '@dashboard/styles/Study.module.css'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import supabase from '@/utils/supabase.js'
 
 export default function Test() {
     const [resp, setResp] = useState(null)
+    const ran = useRef(false)
 
-    useEffect(() => {
-        const fetchData = async () => {
+    const fetchData = async () => {
             try {
                 const { data: { session } } = await supabase.auth.getSession()
 
-                const res = await fetch("http://localhost:8000/api/v1/private/test", {
+                const res = await fetch("http://localhost:8000/api/v1/private/test_code?language=python&code=print('test')", {
                     method: 'GET',
                     headers: {
                         'Authorization': `Bearer ${session.access_token}`,
@@ -22,6 +22,11 @@ export default function Test() {
                 console.error("Fetch error:", err)
             }
         }
+
+    useEffect(() => {
+        if (ran.current) return
+        ran.current = true
+        
         fetchData()
     }, [])
 
