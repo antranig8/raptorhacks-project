@@ -1,8 +1,10 @@
 # Imports
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from dotenv import load_dotenv
 from pydantic import BaseModel
 from .ai.groq import GroqAI
+from .router import public, private
+from .auth.auth import get_current_user
 import os
 #load the env for api_key
 load_dotenv()
@@ -10,6 +12,18 @@ groq_api_key = os.getenv("GROQ_API_KEY")
 # create the app
 app = FastAPI()
 # start on default host
+
+app.include_router(
+    private.router,
+    prefix="/api/v1/private",
+    dependencies=[Depends(get_current_user)]
+)
+
+app.include_router(
+    public.router,
+    prefix="/api/v1/public"
+)
+
 @app.get("/")
 async def root():
     return {"message": "FastAPI Backend is running"}

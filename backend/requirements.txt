@@ -3,3 +3,5 @@ uvicorn
 pydantic
 python-dotenv
 groq
+PyJWT==2.12.1
+python-multipart
