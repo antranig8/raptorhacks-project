@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from .router import ai, public, private
+from .router import public, private
 from .auth.throttling import (
     rate_limit_authenticated,
     rate_limit_public,
@@ -32,8 +32,6 @@ app.include_router(
     prefix="/api/v1/public",
     dependencies=[Depends(rate_limit_public)]
 )
-
-app.include_router(ai.router)
 
 
 @app.get("/")

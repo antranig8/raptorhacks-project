@@ -1,0 +1,60 @@
+from fastapi import APIRouter, Depends, HTTPException
+
+from ..auth.throttling import rate_limit_chat
+from ..dependencies.ai import get_ai_platform
+from ..schemas.ai import ChatRequest, ChatResponse, ChatMessage, SkillTreeGenerateRequest, SkillTreeResponse
+from ..services.prompts import load_prompt
+from ..services.skill_tree import (
+    build_skill_tree_user_prompt,
+    generated_tree_to_node,
+    load_skill_tree_system_prompt,
+    parse_skill_tree_response,
+)
+
+router = APIRouter()
+
+
+@router.post("/chat", response_model=ChatResponse, dependencies=[Depends(rate_limit_chat)])
+async def chat(request: ChatRequest):
+    ai_platform = get_ai_platform()
+    chat_prompt = load_prompt("chat_prompt.md")
+    messages = [message.model_dump() for message in request.messages]
+
+    if chat_prompt and not any(message["role"] == "system" for message in messages):
+        messages = [{"role": "system", "content": chat_prompt}, *messages]
+
+    try:
+        response_text, usage = ai_platform.chat_messages(
+            messages,
+            temperature=request.temperature,
+            max_tokens=request.max_tokens,
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail="AI provider request failed.") from exc
+
+    return ChatResponse(
+        message=ChatMessage(role="assistant", content=response_text),
+        usage=usage,
+    )
+
+
+@router.post("/skill-tree/generate", response_model=SkillTreeResponse, dependencies=[Depends(rate_limit_chat)])
+async def generate_skill_tree(request: SkillTreeGenerateRequest):
+    ai_platform = get_ai_platform()
+    system_prompt = load_skill_tree_system_prompt()
+    messages = []
+
+    if system_prompt:
+        messages.append({"role": "system", "content": system_prompt})
+
+    messages.append({"role": "user", "content": build_skill_tree_user_prompt(request.goal)})
+
+    try:
+        response_text, _ = ai_platform.chat_messages(messages, temperature=0.2, max_tokens=1200)
+        generated_tree = parse_skill_tree_response(response_text)
+    except ValueError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail="AI provider request failed.") from exc
+
+    return SkillTreeResponse(tree=generated_tree_to_node(generated_tree))
