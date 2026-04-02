@@ -126,6 +126,9 @@ export const initSkillWeb = (svgRef, data, width, height, zoom) => {
             selectedNodes.clear();
             updateSelectionState();
         }
+    })
+    .on("contextmenu", (event) => {
+        event.preventDefault();
     });
 
     const node = canvas.append("g")
