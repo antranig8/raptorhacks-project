@@ -1,3 +1,7 @@
 frontend/CodeMaxxer/bun.lock
 frontend/CodeMaxxer/.env
 frontend/.DS_Store
+.venv/
+.idea/
+__pycache__/
+.env
