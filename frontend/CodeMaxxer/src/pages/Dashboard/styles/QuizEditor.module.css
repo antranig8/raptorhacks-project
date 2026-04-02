@@ -1,0 +1,118 @@
+.editorContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding: 1rem;
+    height: 100%;
+    color: #111827;
+}
+
+.title {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+.section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #4b5563;
+}
+
+.select {
+    padding: 0.6rem 0.75rem;
+    border-radius: 0.5rem;
+    border: 2px solid #f3f4f6;
+    background-color: #ffffff;
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.select:focus {
+    border-color: #0b57d0;
+}
+
+.typeGrid,
+.amountGrid,
+.configGrid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+}
+
+.typeOption,
+.amountOption,
+.configOption {
+    padding: 0.5rem;
+    border: 2px solid #f3f4f6;
+    border-radius: 0.5rem;
+    text-align: center;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: #ffffff;
+    user-select: none;
+}
+
+.typeOption:hover,
+.amountOption:hover,
+.configOption:hover {
+    background: #f9fafb;
+}
+
+.typeOption.active,
+.amountOption.active,
+.configOption.active {
+    background: #eff6ff;
+    border-color: #0b57d0;
+    color: #0b57d0;
+    font-weight: 600;
+}
+
+.spacer {
+    border: 0;
+    height: 1px;
+    background-color: #f3f4f6;
+    margin: 0.5rem 0;
+}
+
+.textarea {
+    min-height: 100px;
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    border: 2px solid #f3f4f6;
+    background-color: #ffffff;
+    font-size: 0.95rem;
+    resize: vertical;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.textarea:focus {
+    border-color: #0b57d0;
+}
+
+.generateBtn {
+    margin-top: auto;
+    background-color: #0b57d0;
+    color: white;
+    padding: 0.75rem;
+    border-radius: 999px;
+    border: none;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.generateBtn:hover {
+    background-color: #0842a0;
+}

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import styles from '@dashboard/styles/Quizzes.module.css'
 import ProgressSummary from './ProgressSummary'
 import Question from './Question'
+import QuizEditor from './QuizEditor'
 
 const QUESTIONS = [
     {
@@ -49,7 +50,9 @@ export default function Quizzes() {
     return (
         <section className={styles.container}>
             <div className={styles.grid}>
-                <div className={styles.leftCol} />
+                <div className={styles.leftCol}>
+                    <QuizEditor onGenerate={(data) => console.log('Generate Quiz:', data)} />
+                </div>
                 <div className={styles.rightCol}>
                     <ProgressSummary
                         title="Computer Architecture Quiz"

@@ -3,6 +3,7 @@
     background: white;
     border-radius: 0.75rem;
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+    height: 100%;
 }
 
 .grid {
@@ -10,12 +11,12 @@
     grid-template-columns: 1fr 2fr;
     gap: 1rem;
     height: 100%;
-    min-height: 300px;
 }
 
 .leftCol {
     background: #ffffff;
     border-radius: 0.5rem;
+    overflow-y: auto;
 }
 
 .rightCol {
@@ -27,8 +28,10 @@
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
+    overflow-y: auto;
 }
 
 .questionSection {
     margin-top: 0.5rem;
+    overflow-y: auto;
 }

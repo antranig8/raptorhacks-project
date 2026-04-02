@@ -44,7 +44,7 @@
     flex: 1;
     min-height: 100vh;
     padding: 1rem;
-    overflow-y: auto;
+    overflow-y: hidden;
     display: flex;
     flex-direction: column;
 }
