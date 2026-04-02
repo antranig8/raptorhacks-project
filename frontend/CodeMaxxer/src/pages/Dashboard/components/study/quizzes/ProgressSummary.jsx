@@ -1,0 +1,40 @@
+import styles from '@dashboard/styles/ProgressSummary.module.css'
+
+export default function ProgressSummary({ title = 'Quiz Progress', answered = 1, correct = 0, wrong = 0, total = 10, results = [] }) {
+    const segments = Array.from({ length: total }, (_, i) => i);
+
+    return (
+        <section className={styles.progressSummary}>
+            <h2 className={styles.quizTitle}>{title}</h2>
+            <div className={styles.segmentsContainer}>
+                {segments.map((index) => {
+                    const result = results[index]; // 'correct', 'wrong', or undefined
+                    let segmentClass = styles.segment;
+                    if (result === 'correct') segmentClass += ` ${styles.correct}`;
+                    else if (result === 'wrong') segmentClass += ` ${styles.wrong}`;
+                    else if (index < answered && !result) segmentClass += ` ${styles.filled}`;
+
+                    return (
+                        <div
+                            key={index}
+                            className={segmentClass}
+                        />
+                    );
+                })}
+            </div>
+
+            <span className={styles.fraction}>{answered} / {total}</span>
+
+            <div className={styles.badgeContainer}>
+                <div className={styles.wrongBadge}>
+                    <span className={styles.icon}>✕</span>
+                    <span className={styles.value}>{wrong}</span>
+                </div>
+                <div className={styles.correctBadge}>
+                    <span className={styles.icon}>✓</span>
+                    <span className={styles.value}>{correct}</span>
+                </div>
+            </div>
+        </section>
+    )
+}

@@ -1,5 +1,5 @@
 import { Outlet } from 'react-router-dom'
-import DashboardNav from './components/DashboardNav'
+import DashboardNav from '@d_general/dashboard/DashboardNav'
 import styles from '@dashboard/styles/dashboard.module.css'
 
 export default function Dashboard() {

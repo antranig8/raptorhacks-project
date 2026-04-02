@@ -1,0 +1,87 @@
+.progressSummary {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 0.5rem;
+    width: 100%;
+    flex-wrap: wrap;
+}
+
+.quizTitle {
+    width: 100%;
+    margin: 0 0 0.35rem;
+    font-size: 0.96rem;
+    font-weight: 700;
+    color: #1f2937;
+}
+
+.segmentsContainer {
+    display: flex;
+    gap: 0.5rem;
+    flex: 1;
+}
+
+.segment {
+    flex: 1;
+    height: 8px;
+    border: 1px solid #bfdbfe;
+    border-radius: 999px;
+    background: #eff6ff;
+}
+
+.segment.filled {
+    background: #93c5fd;
+    border-color: #93c5fd;
+}
+
+.segment.correct {
+    background: #bbf7d0;
+    border-color: #bbf7d0;
+}
+
+.segment.wrong {
+    background: #fecaca;
+    border-color: #fecaca;
+}
+
+.fraction {
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: #374151;
+    white-space: nowrap;
+}
+
+.badgeContainer {
+    display: flex;
+    gap: 1rem;
+}
+
+.wrongBadge,
+.correctBadge {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.4rem 1.25rem;
+    border-radius: 999px;
+    font-weight: 600;
+    min-width: 70px;
+    justify-content: center;
+}
+
+.wrongBadge {
+    background-color: #fee2e2;
+    color: #991b1b;
+}
+
+.correctBadge {
+    background-color: #dcfce7;
+    color: #166534;
+}
+
+.icon {
+    font-size: 0.9rem;
+}
+
+.value {
+    font-size: 1.1rem;
+}
