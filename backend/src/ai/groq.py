@@ -1,6 +1,8 @@
-#
 from .base import AIPlatform
 from groq import Groq
+from ..schemas.ai import UsageInfo
+
+
 # creating groq class
 class GroqAI(AIPlatform):
     #constructor
@@ -32,3 +34,26 @@ class GroqAI(AIPlatform):
         )
 
         return response.choices[0].message.content
+
+    def chat_messages(
+        self,
+        messages: list[dict[str, str]],
+        temperature: float = 0.7,
+        max_tokens: int = 800,
+    ) -> tuple[str, UsageInfo | None]:
+        response = self.client.chat.completions.create(
+            model=self.model,
+            messages=messages,
+            temperature=temperature,
+            max_completion_tokens=max_tokens,
+        )
+
+        usage = None
+        if getattr(response, "usage", None):
+            usage = UsageInfo(
+                prompt_tokens=getattr(response.usage, "prompt_tokens", None),
+                completion_tokens=getattr(response.usage, "completion_tokens", None),
+                total_tokens=getattr(response.usage, "total_tokens", None),
+            )
+
+        return response.choices[0].message.content, usage
