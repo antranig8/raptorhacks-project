@@ -95,3 +95,29 @@
     align-items: center;
     white-space: nowrap;
 }
+
+.userSection {
+    margin-top: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.userInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    padding: 0.4rem 0.2rem;
+}
+
+.userName {
+    font-size: 0.65rem;
+    color: #0f172a;
+    font-weight: 700;
+}
+
+.userEmail {
+    font-size: 0.55rem;
+    color: #64748b;
+    font-weight: 500;
+    word-break: break-all;
+}

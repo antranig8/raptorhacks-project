@@ -1,7 +1,9 @@
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { FaHome, FaSeedling, FaGraduationCap, FaCog, FaQuestionCircle, FaKeyboard, FaClipboardList, FaAddressBook } from 'react-icons/fa'
+import { FaHome, FaSeedling, FaGraduationCap, FaCog, FaQuestionCircle, FaKeyboard, FaClipboardList, FaAddressBook, FaUser } from 'react-icons/fa'
 import Logo from '@/components/Logo/Logo'
 import styles from '@dashboard/styles/DashboardNav.module.css'
+import supabase from '@/utils/supabase'
 
 const navSections = [
     {
@@ -41,6 +43,16 @@ const navSections = [
 ]
 
 export default function DashboardNav() {
+    const [user, setUser] = useState(null)
+
+    useEffect(() => {
+        const fetchUser = async () => {
+            const { data: { user } } = await supabase.auth.getUser()
+            setUser(user)
+        }
+        fetchUser()
+    }, [])
+
     return (
         <aside className={styles.sidebar}>
             <Logo fontSize={'1.2rem'} />
@@ -70,6 +82,22 @@ export default function DashboardNav() {
                     </div>
                 ))}
             </nav>
+
+            <div className={styles.userSection}>
+                <div className={styles.separator} />
+                {user ? (
+                    <div className={styles.userInfo}>
+                        {user.user_metadata?.full_name && (
+                            <span className={styles.userName}>{user.user_metadata.full_name}</span>
+                        )}
+                        <span className={styles.userEmail}>{user.email}</span>
+                    </div>
+                ) : (
+                    <div className={styles.userInfo}>
+                        <span className={styles.userEmail}>Not logged in</span>
+                    </div>
+                )}
+            </div>
         </aside>
     )
 }
