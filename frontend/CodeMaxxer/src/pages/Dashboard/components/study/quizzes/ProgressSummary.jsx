@@ -1,4 +1,4 @@
-import styles from './ProgressSummary.module.css'
+import styles from '@dashboard/styles/ProgressSummary.module.css'
 
 export default function ProgressSummary({ title = 'Quiz Progress', answered = 1, correct = 0, wrong = 0, total = 10, results = [] }) {
     const segments = Array.from({ length: total }, (_, i) => i);

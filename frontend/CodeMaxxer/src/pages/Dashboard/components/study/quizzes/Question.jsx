@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import styles from './Question.module.css';
+import styles from '@dashboard/styles/Question.module.css';
 
 /**
  * Question component
