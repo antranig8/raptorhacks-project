@@ -9,7 +9,6 @@ STRICT OUTPUT RULES:
 - Do not include any text before or after the JSON
 - Do not wrap the JSON in code blocks
 
-# Leaving this here incase it needs to be altered:
 # Use exactly this structure:
 # {
 #  "goal": "string",
@@ -28,8 +27,8 @@ STRICT OUTPUT RULES:
 
 CONTENT RULES:
 - "goal" should clearly restate the user's goal
-# - Include 3 to 6 main skills
-# - Each main skill should have 2 to 5 subskills
+- Include 3 to 6 main skills
+- Each main skill should have 2 to 5 subskills
 - "difficulty" must be one of: "beginner", "intermediate", "advanced"
 - Order skills from foundational to advanced
 - Keep names concise and practical
