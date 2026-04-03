@@ -16,9 +16,10 @@ const generateTypingMetricsData = (range) => {
         currentEpm = Math.max(0, currentEpm + (Math.random() - 0.5) * 15)
         currentWpm = Math.max(0, currentWpm + (Math.random() - 0.5) * 8)
 
-        const label = i + 1
-        epm.push({ x: label, y: Number(currentEpm.toFixed(0)) })
-        wpm.push({ x: label, y: Number(currentWpm.toFixed(0)) })
+        // Using i * 5 to simulate 5-second intervals on the X axis
+        const seconds = i * 5
+        epm.push({ x: seconds, y: Number(currentEpm.toFixed(0)) })
+        wpm.push({ x: seconds, y: Number(currentWpm.toFixed(0)) })
     }
 
     return [epm, wpm]
@@ -55,6 +56,7 @@ export default function Typing() {
                         { name: 'WPM', color: '#10b981' }
                     ]}
                     showTimeControls={false}
+                    xAxisType="seconds"
                 />
             </div>
         </div>

@@ -4,7 +4,7 @@ import styles from './CustomLineChart.module.css'
 
 const RANGES = ['1W', '1M', '3M', 'YTD', '1Y', 'ALL']
 
-export default function CustomLineChart({ title, initialDataGenerator, lines = [], showTimeControls = true }) {
+export default function CustomLineChart({ title, initialDataGenerator, lines = [], showTimeControls = true, xAxisType = 'date' }) {
     const [timeRange, setTimeRange] = useState('1M')
     const [chartData, setChartData] = useState([])
     const containerRef = useRef(null)
@@ -64,11 +64,16 @@ export default function CustomLineChart({ title, initialDataGenerator, lines = [
                             />
                         )}
                         <VictoryAxis
-                            tickFormat={() => ''}
+                            tickFormat={(t) => xAxisType === 'seconds' ? `${t}s` : ''}
                             style={{
                                 axis: { stroke: "#cbd5e1" },
                                 grid: { stroke: "transparent" },
-                                ticks: { stroke: "transparent" }
+                                ticks: { stroke: "transparent" },
+                                tickLabels: { 
+                                    fontSize: 10, 
+                                    padding: 5,
+                                    fill: xAxisType === 'seconds' ? "#64748b" : "transparent" 
+                                }
                             }}
                         />
                         <VictoryAxis
