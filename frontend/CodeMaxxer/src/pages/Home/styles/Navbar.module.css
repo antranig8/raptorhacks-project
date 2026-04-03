@@ -64,6 +64,7 @@
     cursor: pointer;
     position: relative;
     transition: color 0.2s ease;
+    white-space: nowrap;
 }
 
 .navButton::after {
@@ -98,6 +99,7 @@
     font-size: 1rem;
     padding: 0.6rem 1rem;
     cursor: pointer;
+    white-space: nowrap;
     transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
 }
 
@@ -129,4 +131,84 @@
     opacity: 1;
     transform: translateY(0);
     transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.menuIcon {
+    display: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    background: none;
+    border: none;
+    color: #000;
+    padding: 0.5rem;
+    z-index: 1001;
+    transition: transform 0.3s ease;
+}
+
+.menuIcon.isOpen {
+    transform: rotate(90deg);
+}
+
+.mobileMenu {
+    display: none; /* hide by default on large screens */
+}
+
+@media screen and (max-width: 1024px) {
+    .navbar {
+        grid-template-columns: 1fr auto;
+    }
+
+    .centerGroup {
+        display: none;
+    }
+
+    .rightGroup {
+        display: none;
+    }
+
+    .menuIcon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .mobileMenu {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        min-width: 12rem;
+        max-width: calc(100vw - 2rem);
+        background-color: #fff;
+        display: flex;
+        flex-direction: column;
+        padding: 1rem 1.5rem;
+        gap: 1rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        transform-origin: top right;
+        transition: transform 0.3s ease, opacity 0.3s ease;
+        z-index: 999;
+    }
+
+    .mobileMenu.menuHidden {
+        transform: scaleY(0);
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .mobileMenu.menuVisible {
+        transform: scaleY(1);
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .mobileMenu .navButton {
+        width: 100%;
+        text-align: left;
+        padding: 0.8rem 0;
+    }
+
+    .mobileMenu .ctaButton {
+        width: 100%;
+        text-align: center;
+    }
 }
