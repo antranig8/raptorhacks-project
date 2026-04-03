@@ -21,10 +21,116 @@
     padding-right: 0.25rem;
 }
 
-.stackItem {
-    flex: 1 1 0;
+.stackItemSmall {
+    flex: 1;
     min-height: 0;
     background: #ffffff;
     border: 1px solid #e2e8f0;
     border-radius: 10px;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.stackItemLarge {
+    flex: 2;
+    min-height: 0;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.title {
+    margin: 0 0 0.5rem 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #334155;
+    text-align: left;
+}
+
+.chartContainer {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+
+.quizGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    flex: 1;
+    min-height: 0;
+    gap: 1rem;
+}
+
+.quizCol {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.legendWrapper {
+    display: flex;
+    gap: 1rem;
+    margin-top: -10px;
+    margin-bottom: 5px;
+}
+
+.legendItem {
+    font-size: 0.75rem;
+    color: #475569;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.timeSelectorContainer {
+    display: flex;
+    justify-content: center;
+    margin-top: 0.5rem;
+}
+
+.timeSelector {
+    display: inline-flex;
+    gap: 0.5rem;
+    background: #f1f5f9;
+    padding: 0.25rem 0.5rem;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+}
+
+.timeBtn {
+    background: transparent;
+    border: none;
+    font-weight: 600;
+    font-size: 0.75rem;
+    color: #64748b;
+    padding: 0.25rem 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-radius: 4px;
+}
+
+.timeBtn:hover {
+    color: #334155;
+    background: #e2e8f0;
+}
+
+.timeBtnActive {
+    color: #16a34a;
+    background: #ffffff;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
