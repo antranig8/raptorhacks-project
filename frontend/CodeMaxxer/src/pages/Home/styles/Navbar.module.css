@@ -150,7 +150,8 @@
 }
 
 .mobileMenu {
-    display: none; /* hide by default on large screens */
+    display: none;
+    /* hide by default on large screens */
 }
 
 @media screen and (max-width: 1024px) {
