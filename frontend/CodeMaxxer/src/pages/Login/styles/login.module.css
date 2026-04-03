@@ -225,7 +225,7 @@
     color: #3b82f6;
     font-weight: 600;
     cursor: pointer;
-    font-size: 0.85rem;
+    font-size: inherit;
     padding: 0;
 }
 
