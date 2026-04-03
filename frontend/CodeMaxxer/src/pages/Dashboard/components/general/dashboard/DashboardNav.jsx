@@ -21,7 +21,6 @@ const navSections = [
                 },
             },
             { section: 'General', label: 'Skill Tree', route: '/dashboard/skill-tree', icon: <FaSeedling /> },
-            { section: 'General', label: 'Study', route: '/dashboard/study', icon: <FaGraduationCap /> },
             { section: 'General', label: 'BackendTest', route: '/dashboard/test', icon: <FaAddressBook /> },
             { section: 'General', label: 'Typing', route: '/dashboard/typing', icon: <FaKeyboard /> },
         ],
@@ -29,7 +28,7 @@ const navSections = [
     {
         title: 'Study',
         items: [
-            { section: 'Study', label: 'Study Docs', route: '/dashboard/study', icon: <FaGraduationCap /> },
+            { section: 'Study', label: 'Study', route: '/dashboard/study', icon: <FaGraduationCap /> },
             { section: 'Study', label: 'Quizzes', route: '/dashboard/quizzes', icon: <FaClipboardList /> },
         ],
     },
