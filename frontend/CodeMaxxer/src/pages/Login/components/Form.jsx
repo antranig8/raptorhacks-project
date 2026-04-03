@@ -61,12 +61,14 @@ export default function Form() {
                     <hr />
                 </div>
 
-                <button type="button" className={styles.googleButton} onClick={() => loginThrough("google")}>
-                    <FaGoogle /> Google
-                </button>
-                 <button type="button" className={styles.googleButton} onClick={() => loginThrough("discord")}>
-                    <FaDiscord /> Discord
-                </button>
+                <div className={styles.socialRow}>
+                    <button type="button" className={styles.socialButton} onClick={() => loginThrough("google")}>
+                        <FaGoogle /> Google
+                    </button>
+                    <button type="button" className={styles.socialButton} onClick={() => loginThrough("discord")}>
+                        <FaDiscord /> Discord
+                    </button>
+                </div>
             </form>
         </div>
     )
