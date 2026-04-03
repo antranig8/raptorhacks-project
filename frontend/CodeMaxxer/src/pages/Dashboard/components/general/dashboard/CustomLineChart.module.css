@@ -21,10 +21,20 @@
 .chartContainer {
     flex: 1;
     min-height: 0;
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+.chartWrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 100%;
 }
 
 .timeSelectorContainer {

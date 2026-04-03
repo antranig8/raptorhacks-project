@@ -20,10 +20,10 @@ export default function TypingEditor({ onStart }) {
 
     const handleStart = () => {
         if (onStart) {
-            onStart({ 
-                language, 
-                duration, 
-                topic, 
+            onStart({
+                language,
+                duration,
+                topic,
                 customWords: customWords.split(',').map(w => w.trim()).filter(w => w !== '')
             });
         }

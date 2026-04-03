@@ -31,7 +31,7 @@
 }
 
 .typingArea {
-    flex: 0 0 calc(60% - 0.75rem);
+    flex: 2;
     background: #ffffff;
     border: 1px solid #e5e9f0;
     border-radius: 14px;
@@ -43,13 +43,15 @@
 }
 
 .analyticsArea {
-    flex: 0 0 calc(40% - 0.75rem);
+    flex: 1;
     background: #ffffff;
     border: 1px solid #e5e9f0;
     border-radius: 14px;
     padding: 1.5rem;
     min-height: 0;
     box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
 }
 
 .typingArea>h1 {
