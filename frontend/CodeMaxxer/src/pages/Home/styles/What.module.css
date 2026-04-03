@@ -119,3 +119,13 @@
     width: 100%;
   }
 }
+
+@media screen and (max-width: 768px) {
+  .title {
+    font-size: 1.9rem;
+  }
+
+  .subtitle {
+    font-size: 0.9rem;
+  }
+}
