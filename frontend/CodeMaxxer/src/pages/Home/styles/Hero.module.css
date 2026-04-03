@@ -33,7 +33,7 @@
 }
 
 .title {
-  font-size: clamp(2rem, 5vw, 4rem);
+  font-size: 3rem;
   font-weight: 800;
   letter-spacing: 0.02em;
   margin: 0;
@@ -93,4 +93,10 @@
   opacity: 1;
   transform: translateY(0);
   transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+@media screen and (max-width: 480px) {
+  .title {
+    font-size: 2rem;
+  }
 }
