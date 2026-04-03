@@ -53,7 +53,6 @@ export default function Form() {
                 </div>
 
                 <button type="submit" className={styles.loginButton}>Log In</button>
-                <button type="button" className={styles.bypassButton} onClick={() => navigate('/dashboard')}>Bypass</button>
 
                 <div className={styles.divider}>
                     <hr />

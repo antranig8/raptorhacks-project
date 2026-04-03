@@ -11,6 +11,7 @@ import Settings from '@d_support/settings/Settings.jsx'
 import Help from '@d_support/help/Help.jsx'
 import Typing from '@d_general/typing/Typing.jsx'
 import Quizzes from '@d_study/quizzes/Quizzes.jsx'
+import ProtectedRoute from '@/components/ProtectedRoute.jsx'
 import styles from '@/App.module.css'
 
 function App() {
@@ -21,15 +22,18 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />}/>
           <Route path="/login/callback" element={<LoginCallback />} />
-          <Route path="/dashboard" element={<Dashboard />}>
-            <Route index element={<DashboardHome />} />
-            <Route path="skill-tree" element={<SkillTree />} />
-            <Route path="test" element={<Test />} />
-            <Route path="study" element={<Study />} />
-            <Route path="quizzes" element={<Quizzes />} />
-            <Route path="settings" element={<Settings />} />
-            <Route path="help" element={<Help />} />
-            <Route path="typing" element={<Typing />} />
+          
+          <Route element={<ProtectedRoute />}>
+            <Route path="/dashboard" element={<Dashboard />}>
+              <Route index element={<DashboardHome />} />
+              <Route path="skill-tree" element={<SkillTree />} />
+              <Route path="test" element={<Test />} />
+              <Route path="study" element={<Study />} />
+              <Route path="quizzes" element={<Quizzes />} />
+              <Route path="settings" element={<Settings />} />
+              <Route path="help" element={<Help />} />
+              <Route path="typing" element={<Typing />} />
+            </Route>
           </Route>
         </Routes>
       </div>
