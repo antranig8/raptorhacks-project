@@ -36,6 +36,14 @@
     flex-direction: column;
 }
 
+.topSide {
+    background: #ffffff;
+    border: 1px solid #e5e9f0;
+    border-radius: 10px;
+    padding: 0;
+    overflow: auto;
+}
+
 .topMain>h1 {
     margin-bottom: 1rem;
     flex: 0;

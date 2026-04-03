@@ -1,11 +1,16 @@
 import { useState, useRef } from 'react'
 import styles from '@dashboard/styles/Typing.module.css'
 import TextArea from '@d_general/typing/TextArea'
+import TypingEditor from './TypingEditor'
 
 export default function Typing() {
     const keyboard = useRef(null)
     const [input, setInput] = useState('')
     const [isTopActive, setIsTopActive] = useState(false)
+
+    const handleStart = (config) => {
+        console.log('Starting typing with config:', config);
+    };
 
     const practiceTemplate = 'hello world'
 
@@ -21,7 +26,7 @@ export default function Typing() {
                     />
                 </div>
                 <div className={styles.topSide}>
-                    <p>Right panel (30%) for controls.</p>
+                    <TypingEditor onStart={handleStart} />
                 </div>
             </div>
             <div className={styles.bottom}>
