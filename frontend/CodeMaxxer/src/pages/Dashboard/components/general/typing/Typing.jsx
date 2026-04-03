@@ -16,8 +16,8 @@ export default function Typing() {
 
     return (
         <section className={styles.container}>
-            <div className={styles.top}>
-                <div className={`${styles.topMain} ${isTopActive ? styles.active : ''}`}>
+            <div className={styles.leftColumn}>
+                <div className={`${styles.typingArea} ${isTopActive ? styles.active : ''}`}>
                     <h1>Practice Typing</h1>
                     <TextArea
                         target={practiceTemplate}
@@ -25,12 +25,12 @@ export default function Typing() {
                         onActiveChange={setIsTopActive}
                     />
                 </div>
-                <div className={styles.topSide}>
-                    <TypingEditor onStart={handleStart} />
+                <div className={styles.analyticsArea}>
+                    <p>Analytics</p>
                 </div>
             </div>
-            <div className={styles.bottom}>
-                <p>Analytics</p>
+            <div className={styles.rightColumn}>
+                <TypingEditor onStart={handleStart} />
             </div>
         </section>
     )

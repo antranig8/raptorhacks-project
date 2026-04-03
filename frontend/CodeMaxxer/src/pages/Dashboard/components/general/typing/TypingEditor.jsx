@@ -73,7 +73,7 @@ export default function TypingEditor({ onStart }) {
                 />
             </div>
 
-            <div className={styles.section}>
+            <div className={styles.lastSection}>
                 <label className={styles.label}>Must-include Words (Optional)</label>
                 <textarea
                     className={styles.textarea}

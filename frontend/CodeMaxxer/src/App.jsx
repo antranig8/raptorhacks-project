@@ -20,9 +20,9 @@ function App() {
       <div className={styles.app}>
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login />}/>
+          <Route path="/login" element={<Login />} />
           <Route path="/login/callback" element={<LoginCallback />} />
-          
+
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<Dashboard />}>
               <Route index element={<DashboardHome />} />
