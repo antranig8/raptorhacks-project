@@ -28,7 +28,7 @@ const navSections = [
         title: 'Study',
         items: [
             { section: 'Study', label: 'Typing', route: '/dashboard/typing', icon: <FaKeyboard /> },
-            { section: 'Study', label: 'Study', route: '/dashboard/study', icon: <FaGraduationCap /> },
+            { section: 'Study', label: 'Coding', route: '/dashboard/coding', icon: <FaGraduationCap /> },
             { section: 'Study', label: 'Quizzes', route: '/dashboard/quizzes', icon: <FaClipboardList /> },
         ],
     },

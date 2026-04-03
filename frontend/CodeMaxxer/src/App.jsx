@@ -6,7 +6,7 @@ import Dashboard from '@dashboard/dashboard.jsx'
 import DashboardHome from '@d_general/dashboard/DashboardHome.jsx'
 import SkillTree from '@d_general/skilltree/SkillTree.jsx'
 import Test from '@dashboard/components/Test.jsx'
-import Study from '@d_study/study/Study.jsx'
+import Coding from '@d_study/coding/Coding.jsx'
 import Settings from '@d_support/settings/Settings.jsx'
 import Help from '@d_support/help/Help.jsx'
 import Typing from '@d_general/typing/Typing.jsx'
@@ -28,7 +28,7 @@ function App() {
               <Route index element={<DashboardHome />} />
               <Route path="skill-tree" element={<SkillTree />} />
               <Route path="test" element={<Test />} />
-              <Route path="study" element={<Study />} />
+              <Route path="coding" element={<Coding />} />
               <Route path="quizzes" element={<Quizzes />} />
               <Route path="settings" element={<Settings />} />
               <Route path="help" element={<Help />} />
