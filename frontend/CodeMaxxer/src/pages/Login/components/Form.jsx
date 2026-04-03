@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FaDiscord, FaEye, FaEyeSlash, FaGoogle } from 'react-icons/fa'
-import supabase from '@/utils/supabase'
+import supabase from '@utils/supabase'
 import styles from '@login/styles/login.module.css'
 
 export default function Form() {

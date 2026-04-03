@@ -25,7 +25,30 @@
     font-size: 0.55rem;
     font-weight: 600;
     border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
     transition: background-color 0.2s ease, color 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.navItem:hover,
+.navItem:focus {
+    background: #f3f7ff;
+    color: #0b1f4a;
+}
+
+button.navItem {
+    border: none;
+    background: none;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    font-family: inherit;
 }
 
 .navItem:hover,
@@ -128,3 +151,46 @@
     font-weight: 500;
     letter-spacing: 0.01em;
 }
+
+.userInfo {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    width: 100%;
+}
+
+.userDetails {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.logoutButton {
+    background: none;
+    border: 1px solid #e2e8f0;
+    padding: 0.4rem 0.6rem;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #64748b;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+    gap: 0.35rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
+.logoutButton:hover {
+    background: #fee2e2;
+    color: #ef4444;
+    border-color: #fecaca;
+}
+
+.logoutIcon {
+    font-size: 0.8rem;
+    display: inline-flex;
+}
+

@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
-import { FaHome, FaSeedling, FaGraduationCap, FaCog, FaQuestionCircle, FaKeyboard, FaClipboardList, FaAddressBook, FaUser } from 'react-icons/fa'
+import { Link, useNavigate } from 'react-router-dom'
+import { FaHome, FaSeedling, FaGraduationCap, FaCog, FaQuestionCircle, FaKeyboard, FaClipboardList, FaAddressBook, FaUser, FaSignOutAlt } from 'react-icons/fa'
 import Logo from '@/components/Logo/Logo'
 import styles from '@dashboard/styles/DashboardNav.module.css'
-import supabase from '@/utils/supabase'
+import supabase from '@utils/supabase'
 
 const navSections = [
     {
@@ -37,12 +37,23 @@ const navSections = [
         items: [
             { section: 'Support', label: 'Settings', route: '/dashboard/settings', icon: <FaCog /> },
             { section: 'Support', label: 'Help', route: '/dashboard/help', icon: <FaQuestionCircle /> },
+            { section: 'Support', label: 'Logout', route: null, icon: <FaSignOutAlt />, isLogout: true },
         ],
     },
 ]
 
 export default function DashboardNav() {
     const [user, setUser] = useState(null)
+    const navigate = useNavigate()
+
+    const handleLogout = async () => {
+        const { error } = await supabase.auth.signOut()
+        if (error) {
+            console.error('Error logging out:', error.message)
+        } else {
+            navigate('/login')
+        }
+    }
 
     const formatTimestamp = (value) => {
         if (!value) return 'Unknown'
@@ -67,22 +78,31 @@ export default function DashboardNav() {
                     <div key={section.title} className={styles.sectionGroup}>
                         <div className={styles.sectionTitle}>{section.title}</div>
                         {section.items.map((item) => (
-                            <Link key={item.label} to={item.route} className={styles.navItem}>
-                                <span className={styles.iconWrapper}>
-                                    <span className={styles.icon}>{item.icon}</span>
-                                    {item.notification?.enabled && (
-                                        <span
-                                            className={styles.notificationDot}
-                                            style={{
-                                                backgroundColor: item.notification.color || '#ef4444',
-                                                width: item.notification.size || '0.35rem',
-                                                height: item.notification.size || '0.35rem',
-                                            }}
-                                        />
-                                    )}
-                                </span>
-                                <span>{item.label}</span>
-                            </Link>
+                            item.isLogout ? (
+                                <button key={item.label} onClick={handleLogout} className={styles.navItem} type="button">
+                                    <span className={styles.iconWrapper}>
+                                        <span className={styles.icon}>{item.icon}</span>
+                                    </span>
+                                    <span>{item.label}</span>
+                                </button>
+                            ) : (
+                                <Link key={item.label} to={item.route} className={styles.navItem}>
+                                    <span className={styles.iconWrapper}>
+                                        <span className={styles.icon}>{item.icon}</span>
+                                        {item.notification?.enabled && (
+                                            <span
+                                                className={styles.notificationDot}
+                                                style={{
+                                                    backgroundColor: item.notification.color || '#ef4444',
+                                                    width: item.notification.size || '0.35rem',
+                                                    height: item.notification.size || '0.35rem',
+                                                }}
+                                            />
+                                        )}
+                                    </span>
+                                    <span>{item.label}</span>
+                                </Link>
+                            )
                         ))}
                         {sectionIndex < navSections.length - 1 && <div className={styles.separator} />}
                     </div>
@@ -93,11 +113,13 @@ export default function DashboardNav() {
                 <div className={styles.separator} />
                 {user ? (
                     <div className={styles.userInfo}>
-                        {user.user_metadata?.full_name && (
-                            <span className={styles.userName}>{user.user_metadata.full_name}</span>
-                        )}
-                        <span className={styles.userEmail}>{user.email}</span>
-                        <span className={styles.userSession}>Session started: {formatTimestamp(user.last_sign_in_at || user.created_at)}</span>
+                        <div className={styles.userDetails}>
+                            {user.user_metadata?.full_name && (
+                                <span className={styles.userName}>{user.user_metadata.full_name}</span>
+                            )}
+                            <span className={styles.userEmail}>{user.email}</span>
+                            <span className={styles.userSession}>Session started: {formatTimestamp(user.last_sign_in_at || user.created_at)}</span>
+                        </div>
                     </div>
                 ) : (
                     <div className={styles.userInfo}>

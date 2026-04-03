@@ -1,6 +1,6 @@
 import styles from '@dashboard/styles/Study.module.css'
 import { useEffect, useState, useRef } from 'react'
-import supabase from '@/utils/supabase.js'
+import supabase from '@utils/supabase'
 
 export default function Test() {
     const [resp, setResp] = useState(null)

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useNavigate } from 'react-router-dom'
-import supabase from "@/utils/supabase.js"
+import supabase from "@utils/supabase"
 
 export default function LoginCallback() {
   const [status, setStatus] = useState("Completing sign-in…");
