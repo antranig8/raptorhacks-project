@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { VictoryChart, VictoryLine, VictoryAxis, VictoryTheme } from 'victory'
+import { VictoryChart, VictoryLine, VictoryAxis, VictoryTheme, VictoryLegend } from 'victory'
 import styles from './Quadrant2.module.css'
 
 const RANGES = ['1D', '1W', '1M', '3M', 'YTD', '1Y', 'ALL']
@@ -54,7 +54,12 @@ export default function Quadrant2() {
                 <div className={styles.stackItem}>
                     <ChartTitle title="Overall Exp" />
                     <div className={styles.chartContainer}>
-                        <VictoryChart width={800} theme={VictoryTheme.material} height={200} padding={{ top: 10, bottom: 20, left: 40, right: 10 }}>
+                        <VictoryChart width={800} theme={VictoryTheme.material} height={200} padding={{ top: 30, bottom: 20, left: 40, right: 10 }}>
+                            <VictoryLegend x={40} y={0}
+                                orientation="horizontal"
+                                gutter={20}
+                                data={[{ name: "Global XP", symbol: { fill: "#22c55e" } }]}
+                            />
                             <VictoryAxis tickFormat={() => ''} style={{ axis: { stroke: "#cbd5e1" }, grid: { stroke: "transparent" } }} />
                             <VictoryAxis dependentAxis style={{ axis: { stroke: "transparent" }, grid: { stroke: "#f1f5f9" } }} />
                             <VictoryLine data={dataTop} style={{ data: { stroke: "#22c55e", strokeWidth: 3 } }} />
@@ -65,7 +70,15 @@ export default function Quadrant2() {
                 <div className={styles.stackItem}>
                     <ChartTitle title="Exp by Skill" />
                     <div className={styles.chartContainer}>
-                        <VictoryChart width={800} theme={VictoryTheme.material} height={200} padding={{ top: 10, bottom: 20, left: 40, right: 10 }}>
+                        <VictoryChart width={800} theme={VictoryTheme.material} height={200} padding={{ top: 30, bottom: 20, left: 40, right: 10 }}>
+                            <VictoryLegend x={40} y={0}
+                                orientation="horizontal"
+                                gutter={20}
+                                data={[
+                                    { name: "Frontend", symbol: { fill: "#3b82f6" } },
+                                    { name: "Backend", symbol: { fill: "#f59e0b" } }
+                                ]}
+                            />
                             <VictoryAxis tickFormat={() => ''} style={{ axis: { stroke: "#cbd5e1" }, grid: { stroke: "transparent" } }} />
                             <VictoryAxis dependentAxis style={{ axis: { stroke: "transparent" }, grid: { stroke: "#f1f5f9" } }} />
                             <VictoryLine data={dataBottom[0]} style={{ data: { stroke: "#3b82f6", strokeWidth: 3 } }} />
