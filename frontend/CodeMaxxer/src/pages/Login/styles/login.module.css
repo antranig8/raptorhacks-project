@@ -198,6 +198,41 @@
     transform: translateY(-1px);
 }
 
+.errorMessage {
+    background-color: #fef2f2;
+    color: #b91c1c;
+    padding: 0.75rem;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    margin-bottom: 0.5rem;
+    text-align: center;
+    border: 1px solid #fecaca;
+}
+
+.toggleRow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    font-size: 0.85rem;
+    color: #64748b;
+}
+
+.toggleButton {
+    background: none;
+    border: none;
+    color: #3b82f6;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 0.85rem;
+    padding: 0;
+}
+
+.toggleButton:hover {
+    text-decoration: underline;
+}
+
 .bypassButton {
     margin-top: 0.5rem;
     font-family: inherit;

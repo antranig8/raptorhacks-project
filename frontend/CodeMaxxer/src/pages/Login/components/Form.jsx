@@ -6,7 +6,43 @@ import styles from '@login/styles/login.module.css'
 
 export default function Form() {
     const [showPassword, setShowPassword] = useState(false)
+    const [isSignUp, setIsSignUp] = useState(false)
+    const [email, setEmail] = useState('')
+    const [password, setPassword] = useState('')
+    const [error, setError] = useState(null)
+    const [loading, setLoading] = useState(false)
     const navigate = useNavigate()
+
+    async function handleSubmit(e) {
+        e.preventDefault()
+        setError(null)
+        setLoading(true)
+
+        try {
+            if (isSignUp) {
+                const { error } = await supabase.auth.signUp({
+                    email,
+                    password,
+                    options: {
+                        emailRedirectTo: 'http://localhost:5173/login/callback',
+                    }
+                })
+                if (error) throw error
+                alert('Check your email for the confirmation link!')
+            } else {
+                const { error } = await supabase.auth.signInWithPassword({
+                    email,
+                    password,
+                })
+                if (error) throw error
+                navigate('/dashboard')
+            }
+        } catch (err) {
+            setError(err.message)
+        } finally {
+            setLoading(false)
+        }
+    }
 
     async function loginThrough(provider) {
         await supabase.auth.signInWithOAuth({
@@ -19,10 +55,18 @@ export default function Form() {
 
     return (
         <div className={styles.formContainer}>
-            <form className={styles.form}>
+            <form className={styles.form} onSubmit={handleSubmit}>
+                {error && <div className={styles.errorMessage}>{error}</div>}
                 <div className={styles.inputGroup}>
                     <label htmlFor="email">Email</label>
-                    <input type="email" id="email" placeholder="Enter your email" required />
+                    <input
+                        type="email"
+                        id="email"
+                        placeholder="Enter your email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                    />
                 </div>
 
                 <div className={styles.inputGroup}>
@@ -32,6 +76,8 @@ export default function Form() {
                             type={showPassword ? 'text' : 'password'}
                             id="password"
                             placeholder="••••••••"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
                             required
                         />
                         <button
@@ -44,15 +90,33 @@ export default function Form() {
                     </div>
                 </div>
 
-                <div className={styles.optionsRow}>
-                    <label className={styles.rememberMe}>
-                        <input type="checkbox" />
-                        <span>Remember<br />me</span>
-                    </label>
-                    <a href="#" className={styles.forgotPassword}>Forgot Your<br />Password?</a>
-                </div>
+                {!isSignUp && (
+                    <div className={styles.optionsRow}>
+                        <label className={styles.rememberMe}>
+                            <input type="checkbox" />
+                            <span>Remember<br />me</span>
+                        </label>
+                        <a href="#" className={styles.forgotPassword}>Forgot Your<br />Password?</a>
+                    </div>
+                )}
 
-                <button type="submit" className={styles.loginButton}>Log In</button>
+                <button type="submit" className={styles.loginButton} disabled={loading}>
+                    {loading ? 'Processing...' : (isSignUp ? 'Sign Up' : 'Log In')}
+                </button>
+
+                <div className={styles.toggleRow}>
+                    <span>{isSignUp ? 'Already have an account?' : 'Need an account?'}</span>
+                    <button
+                        type="button"
+                        className={styles.toggleButton}
+                        onClick={() => {
+                            setIsSignUp(!isSignUp)
+                            setError(null)
+                        }}
+                    >
+                        {isSignUp ? 'Log In' : 'Sign Up'}
+                    </button>
+                </div>
 
                 <div className={styles.divider}>
                     <hr />
