@@ -61,6 +61,17 @@ export const initSkillWeb = (svgRef, data, width, height, zoom) => {
         }
     });
 
+    // Use D3 force simulation to resolve overlaps, specifically for leaf nodes
+    const leafNodes = root.leaves();
+    const simulation = d3.forceSimulation(leafNodes)
+        .force("x", d3.forceX(d => d.x).strength(0.5))
+        .force("y", d3.forceY(d => d.y).strength(0.5))
+        .force("collide", d3.forceCollide().radius(d => Math.max(d.dims.w, d.dims.h) * 0.7).iterations(4))
+        .stop();
+
+    // Run the simulation for a few ticks to stabilize
+    for (let i = 0; i < 120; ++i) simulation.tick();
+
     let history = [];
     let historyIndex = -1;
 
@@ -115,6 +126,9 @@ export const initSkillWeb = (svgRef, data, width, height, zoom) => {
             selectedNodes.clear();
             updateSelectionState();
         }
+    })
+    .on("contextmenu", (event) => {
+        event.preventDefault();
     });
 
     const node = canvas.append("g")

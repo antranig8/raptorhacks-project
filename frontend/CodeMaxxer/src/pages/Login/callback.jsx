@@ -2,40 +2,40 @@
 
 import { useEffect, useState } from "react";
 import { useNavigate } from 'react-router-dom'
-import supabase from "@/utils/supabase.js"
+import supabase from "@utils/supabase"
 
 export default function LoginCallback() {
   const [status, setStatus] = useState("Completing sign-in…");
-    const [error, setError] = useState(null);
-    const navigate = useNavigate()
+  const [error, setError] = useState(null);
+  const navigate = useNavigate()
 
-    useEffect(() => {
+  useEffect(() => {
     const handleCallback = async () => {
-        try {
-            const { data, error } = await supabase.auth.getSession()
+      try {
+        const { data, error } = await supabase.auth.getSession()
 
-            if (error) throw error
+        if (error) throw error
 
-            if (data?.session) {
-                setStatus("Signed in! Redirecting…")
-                navigate('/dashboard')
-            } else {
-                // no session yet, exchange the code
-                const { data: exchangeData, error: exchangeError } = 
-                    await supabase.auth.exchangeCodeForSession(window.location.href)
-                
-                if (exchangeError) throw exchangeError
-                if (exchangeData?.session) {
-                    setStatus("Signed in! Redirecting…")
-                    navigate('/dashboard')
-                }
-            }
-        } catch (err) {
-            setError(err.message ?? "Authentication failed.")
+        if (data?.session) {
+          setStatus("Signed in! Redirecting…")
+          navigate('/dashboard')
+        } else {
+          // no session yet, exchange the code
+          const { data: exchangeData, error: exchangeError } =
+            await supabase.auth.exchangeCodeForSession(window.location.href)
+
+          if (exchangeError) throw exchangeError
+          if (exchangeData?.session) {
+            setStatus("Signed in! Redirecting…")
+            navigate('/dashboard')
+          }
         }
+      } catch (err) {
+        setError(err.message ?? "Authentication failed.")
+      }
     }
     handleCallback()
-}, [navigate])
+  }, [navigate])
 
   return (
     <main
