@@ -241,3 +241,13 @@ button.navItem {
     font-size: 0.8rem;
     display: inline-flex;
 }
+
+@media (max-width: 480px) {
+    .sidebar.docked {
+        padding: 1rem 0rem;
+    }
+
+    .sidebar {
+        padding: 1rem 0.5rem;
+    }
+}
