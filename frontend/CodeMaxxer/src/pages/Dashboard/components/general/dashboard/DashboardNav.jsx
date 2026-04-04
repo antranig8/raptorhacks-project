@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { FaHome, FaSeedling, FaGraduationCap, FaCog, FaQuestionCircle, FaKeyboard, FaClipboardList, FaAddressBook, FaUser, FaSignOutAlt } from 'react-icons/fa'
+import { CgDockLeft, CgDockRight } from 'react-icons/cg'
 import Logo from '@/components/Logo/Logo'
 import styles from '@dashboard/styles/DashboardNav.module.css'
 import supabase from '@utils/supabase'
@@ -44,6 +45,7 @@ const navSections = [
 
 export default function DashboardNav() {
     const [user, setUser] = useState(null)
+    const [isDocked, setIsDocked] = useState(false)
     const navigate = useNavigate()
 
     const handleLogout = async () => {
@@ -71,22 +73,31 @@ export default function DashboardNav() {
     }, [])
 
     return (
-        <aside className={styles.sidebar}>
-            <Logo fontSize={'1.2rem'} />
+        <aside className={`${styles.sidebar} ${isDocked ? styles.docked : ''}`}>
+            <div className={styles.logoRow}>
+                {!isDocked && <Logo fontSize={'1rem'} />}
+                <button 
+                    onClick={() => setIsDocked(!isDocked)} 
+                    className={styles.dockButton}
+                    title={isDocked ? "Expand Sidebar" : "Collapse Sidebar"}
+                >
+                    {isDocked ? <CgDockRight /> : <CgDockLeft />}
+                </button>
+            </div>
             <nav className={styles.nav}>
                 {navSections.map((section, sectionIndex) => (
                     <div key={section.title} className={styles.sectionGroup}>
-                        <div className={styles.sectionTitle}>{section.title}</div>
+                        {!isDocked && <div className={styles.sectionTitle}>{section.title}</div>}
                         {section.items.map((item) => (
                             item.isLogout ? (
                                 <button key={item.label} onClick={handleLogout} className={styles.navItem} type="button">
                                     <span className={styles.iconWrapper}>
                                         <span className={styles.icon}>{item.icon}</span>
                                     </span>
-                                    <span>{item.label}</span>
+                                    {!isDocked && <span>{item.label}</span>}
                                 </button>
                             ) : (
-                                <Link key={item.label} to={item.route} className={styles.navItem}>
+                                <Link key={item.label} to={item.route} className={styles.navItem} title={isDocked ? item.label : ''}>
                                     <span className={styles.iconWrapper}>
                                         <span className={styles.icon}>{item.icon}</span>
                                         {item.notification?.enabled && (
@@ -100,31 +111,32 @@ export default function DashboardNav() {
                                             />
                                         )}
                                     </span>
-                                    <span>{item.label}</span>
+                                    {!isDocked && <span>{item.label}</span>}
                                 </Link>
                             )
                         ))}
-                        {sectionIndex < navSections.length - 1 && <div className={styles.separator} />}
                     </div>
                 ))}
             </nav>
 
             <div className={styles.userSection}>
                 <div className={styles.separator} />
-                {user ? (
-                    <div className={styles.userInfo}>
-                        <div className={styles.userDetails}>
-                            {user.user_metadata?.full_name && (
-                                <span className={styles.userName}>{user.user_metadata.full_name}</span>
-                            )}
-                            <span className={styles.userEmail}>{user.email}</span>
-                            <span className={styles.userSession}>Session started: {formatTimestamp(user.last_sign_in_at || user.created_at)}</span>
+                {!isDocked && (
+                    user ? (
+                        <div className={styles.userInfo}>
+                            <div className={styles.userDetails}>
+                                {user.user_metadata?.full_name && (
+                                    <span className={styles.userName}>{user.user_metadata.full_name}</span>
+                                )}
+                                <span className={styles.userEmail}>{user.email}</span>
+                                <span className={styles.userSession}>{formatTimestamp(user.last_sign_in_at || user.created_at)}</span>
+                            </div>
                         </div>
-                    </div>
-                ) : (
-                    <div className={styles.userInfo}>
-                        <span className={styles.userEmail}>Not logged in</span>
-                    </div>
+                    ) : (
+                        <div className={styles.userInfo}>
+                            <span className={styles.userEmail}>Not logged in</span>
+                        </div>
+                    )
                 )}
             </div>
         </aside>
