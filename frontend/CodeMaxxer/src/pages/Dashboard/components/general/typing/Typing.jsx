@@ -35,7 +35,7 @@ export default function Typing() {
         const checkMobile = () => {
             setIsMobile(window.innerWidth <= 1024)
         }
-        
+
         checkMobile()
         window.addEventListener('resize', checkMobile)
         return () => window.removeEventListener('resize', checkMobile)
@@ -67,21 +67,21 @@ export default function Typing() {
                     />
                 </div>
                 <div className={styles.analyticsArea}>
-                <CustomLineChart
-                    title="Typing Performance"
-                    initialDataGenerator={generateTypingMetricsData}
-                    lines={[
-                        { name: 'EPM', color: '#3b82f6' },
-                        { name: 'WPM', color: '#10b981' }
-                    ]}
-                    showTimeControls={false}
-                    xAxisType="seconds"
-                />
+                    <CustomLineChart
+                        title="Typing Performance"
+                        initialDataGenerator={generateTypingMetricsData}
+                        lines={[
+                            { name: 'EPM', color: '#3b82f6' },
+                            { name: 'WPM', color: '#10b981' }
+                        ]}
+                        showTimeControls={false}
+                        xAxisType="seconds"
+                    />
+                </div>
             </div>
-        </div>
-        <div className={styles.rightColumn}>
-            <TypingEditor onStart={handleStart} />
-        </div>
-    </section>
-)
+            <div className={styles.rightColumn}>
+                <TypingEditor onStart={handleStart} />
+            </div>
+        </section>
+    )
 }
