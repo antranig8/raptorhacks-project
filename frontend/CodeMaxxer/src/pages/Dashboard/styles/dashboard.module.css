@@ -49,6 +49,12 @@
     flex-direction: column;
 }
 
+@media (max-width: 1024px) {
+    .content {
+        padding: 0;
+    }
+}
+
 .content>* {
     flex: 1;
     min-height: 0;
