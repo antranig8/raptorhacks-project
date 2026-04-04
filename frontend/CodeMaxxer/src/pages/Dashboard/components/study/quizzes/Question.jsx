@@ -8,6 +8,7 @@ import styles from '@dashboard/styles/Question.module.css';
  * - prompt: the question text
  * - type: 'Multiple' | 'Single' | 'SelectAll' | 'Coding' (coding logic can be stubbed)
  * - choices: array of { id, label, isCorrect, reasoning }
+ *   each choice should include reasoning to explain why it is correct or incorrect
  * - onResult: callback(result: boolean)
  */
 export default function Question({
@@ -15,6 +16,7 @@ export default function Question({
     prompt = '',
     type = 'Single',
     choices = [],
+    answerHint = '',
     onResult,
     isSkippable = true,
     isFirst = false,
@@ -24,9 +26,36 @@ export default function Question({
     onSubmit
 }) {
     const [selectedId, setSelectedId] = useState(null);
+    const [selectedIds, setSelectedIds] = useState([]);
+    const [codeAnswer, setCodeAnswer] = useState('');
     const [isSubmitted, setIsSubmitted] = useState(false);
 
+    const isMultiChoice = type === 'Multiple' || type === 'SelectAll';
+
+    const evaluateMultiChoice = (selected) => {
+        const correctIds = choices.filter(c => c.isCorrect).map(c => c.id);
+        if (selected.length !== correctIds.length) return false;
+        return correctIds.every(id => selected.includes(id));
+    };
+
     const handleSelect = (id) => {
+        if (type === 'Coding') return;
+
+        if (isMultiChoice) {
+            const nextSelectedIds = selectedIds.includes(id)
+                ? selectedIds.filter(item => item !== id)
+                : [...selectedIds, id];
+
+            setSelectedIds(nextSelectedIds);
+            const submitted = nextSelectedIds.length > 0;
+            setIsSubmitted(submitted);
+
+            if (onResult) {
+                onResult(submitted ? evaluateMultiChoice(nextSelectedIds) : false);
+            }
+            return;
+        }
+
         if (isSubmitted) return;
         setSelectedId(id);
         setIsSubmitted(true);
@@ -37,8 +66,18 @@ export default function Question({
         }
     };
 
+    const handleCodeChange = (value) => {
+        setCodeAnswer(value);
+        const submitted = value.trim().length > 0;
+        setIsSubmitted(submitted);
+
+        if (onResult) {
+            onResult(submitted);
+        }
+    };
+
     const renderChoice = (choice) => {
-        const isSelected = selectedId === choice.id;
+        const isSelected = isMultiChoice ? selectedIds.includes(choice.id) : selectedId === choice.id;
         const showResult = isSubmitted && isSelected;
 
         let containerClass = styles.choice;
@@ -76,6 +115,27 @@ export default function Question({
         );
     };
 
+    const renderCoding = () => (
+        <div className={styles.codingContainer}>
+            <textarea
+                className={styles.codingTextarea}
+                placeholder="Enter your code or pseudocode here..."
+                value={codeAnswer}
+                onChange={(e) => handleCodeChange(e.target.value)}
+            />
+
+            {isSubmitted && answerHint && (
+                <div className={styles.feedback}>
+                    <div className={styles.status}>
+                        <span className={styles.statusIcon}>✓</span>
+                        <span className={styles.statusText}>Answer received</span>
+                    </div>
+                    <p className={styles.reasoning}>{answerHint}</p>
+                </div>
+            )}
+        </div>
+    );
+
     return (
         <div className={styles.questionContainer}>
             <h3 className={styles.prompt}>
@@ -83,7 +143,7 @@ export default function Question({
             </h3>
 
             <div className={styles.choicesList}>
-                {choices.map(renderChoice)}
+                {type === 'Coding' ? renderCoding() : choices.map(renderChoice)}
             </div>
 
             <div className={styles.footer}>

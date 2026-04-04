@@ -4,30 +4,10 @@ import ProgressSummary from './ProgressSummary'
 import Question from './Question'
 import QuizEditor from './QuizEditor'
 
-const QUESTIONS = [
-    {
-        number: 1,
-        prompt: "Which of the following describes the fastest storage locations available to the CPU for executing instructions?",
-        isSkippable: true,
-        choices: [
-            { id: 'A', label: 'Main Memory (RAM)', isCorrect: false },
-            { id: 'B', label: 'Registers', isCorrect: true, reasoning: 'Registers are located directly within the CPU and provide the lowest latency for data access.' },
-            { id: 'C', label: 'Virtual Memory', isCorrect: false },
-            { id: 'D', label: 'Level 1 Cache', isCorrect: false }
-        ]
-    },
-    {
-        number: 2,
-        prompt: "What is a primary difference between the CMP and SUB instructions in x86 assembly?",
-        isSkippable: false,
-        choices: [
-            { id: 'A', label: 'CMP is significantly faster than SUB', isCorrect: false },
-            { id: 'B', label: 'SUB is only used for signed integers', isCorrect: false },
-            { id: 'C', label: 'SUB does not update the CPU flags', isCorrect: false },
-            { id: 'D', label: 'CMP does not store the result in the destination operand', isCorrect: true, reasoning: 'CMP performs a subtraction but only updates flags without modifying operands.' }
-        ]
-    }
-];
+// Sample quiz questions are stored externally in questions.json for debugging and easier maintenance.
+import questionData from './questions.json'
+
+const QUESTIONS = questionData.questions;
 
 export default function Quizzes() {
     const [currentIdx, setCurrentIdx] = useState(0);
@@ -66,6 +46,7 @@ export default function Quizzes() {
                         <Question
                             key={currentIdx}
                             {...currentQuestion}
+                            number={currentIdx + 1}
                             isFirst={currentIdx === 0}
                             isLast={currentIdx === QUESTIONS.length - 1}
                             onResult={handleResult}
