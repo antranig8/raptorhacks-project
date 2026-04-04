@@ -76,8 +76,8 @@ export default function DashboardNav() {
         <aside className={`${styles.sidebar} ${isDocked ? styles.docked : ''}`}>
             <div className={styles.logoRow}>
                 {!isDocked && <Logo fontSize={'1rem'} />}
-                <button 
-                    onClick={() => setIsDocked(!isDocked)} 
+                <button
+                    onClick={() => setIsDocked(!isDocked)}
                     className={styles.dockButton}
                     title={isDocked ? "Expand Sidebar" : "Collapse Sidebar"}
                 >
