@@ -19,6 +19,14 @@
     gap: 0.5rem;
 }
 
+.textareaSection {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    flex: 1;
+    min-height: 0;
+}
+
 .label {
     font-size: 0.875rem;
     font-weight: 600;
@@ -94,6 +102,8 @@
     resize: vertical;
     outline: none;
     transition: border-color 0.2s;
+    flex: 1;
+    min-height: 0;
 }
 
 .textarea:focus {

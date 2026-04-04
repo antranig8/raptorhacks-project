@@ -85,7 +85,7 @@ export default function QuizEditor({ onGenerate }) {
 
             <hr className={styles.spacer} />
 
-            <div className={styles.section}>
+            <div className={`${styles.section} ${styles.textareaSection}`}>
                 <label className={styles.label}>Topic / Prompt</label>
                 <textarea
                     className={styles.textarea}

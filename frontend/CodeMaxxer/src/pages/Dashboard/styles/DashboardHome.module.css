@@ -31,3 +31,20 @@ p {
     margin: 0;
     color: #475569;
 }
+
+
+@media (max-width: 1024px) {
+    .container {
+        padding: 1rem;
+        overflow-y: auto;
+    }
+
+    .grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        grid-template-rows: unset;
+        gap: 1rem;
+        height: auto;
+        width: 100%;
+    }
+}

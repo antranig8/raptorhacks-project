@@ -134,3 +134,22 @@
     background: #ffffff;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
+
+@media (max-width: 1024px) {
+    .container {
+        padding: 0.75rem;
+    }
+
+    .stackItemSmall,
+    .stackItemLarge {
+        padding: 0.75rem;
+    }
+
+    .stackItemSmall {
+        min-height: 500px;
+    }
+
+    .stackItemLarge {
+        min-height: 400px;
+    }
+}
