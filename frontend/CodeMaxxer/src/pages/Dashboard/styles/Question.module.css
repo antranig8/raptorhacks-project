@@ -216,4 +216,46 @@
         padding: 0.5rem 1.5rem;
         font-size: 0.9rem;
     }
+
+    .backBtn {
+        padding: 0.4rem 0.75rem;
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .questionContainer {
+        padding: 0.2rem;
+        gap: 0.7rem;
+    }
+
+    .prompt {
+        font-size: 0.9rem;
+    }
+
+    .choicesList {
+        gap: 0.5rem;
+    }
+
+    .choice {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.9rem;
+    }
+
+    .footer {
+        margin-top: 0.75rem;
+        padding-top: 0.75rem;
+        gap: 0.5rem;
+    }
+
+    .nextBtn,
+    .submitBtn {
+        padding: 0.5rem 1.5rem;
+        font-size: 0.8rem;
+    }
+
+    .backBtn {
+        padding: 0.4rem 0.75rem;
+        font-size: 0.8rem;
+    }
 }
