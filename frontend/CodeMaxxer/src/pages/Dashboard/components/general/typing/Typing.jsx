@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import styles from '@dashboard/styles/Typing.module.css'
 import TextArea from '@d_general/typing/TextArea'
+import { randomText } from './wordBank'
 import TypingEditor from './TypingEditor'
 import CustomLineChart from '@d_general/dashboard/CustomLineChart'
 
@@ -30,6 +31,7 @@ export default function Typing() {
     const [input, setInput] = useState('')
     const [isTopActive, setIsTopActive] = useState(false)
     const [isMobile, setIsMobile] = useState(false)
+    const [realtimeChartData, setRealtimeChartData] = useState(null)
 
     useEffect(() => {
         const checkMobile = () => {
@@ -45,7 +47,45 @@ export default function Typing() {
         console.log('Starting typing with config:', config);
     };
 
-    const practiceTemplate = 'hello world'
+    const [practiceTemplate, setPracticeTemplate] = useState(() => randomText(25))
+
+    // Smooth / interpolate helpers
+    const movingAverage = (series, window = 3) => {
+        if (!series || series.length === 0) return series
+        const out = []
+        for (let i = 0; i < series.length; i++) {
+            const start = Math.max(0, i - Math.floor(window / 2))
+            const end = Math.min(series.length - 1, i + Math.floor(window / 2))
+            let sum = 0
+            let count = 0
+            for (let j = start; j <= end; j++) {
+                sum += series[j].y
+                count++
+            }
+            out.push({ x: series[i].x, y: sum / count })
+        }
+        return out
+    }
+
+    const interpolateSeries = (series, step = 0.5) => {
+        if (!series || series.length === 0) return series
+        const out = []
+        for (let i = 0; i < series.length - 1; i++) {
+            const a = series[i]
+            const b = series[i + 1]
+            out.push({ x: a.x, y: a.y })
+            const deltaX = b.x - a.x
+            const steps = Math.max(1, Math.floor(deltaX / step))
+            for (let s = 1; s < steps; s++) {
+                const t = s / steps
+                const x = a.x + t * deltaX
+                const y = a.y + t * (b.y - a.y)
+                out.push({ x, y })
+            }
+        }
+        out.push(series[series.length - 1])
+        return out
+    }
 
     if (isMobile) {
         return (
@@ -64,6 +104,36 @@ export default function Typing() {
                         target={practiceTemplate}
                         onChange={setInput}
                         onActiveChange={setIsTopActive}
+                        onRequestNewTarget={() => {
+                            setPracticeTemplate(randomText(25))
+                            setRealtimeChartData(null)
+                        }}
+                        onComplete={(session) => {
+                            // session: { history, sessionStart, completionTime, typed }
+                            const { history, sessionStart } = session
+                            if (!history || history.length === 0 || !sessionStart) return
+
+                            const wpmSeries = []
+                            const epmSeries = []
+
+                            for (let i = 0; i < history.length; i++) {
+                                const entry = history[i]
+                                const elapsedSec = Math.floor((entry.timestamp - sessionStart) / 1000)
+                                const elapsedMin = Math.max(1 / 60, (entry.timestamp - sessionStart) / 60000)
+                                const wpm = Math.round((entry.value.length / 5) / elapsedMin)
+                                const epm = Math.round(((i + 1) / elapsedMin))
+                                wpmSeries.push({ x: elapsedSec, y: wpm })
+                                epmSeries.push({ x: elapsedSec, y: epm })
+                            }
+
+                            // apply light smoothing then interpolate for smoother curves
+                            const smoothedEpm = movingAverage(epmSeries, 3)
+                            const smoothedWpm = movingAverage(wpmSeries, 3)
+                            const interpEpm = interpolateSeries(smoothedEpm, 0.5)
+                            const interpWpm = interpolateSeries(smoothedWpm, 0.5)
+
+                            setRealtimeChartData([interpEpm, interpWpm])
+                        }}
                     />
                 </div>
                 <div className={styles.analyticsArea}>
@@ -76,6 +146,7 @@ export default function Typing() {
                         ]}
                         showTimeControls={false}
                         xAxisType="seconds"
+                        data={realtimeChartData}
                     />
                 </div>
             </div>

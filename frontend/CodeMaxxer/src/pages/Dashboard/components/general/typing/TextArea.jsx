@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { FaMousePointer, FaRedo } from 'react-icons/fa'
 import styles from '@dashboard/styles/TextArea.module.css'
-
-export default function TextArea({ target = 'hello world', onChange, onActiveChange }) {
+import TypingStats from './TypingStats'
+export default function TextArea({ target = '', onChange, onActiveChange, onRequestNewTarget, onComplete }) {
     const [active, setActive] = useState(false)
     const [typed, setTyped] = useState('')
     const [completed, setCompleted] = useState(false)
@@ -13,7 +13,6 @@ export default function TextArea({ target = 'hello world', onChange, onActiveCha
     const [completionTime, setCompletionTime] = useState(null)
     const [liveWpm, setLiveWpm] = useState(0)
     const containerRef = useRef(null)
-
     const remaining = target.slice(typed.length)
 
     const handleFocus = () => {
@@ -47,7 +46,7 @@ export default function TextArea({ target = 'hello world', onChange, onActiveCha
         }
 
         const start = sessionStart || timestamp
-        const elapsedMinutes = Math.max(0.001, (timestamp - start) / 60000)
+        const elapsedMinutes = Math.max(1 / 60, (timestamp - start) / 60000)
         const wpm = Math.round((next.length / 5) / elapsedMinutes)
         setLiveWpm(wpm)
 
@@ -104,7 +103,7 @@ export default function TextArea({ target = 'hello world', onChange, onActiveCha
             if (onChange) onChange(current.value)
 
             const startTimestamp = history[0]?.timestamp || current.timestamp
-            const elapsed = Math.max(1, current.timestamp - startTimestamp)
+            const elapsed = Math.max(1000, current.timestamp - startTimestamp)
             const elapsedMinutes = elapsed / 60000
             const wpm = Math.round((current.value.length / 5) / elapsedMinutes)
             setLiveWpm(wpm)
@@ -124,6 +123,7 @@ export default function TextArea({ target = 'hello world', onChange, onActiveCha
         setSessionStart(null)
         setCompletionTime(null)
         setLiveWpm(0)
+        if (onRequestNewTarget) onRequestNewTarget()
         setActive(true)
         if (onActiveChange) onActiveChange(true)
         if (onChange) onChange('')
@@ -140,12 +140,19 @@ export default function TextArea({ target = 'hello world', onChange, onActiveCha
         if (onChange) onChange('')
     }
 
+    useEffect(() => {
+        if (!completed || !completionTime) return
+        if (onComplete) {
+            onComplete({ history, sessionStart, completionTime, typed })
+        }
+    }, [completed, completionTime])
+
     const targetChars = target.split('')
     const typedChars = typed.split('')
 
     return (
         <div
-            className={`${styles.wrapper} ${active ? styles.active : ''}`}
+            className={`${styles.wrapper} ${active ? styles.active : ''} ${isReplaying ? styles.replaying : ''}`}
             ref={containerRef}
             tabIndex={0}
             onFocus={handleFocus}
@@ -154,7 +161,19 @@ export default function TextArea({ target = 'hello world', onChange, onActiveCha
             role="textbox"
             aria-label="Typing practice input"
         >
-            <div className={styles.wpmBadge}>WPM: {liveWpm}</div>
+            <TypingStats
+                startTimestamp={sessionStart}
+                active={active}
+                completed={completed}
+                duration={60}
+                wpm={liveWpm}
+                onTimeUp={() => {
+                    setCompleted(true)
+                    setActive(false)
+                    setCompletionTime(Date.now())
+                    if (onActiveChange) onActiveChange(false)
+                }}
+            />
             <div className={styles.content}>
                 <span className={styles.typed}>
                     {typedChars.map((chr, idx) => {
@@ -183,9 +202,9 @@ export default function TextArea({ target = 'hello world', onChange, onActiveCha
             {(completed || isReplaying) && (
                 <div className={styles.statusOverlay}>
                     <p className={styles.completedText}>{isReplaying ? 'Replaying...' : 'Completed!'}</p>
-                    {completed && completionTime && sessionStart && (
+                    {(completed || isReplaying) && (
                         <p className={styles.wpmText}>
-                            Speed: {Math.round((typed.length / 5) / ((completionTime - sessionStart) / 60000)) || 0} WPM
+                            Speed: {Math.round(liveWpm) || 0} WPM
                         </p>
                     )}
                     <div className={styles.toolbar}>
