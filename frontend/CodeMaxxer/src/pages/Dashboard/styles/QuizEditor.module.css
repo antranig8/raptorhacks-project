@@ -150,9 +150,13 @@
         font-size: 0.9rem;
     }
 
-    .typeGrid,
-    .configGrid {
+    .typeGrid {
         grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+
+    .configGrid {
+        grid-template-columns: repeat(2, 1fr);
         gap: 0.5rem;
     }
 
