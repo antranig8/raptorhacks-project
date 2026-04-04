@@ -54,6 +54,14 @@
     flex-direction: column;
 }
 
+@media (max-width: 1024px) {
+
+    .typingArea,
+    .analyticsArea {
+        padding: 1rem;
+    }
+}
+
 .typingArea>h1 {
     margin-bottom: 1rem;
     flex: 0;

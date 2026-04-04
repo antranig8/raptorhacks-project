@@ -8,6 +8,12 @@
     flex-direction: column;
 }
 
+@media (max-width: 1024px) {
+    .container {
+        padding: 1rem;
+    }
+}
+
 .grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
