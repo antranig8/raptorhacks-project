@@ -99,6 +99,21 @@
     box-shadow: 0 0 10px rgba(37, 99, 235, 0.4);
 }
 
+.mobileWarning {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    width: 100%;
+    font-size: 1.5rem;
+    color: #4b5563;
+    text-align: center;
+    padding: 2rem;
+    background: #ffffff;
+    border: 1px solid #e5e9f0;
+    border-radius: 14px;
+}
+
 .topMain h1 {
     margin: 0 0 0.75rem;
     font-size: 2rem;

@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import styles from '@dashboard/styles/Typing.module.css'
 import TextArea from '@d_general/typing/TextArea'
 import TypingEditor from './TypingEditor'
@@ -29,12 +29,31 @@ export default function Typing() {
     const keyboard = useRef(null)
     const [input, setInput] = useState('')
     const [isTopActive, setIsTopActive] = useState(false)
+    const [isMobile, setIsMobile] = useState(false)
+
+    useEffect(() => {
+        const checkMobile = () => {
+            setIsMobile(window.innerWidth <= 1024)
+        }
+        
+        checkMobile()
+        window.addEventListener('resize', checkMobile)
+        return () => window.removeEventListener('resize', checkMobile)
+    }, [])
 
     const handleStart = (config) => {
         console.log('Starting typing with config:', config);
     };
 
     const practiceTemplate = 'hello world'
+
+    if (isMobile) {
+        return (
+            <div className={styles.mobileWarning}>
+                Typing on mobile is not supported.
+            </div>
+        )
+    }
 
     return (
         <section className={styles.container}>
