@@ -75,10 +75,10 @@ export default function CustomLineChart({ title, initialDataGenerator, lines = [
                                 axis: { stroke: "#cbd5e1" },
                                 grid: { stroke: "transparent" },
                                 ticks: { stroke: "transparent" },
-                                tickLabels: { 
-                                    fontSize: 10, 
+                                tickLabels: {
+                                    fontSize: 10,
                                     padding: 5,
-                                    fill: xAxisType === 'seconds' ? "#64748b" : "transparent" 
+                                    fill: xAxisType === 'seconds' ? "#64748b" : "transparent"
                                 }
                             }}
                         />
