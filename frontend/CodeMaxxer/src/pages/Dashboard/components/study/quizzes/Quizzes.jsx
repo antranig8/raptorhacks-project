@@ -12,6 +12,7 @@ const QUESTIONS = questionData.questions;
 export default function Quizzes() {
     const [currentIdx, setCurrentIdx] = useState(0);
     const [results, setResults] = useState({}); // { index: 'correct' | 'wrong' }
+    const [isQuizMode, setIsQuizMode] = useState(false);
 
     const currentQuestion = QUESTIONS[currentIdx];
     const total = QUESTIONS.length;
@@ -27,12 +28,21 @@ export default function Quizzes() {
     const wrongCount = Object.values(results).filter(v => v === 'wrong').length;
     const answeredCount = Object.keys(results).length;
 
+    if (!isQuizMode) {
+        return (
+            <section className={styles.container}>
+                <div className={styles.fullCol}>
+                    <div className={styles.leftCol}>
+                        <QuizEditor onGenerate={(data) => { console.log('Generate Quiz:', data); setIsQuizMode(true); }} />
+                    </div>
+                </div>
+            </section>
+        )
+    }
+
     return (
         <section className={styles.container}>
-            <div className={styles.grid}>
-                <div className={styles.leftCol}>
-                    <QuizEditor onGenerate={(data) => console.log('Generate Quiz:', data)} />
-                </div>
+            <div className={styles.fullCol}>
                 <div className={styles.rightCol}>
                     <ProgressSummary
                         title="Computer Architecture Quiz"
@@ -52,7 +62,7 @@ export default function Quizzes() {
                             onResult={handleResult}
                             onNext={() => setCurrentIdx(prev => prev + 1)}
                             onBack={() => setCurrentIdx(prev => prev - 1)}
-                            onSubmit={() => alert('Quiz Submitted!')}
+                            onSubmit={() => { setIsQuizMode(false); alert('Quiz Submitted!'); }}
                         />
                     </div>
                 </div>
