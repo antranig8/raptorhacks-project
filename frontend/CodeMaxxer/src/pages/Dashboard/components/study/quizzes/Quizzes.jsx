@@ -28,43 +28,44 @@ export default function Quizzes() {
     const wrongCount = Object.values(results).filter(v => v === 'wrong').length;
     const answeredCount = Object.keys(results).length;
 
-    if (!isQuizMode) {
-        return (
-            <section className={styles.container}>
-                <div className={styles.fullCol}>
-                    <div className={styles.leftCol}>
-                        <QuizEditor onGenerate={(data) => { console.log('Generate Quiz:', data); setIsQuizMode(true); }} />
-                    </div>
-                </div>
-            </section>
-        )
-    }
-
     return (
         <section className={styles.container}>
-            <div className={styles.fullCol}>
+            <div className={`${styles.fullCol} ${isQuizMode ? styles.quizMode : styles.editorMode}`}>
+                <div className={styles.leftCol}>
+                    <QuizEditor onGenerate={(data) => { console.log('Generate Quiz:', data); setIsQuizMode(true); }} />
+                </div>
+
                 <div className={styles.rightCol}>
-                    <ProgressSummary
-                        title="Computer Architecture Quiz"
-                        answered={answeredCount}
-                        correct={correctCount}
-                        wrong={wrongCount}
-                        total={total}
-                        results={results}
-                    />
-                    <div className={styles.questionSection}>
-                        <Question
-                            key={currentIdx}
-                            {...currentQuestion}
-                            number={currentIdx + 1}
-                            isFirst={currentIdx === 0}
-                            isLast={currentIdx === QUESTIONS.length - 1}
-                            onResult={handleResult}
-                            onNext={() => setCurrentIdx(prev => prev + 1)}
-                            onBack={() => setCurrentIdx(prev => prev - 1)}
-                            onSubmit={() => { setIsQuizMode(false); alert('Quiz Submitted!'); }}
-                        />
-                    </div>
+                    {!isQuizMode ? (
+                        <div className={styles.placeholder}>
+                            <h3 className={styles.placeholderTitle}>Generate Quiz</h3>
+                            <p className={styles.placeholderText}>Use the editor on the left to generate a quiz.</p>
+                        </div>
+                    ) : (
+                        <>
+                            <ProgressSummary
+                                title="Computer Architecture Quiz"
+                                answered={answeredCount}
+                                correct={correctCount}
+                                wrong={wrongCount}
+                                total={total}
+                                results={results}
+                            />
+                            <div className={styles.questionSection}>
+                                <Question
+                                    key={currentIdx}
+                                    {...currentQuestion}
+                                    number={currentIdx + 1}
+                                    isFirst={currentIdx === 0}
+                                    isLast={currentIdx === QUESTIONS.length - 1}
+                                    onResult={handleResult}
+                                    onNext={() => setCurrentIdx(prev => prev + 1)}
+                                    onBack={() => setCurrentIdx(prev => prev - 1)}
+                                    onSubmit={() => { setIsQuizMode(false); alert('Quiz Submitted!'); }}
+                                />
+                            </div>
+                        </>
+                    )}
                 </div>
             </div>
         </section>
