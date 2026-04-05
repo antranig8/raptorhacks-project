@@ -11,7 +11,6 @@ const navSections = [
         title: 'General',
         items: [
             {
-                section: 'General',
                 label: 'Dashboard',
                 route: '/dashboard',
                 icon: <FaHome />,
@@ -21,24 +20,22 @@ const navSections = [
                     size: '0.35rem',
                 },
             },
-            { section: 'General', label: 'Skill Tree', route: '/dashboard/skill-tree', icon: <FaSeedling /> },
-            { section: 'General', label: 'BackendTest', route: '/dashboard/test', icon: <FaAddressBook /> },
+            { label: 'Skill Tree', route: '/dashboard/skill-tree', icon: <FaSeedling /> },
+            { label: 'BackendTest', route: '/dashboard/test', icon: <FaAddressBook /> },
         ],
     },
     {
         title: 'Study',
         items: [
-            { section: 'Study', label: 'Typing', route: '/dashboard/typing', icon: <FaKeyboard /> },
-            { section: 'Study', label: 'Coding', route: '/dashboard/coding', icon: <FaGraduationCap /> },
-            { section: 'Study', label: 'Quizzes', route: '/dashboard/quizzes', icon: <FaClipboardList /> },
+            { label: 'Typing', route: '/dashboard/typing', icon: <FaKeyboard /> },
+            { label: 'Coding', route: '/dashboard/coding', icon: <FaGraduationCap /> },
+            { label: 'Quizzes', route: '/dashboard/quizzes', icon: <FaClipboardList /> },
         ],
     },
     {
-        title: 'Support',
+        title: 'System',
         items: [
-            { section: 'Support', label: 'Settings', route: '/dashboard/settings', icon: <FaCog /> },
-            { section: 'Support', label: 'Help', route: '/dashboard/help', icon: <FaQuestionCircle /> },
-            { section: 'Support', label: 'Logout', route: null, icon: <FaSignOutAlt />, isLogout: true },
+            { label: 'Logout', route: null, icon: <FaSignOutAlt />, isLogout: true },
         ],
     },
 ]
