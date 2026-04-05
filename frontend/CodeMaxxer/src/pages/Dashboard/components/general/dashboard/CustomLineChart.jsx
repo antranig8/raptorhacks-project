@@ -4,15 +4,21 @@ import styles from './CustomLineChart.module.css'
 
 const RANGES = ['1W', '1M', '3M', 'YTD', '1Y', 'ALL']
 
-export default function CustomLineChart({ title, initialDataGenerator, lines = [], showTimeControls = true, xAxisType = 'date' }) {
+export default function CustomLineChart({ title, initialDataGenerator, lines = [], showTimeControls = true, xAxisType = 'date', data = null }) {
     const [timeRange, setTimeRange] = useState('1M')
     const [chartData, setChartData] = useState([])
     const containerRef = useRef(null)
     const [dimensions, setDimensions] = useState({ width: 800, height: 200 })
 
     useEffect(() => {
+        if (data) return
         setChartData(initialDataGenerator(timeRange))
-    }, [timeRange, initialDataGenerator])
+    }, [timeRange, initialDataGenerator, data])
+
+    useEffect(() => {
+        if (!data) return
+        setChartData(data)
+    }, [data])
 
     useEffect(() => {
         if (!containerRef.current) return
@@ -69,10 +75,10 @@ export default function CustomLineChart({ title, initialDataGenerator, lines = [
                                 axis: { stroke: "#cbd5e1" },
                                 grid: { stroke: "transparent" },
                                 ticks: { stroke: "transparent" },
-                                tickLabels: { 
-                                    fontSize: 10, 
+                                tickLabels: {
+                                    fontSize: 10,
                                     padding: 5,
-                                    fill: xAxisType === 'seconds' ? "#64748b" : "transparent" 
+                                    fill: xAxisType === 'seconds' ? "#64748b" : "transparent"
                                 }
                             }}
                         />
@@ -87,6 +93,7 @@ export default function CustomLineChart({ title, initialDataGenerator, lines = [
                         {lines.map((line, idx) => (
                             <VictoryLine
                                 key={idx}
+                                interpolation="monotoneX"
                                 data={Array.isArray(chartData[0]) ? chartData[idx] : chartData}
                                 style={{ data: { stroke: line.color, strokeWidth: 3 } }}
                             />

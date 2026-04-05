@@ -1,4 +1,4 @@
-import styles from '@dashboard/styles/Study.module.css'
+import styles from '@dashboard/styles/Coding.module.css'
 import { useEffect, useState, useRef } from 'react'
 import supabase from '@utils/supabase'
 

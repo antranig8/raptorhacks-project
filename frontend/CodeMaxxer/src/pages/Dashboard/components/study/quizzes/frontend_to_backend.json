@@ -1,0 +1,10 @@
+{
+  "language": "python",
+  "amount": 10,
+  "configs": [
+    "allow_hints",
+    "show_explanation",
+    "hard_mode"
+  ],
+  "prompt": "user prompt here"
+}

@@ -91,3 +91,18 @@
     justify-content: center;
     width: 100%;
 }
+
+@media (max-width: 1024px) {
+    .stack {
+        gap: 0.5rem;
+    }
+
+    .stackItem {
+        padding: 0.75rem;
+        min-height: 300px;
+    }
+
+    .title {
+        font-size: 0.9rem;
+    }
+}

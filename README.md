@@ -9,7 +9,7 @@ CodeMaxxer is our RaptorHacks project: a coding-focused learning platform with a
 - OAuth callback handling
 - Dashboard layout
 - Skill tree page
-- Study page
+- Coding page
 - Quizzes page
 - Typing practice page
 - Settings and help pages

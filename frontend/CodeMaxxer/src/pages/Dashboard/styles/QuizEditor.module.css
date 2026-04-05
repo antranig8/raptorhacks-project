@@ -19,6 +19,14 @@
     gap: 0.5rem;
 }
 
+.textareaSection {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    flex: 1;
+    min-height: 0;
+}
+
 .label {
     font-size: 0.875rem;
     font-weight: 600;
@@ -94,6 +102,8 @@
     resize: vertical;
     outline: none;
     transition: border-color 0.2s;
+    flex: 1;
+    min-height: 0;
 }
 
 .textarea:focus {
@@ -115,4 +125,65 @@
 
 .generateBtn:hover {
     background-color: #0842a0;
+}
+
+@media (max-width: 1024px) {
+    .editorContainer {
+        gap: 1rem;
+        padding: 0.75rem;
+    }
+
+    .title {
+        font-size: 1rem;
+    }
+
+    .section {
+        gap: 0.4rem;
+    }
+
+    .label {
+        font-size: 0.8rem;
+    }
+
+    .select {
+        padding: 0.45rem 0.5rem;
+        font-size: 0.9rem;
+    }
+
+    .typeGrid {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+
+    .configGrid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.5rem;
+    }
+
+    .amountGrid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.5rem;
+    }
+
+    .typeOption,
+    .amountOption,
+    .configOption {
+        padding: 0.4rem;
+        font-size: 0.8rem;
+    }
+
+    .spacer {
+        margin: 0.4rem 0;
+    }
+
+    .textarea {
+        min-height: 80px;
+        padding: 0.5rem;
+        font-size: 0.9rem;
+    }
+
+    .generateBtn {
+        padding: 0.6rem;
+        font-size: 0.95rem;
+    }
 }

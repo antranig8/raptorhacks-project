@@ -65,6 +65,7 @@
     border-radius: 999px;
     font-weight: 600;
     min-width: 70px;
+    font-size: 1rem;
     justify-content: center;
 }
 
@@ -83,5 +84,22 @@
 }
 
 .value {
-    font-size: 1.1rem;
+    font-size: inherit;
+}
+
+@media (max-width: 1024px) {
+    .progressSummary {
+        gap: 0.5rem;
+        padding: 0;
+    }
+
+    .badgeContainer {
+        gap: 0.5rem;
+    }
+
+    .wrongBadge,
+    .correctBadge {
+        padding: 0.3rem 0.75rem;
+        font-size: 0.9rem;
+    }
 }

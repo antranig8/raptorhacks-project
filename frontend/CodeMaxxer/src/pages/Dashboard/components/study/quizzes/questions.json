@@ -1,0 +1,103 @@
+{
+    "questions": [
+        {
+            "type": "Single",
+            "prompt": "Which of the following describes the fastest storage locations available to the CPU for executing instructions?",
+            "isSkippable": true,
+            "choices": [
+                {
+                    "id": "A",
+                    "label": "Main Memory (RAM)",
+                    "isCorrect": false,
+                    "reasoning": "Main memory is much slower than the CPU registers and caches, so it is not the fastest storage location."
+                },
+                {
+                    "id": "B",
+                    "label": "Registers",
+                    "isCorrect": true,
+                    "reasoning": "Registers are located directly within the CPU and provide the lowest latency for data access."
+                },
+                {
+                    "id": "C",
+                    "label": "Virtual Memory",
+                    "isCorrect": false,
+                    "reasoning": "Virtual memory is an abstraction using disk and RAM, which is far slower than CPU register storage."
+                },
+                {
+                    "id": "D",
+                    "label": "Level 1 Cache",
+                    "isCorrect": false,
+                    "reasoning": "L1 cache is very fast, but CPU registers are still faster and are the closest storage to execution units."
+                }
+            ]
+        },
+        {
+            "type": "Multiple",
+            "prompt": "Which of the following are common characteristics of RISC CPU architectures?",
+            "isSkippable": false,
+            "choices": [
+                {
+                    "id": "A",
+                    "label": "Simple instruction set with fixed-length instructions",
+                    "isCorrect": true,
+                    "reasoning": "RISC architectures favor a small set of simple, fixed-length instructions for faster decoding and pipelining."
+                },
+                {
+                    "id": "B",
+                    "label": "Complex addressing modes and microcoded operations",
+                    "isCorrect": false,
+                    "reasoning": "Complex addressing modes are more commonly associated with CISC architectures."
+                },
+                {
+                    "id": "C",
+                    "label": "A large number of general-purpose registers",
+                    "isCorrect": true,
+                    "reasoning": "RISC designs typically provide many registers to reduce memory access and improve performance."
+                },
+                {
+                    "id": "D",
+                    "label": "Default support for variable-length instruction formats",
+                    "isCorrect": false,
+                    "reasoning": "Variable-length instruction formats are more common in CISC designs, not RISC."
+                }
+            ]
+        },
+        {
+            "type": "SelectAll",
+            "prompt": "Select all x86 general-purpose registers that can hold integer values.",
+            "isSkippable": true,
+            "choices": [
+                {
+                    "id": "A",
+                    "label": "EAX",
+                    "isCorrect": true,
+                    "reasoning": "EAX is a general-purpose integer register in x86 architectures."
+                },
+                {
+                    "id": "B",
+                    "label": "EBX",
+                    "isCorrect": true,
+                    "reasoning": "EBX is also a general-purpose integer register on x86."
+                },
+                {
+                    "id": "C",
+                    "label": "ST0",
+                    "isCorrect": false,
+                    "reasoning": "ST0 is a floating-point stack register, not a general-purpose integer register."
+                },
+                {
+                    "id": "D",
+                    "label": "ESI",
+                    "isCorrect": true,
+                    "reasoning": "ESI is a general-purpose register used for string and memory operations."
+                }
+            ]
+        },
+        {
+            "type": "Coding",
+            "prompt": "Write a short pseudocode algorithm to swap the values of variables a and b using a temporary variable.",
+            "isSkippable": false,
+            "choices": []
+        }
+    ]
+}
