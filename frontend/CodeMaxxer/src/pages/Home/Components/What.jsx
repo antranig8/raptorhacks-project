@@ -2,9 +2,9 @@ import styles from '@home/styles/What.module.css'
 import useInViewAnimation from '@/hooks/useInViewAnimation'
 
 const cardData = [
-    { title: 'Placeholder 1', description: 'Lorem ipsum lalalalaaaaLorem ipsum lalalalaaaaLorem ipsum lalalalaaaaLorem ipsum lalalalaaaaLorem ipsum lalalalaaaaLorem ipsum lalalalaaaaLorem ipsum lalalalaaaaLorem ipsum lalalalaaaaLorem ipsum lalalalaaaaLorem ipsum lalalalaaaaLorem ipsum lalalalaaaaLorem ipsum lalalalaaaaLorem ipsum lalalalaaaaLorem ipsum lalalalaaaaLorem ipsum lalalalaaaaLorem ipsum lalalalaaaaLorem ipsum lalalalaaaaLorem ipsum lalalalaaaaLorem ipsum lalalalaaaaLorem ipsum lalalalaaaaLorem ipsum lalalalaaaa' },
-    { title: 'Placeholder 2', description: 'The,' },
-    { title: 'Placeholder 3', description: 'Heck;' },
+    { title: 'Custom Quizzes', description: '' },
+    { title: 'Visualize Your Skills', description: '' },
+    { title: 'Get Better at Programming', description: '' },
 ]
 
 function What() {
@@ -13,7 +13,7 @@ function What() {
     return (
         <section ref={ref} className={`${styles.whatSection} ${isVisible ? styles.visible : styles.hidden}`} aria-label="What we do">
             <div className={styles.headerRow}>
-                <h2 className={styles.title}>What we do</h2>
+                <h2 className={styles.title}>Features</h2>
                 <p className={styles.subtitle}>Personalized stuff for you dumbahh.</p>
             </div>
             <div className={styles.placeholderRow}>

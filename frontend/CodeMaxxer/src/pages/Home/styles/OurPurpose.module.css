@@ -1,0 +1,62 @@
+.purpose {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 75vh;
+    color: #0f172a;
+    margin: 0;
+    padding: 2rem;
+    box-sizing: border-box;
+    border-radius: 1.5rem;
+    overflow: hidden;
+}
+
+.content {
+    text-align: center;
+    max-width: 1000px;
+    width: 100%;
+}
+
+.text {
+    font-size: clamp(1.8rem, 4vw, 3.6rem);
+    font-weight: 800;
+    letter-spacing: 0.01em;
+    margin: 0;
+    color: #0b1120;
+}
+
+.hidden {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+}
+
+.visible {
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+}
+
+.fallInHidden {
+    opacity: 0;
+    transform: translateY(22px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.fallInVisible {
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+@media screen and (max-width: 480px) {
+    .text {
+        font-size: 1.6rem;
+    }
+
+    .purpose {
+        height: auto;
+        padding: 2rem 1rem;
+    }
+}
