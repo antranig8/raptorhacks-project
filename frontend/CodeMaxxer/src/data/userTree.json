@@ -1,0 +1,194 @@
+{
+    "nodes": {
+        "user_root": {
+            "display": "User",
+            "xp": 600,
+            "children": [
+                "cat_pc",
+                "cat_tf",
+                "cat_lang"
+            ]
+        },
+        "cat_pc": {
+            "display": "Programming Concepts",
+            "xp": 1150,
+            "children": [
+                "skill_algorithms",
+                "skill_data_structures"
+            ]
+        },
+        "skill_algorithms": {
+            "display": "Algorithms",
+            "xp": 350,
+            "children": [
+                "sub_graph_theory",
+                "sub_sorting",
+                "sub_dynamic_programming"
+            ]
+        },
+        "sub_graph_theory": {
+            "display": "Graph Theory",
+            "xp": 325,
+            "children": []
+        },
+        "sub_sorting": {
+            "display": "Sorting",
+            "xp": 175,
+            "children": []
+        },
+        "sub_dynamic_programming": {
+            "display": "Dynamic Programming",
+            "xp": 225,
+            "children": []
+        },
+        "skill_data_structures": {
+            "display": "Data Structures",
+            "xp": 650,
+            "children": [
+                "sub_trees",
+                "sub_linked_lists",
+                "sub_hash_tables"
+            ]
+        },
+        "sub_trees": {
+            "display": "Trees",
+            "xp": 75,
+            "children": []
+        },
+        "sub_linked_lists": {
+            "display": "Linked Lists",
+            "xp": 25,
+            "children": []
+        },
+        "sub_hash_tables": {
+            "display": "Hash Tables",
+            "xp": 125,
+            "children": []
+        },
+        "cat_tf": {
+            "display": "Tools & Frameworks",
+            "xp": 850,
+            "children": [
+                "skill_git",
+                "skill_react"
+            ]
+        },
+        "skill_git": {
+            "display": "Git",
+            "xp": 375,
+            "children": [
+                "sub_branching",
+                "sub_merging"
+            ]
+        },
+        "sub_branching": {
+            "display": "Branching",
+            "xp": 25,
+            "children": []
+        },
+        "sub_merging": {
+            "display": "Merging & Rebasing",
+            "xp": 225,
+            "children": []
+        },
+        "skill_react": {
+            "display": "React",
+            "xp": 450,
+            "children": [
+                "sub_lifecycle",
+                "sub_context",
+                "sub_hooks"
+            ]
+        },
+        "sub_lifecycle": {
+            "display": "Component Lifecycle",
+            "xp": 25,
+            "children": []
+        },
+        "sub_context": {
+            "display": "Context API",
+            "xp": 25,
+            "children": []
+        },
+        "sub_hooks": {
+            "display": "Hooks",
+            "xp": 325,
+            "children": []
+        },
+        "cat_lang": {
+            "display": "Languages",
+            "xp": 1650,
+            "children": [
+                "skill_python",
+                "skill_js",
+                "skill_c"
+            ]
+        },
+        "skill_python": {
+            "display": "Python",
+            "xp": 150,
+            "children": [
+                "sub_generators",
+                "sub_decorators",
+                "sub_list_comp"
+            ]
+        },
+        "sub_generators": {
+            "display": "Generators",
+            "xp": 150,
+            "children": []
+        },
+        "sub_decorators": {
+            "display": "Decorators",
+            "xp": 125,
+            "children": []
+        },
+        "sub_list_comp": {
+            "display": "List Comprehensions",
+            "xp": 25,
+            "children": []
+        },
+        "skill_js": {
+            "display": "JavaScript",
+            "xp": 650,
+            "children": [
+                "sub_dom",
+                "sub_async",
+                "sub_closures"
+            ]
+        },
+        "sub_dom": {
+            "display": "DOM Manipulation",
+            "xp": 125,
+            "children": []
+        },
+        "sub_async": {
+            "display": "Asynchronous JS",
+            "xp": 325,
+            "children": []
+        },
+        "sub_closures": {
+            "display": "Closures",
+            "xp": 125,
+            "children": []
+        },
+        "skill_c": {
+            "display": "C",
+            "xp": 150,
+            "children": [
+                "sub_pointers",
+                "sub_memory"
+            ]
+        },
+        "sub_pointers": {
+            "display": "Pointers",
+            "xp": 325,
+            "children": []
+        },
+        "sub_memory": {
+            "display": "Memory Management",
+            "xp": 225,
+            "children": []
+        }
+    }
+}
