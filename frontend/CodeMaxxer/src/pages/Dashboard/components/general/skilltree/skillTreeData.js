@@ -1,3 +1,18 @@
+import supabase from "@/utils/supabase";
+
+export async function fetchDataForUser(){
+    const { data: { session } } = await supabase.auth.getSession()
+
+    const res = await fetch("http://localhost:8000/api/v1/private/skill-trees", {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+        },
+    })
+    const data = await res.json()
+    return data
+}
+
 export const mockData = {
     "name": "User",
     "xp": 12500,

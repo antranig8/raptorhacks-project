@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from "react";
 import * as d3 from "d3";
 import styles from "@dashboard/styles/SkillTree.module.css";
 import { initSkillWeb } from "./skillWebD3";
-import { mockData } from "./skillTreeData";
+import { mockData, fetchDataForUser } from "./skillTreeData";
 import SkillTreeHeader from "./SkillTreeHeader";
 
 export default function SkillTree() {
@@ -23,7 +23,7 @@ export default function SkillTree() {
                 d3.select(svgRef.current).select("g").attr("transform", event.transform);
             });
 
-        apiRef.current = initSkillWeb(svgRef, mockData, width, height, zoomRef.current);
+        apiRef.current = initSkillWeb(svgRef, fetchDataForUser(), width, height, zoomRef.current);
 
         const handleKeyDown = (e) => {
             if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
