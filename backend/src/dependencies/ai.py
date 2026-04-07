@@ -1,13 +1,22 @@
 import os
 
 from dotenv import load_dotenv
-
+from pathlib import Path
 from ..ai.groq import GroqAI
 
 load_dotenv()
 
+base_path = Path(__file__).parent
+
+
+def _load_system_prompt(file: str) -> str:
+    with open(file, "r", encoding="utf-8") as f:
+        system_prompt = f.read()
+    return system_prompt
+
 groq_api_key = os.getenv("GROQ_API_KEY")
-ai_platform = GroqAI(api_key=groq_api_key, system_prompt=None)
+skill_tree_platform = GroqAI(api_key=groq_api_key, system_prompt=None)
+ai_platform = GroqAI(api_key=groq_api_key, system_prompt=_load_system_prompt(base_path.parent / "prompts" / "skill_tree_prompt.md"))
 
 
 def get_ai_platform() -> GroqAI:
