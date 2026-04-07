@@ -3,13 +3,21 @@ from __future__ import annotations
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel, Field
+from pydantic import AliasChoices, BaseModel, Field, field_validator
 from postgrest import APIError as PostgrestAPIError
 
 from ..auth.auth import get_current_user
 from ..auth.supabase import client as supabase_client
 from ..auth.user import User
+from ..dependencies.ai import get_ai_platform
 from ..schemas.ai import SkillTreeNode
+from ..services.skill_tree import (
+    build_skill_tree_user_prompt,
+    canonicalize_skill_tree,
+    generated_tree_to_node,
+    load_skill_tree_system_prompt,
+    parse_skill_tree_response,
+)
 
 
 # Supabase table expected by these routes.
@@ -19,38 +27,61 @@ router = APIRouter()
 
 
 class SkillTreeCreateRequest(BaseModel):
-    # "goal" is the original learning target the tree was generated from.
+    # The frontend only needs to supply a display name and a goal.
+    name: str = Field(
+        min_length=1,
+        max_length=120,
+        validation_alias=AliasChoices("name", "title"),
+    )
     goal: str = Field(min_length=3, max_length=300)
-    # "title" lets the user rename the tree in the UI without changing the goal itself.
-    title: str | None = Field(default=None, max_length=120)
-    # "tree" is the nested node structure the frontend already knows how to render.
-    tree: SkillTreeNode
-    is_active: bool = False
+
+    @field_validator("name", "goal")
+    @classmethod
+    def _strip_text(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("Value cannot be blank.")
+        return value
 
 
 class SkillTreeUpdateRequest(BaseModel):
     # All fields are optional here so PATCH can update only the changed pieces.
-    title: str | None = Field(default=None, max_length=120)
+    name: str | None = Field(
+        default=None,
+        max_length=120,
+        validation_alias=AliasChoices("name", "title"),
+    )
     tree: SkillTreeNode | None = None
     is_active: bool | None = None
 
+    @field_validator("name")
+    @classmethod
+    def _strip_name(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        value = value.strip()
+        if not value:
+            raise ValueError("Name cannot be blank.")
+        return value
+
 
 class SkillTreeRecord(BaseModel):
-    # This is the shape returned to the frontend after reading from Supabase.
+    # This is the API shape returned to the frontend.
     id: str
-    user_id: str
+    name: str
     goal: str
-    title: str | None = None
     tree: SkillTreeNode
+    completed_node_ids: list[str] = Field(default_factory=list)
     is_active: bool = False
     created_at: str | None = None
     updated_at: str | None = None
 
 
+# Validate the stored JSON payload and normalize it into the API node schema.
 def _normalize_tree_payload(raw_tree: Any) -> SkillTreeNode:
     # Supabase JSON columns may come back as a dict already; validate it before returning it.
     try:
-        return SkillTreeNode.model_validate(raw_tree)
+        return canonicalize_skill_tree(SkillTreeNode.model_validate(raw_tree))
     except Exception as exc:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -58,21 +89,25 @@ def _normalize_tree_payload(raw_tree: Any) -> SkillTreeNode:
         ) from exc
 
 
+# Convert a raw database record into the response shape expected by the frontend.
 def _record_to_response(record: dict[str, Any]) -> SkillTreeRecord:
-    # Supabase stores the tree in "tree_json", but the API returns it as "tree"
-    # so the frontend works with a cleaner response shape.
+    completed_node_ids = record.get("completed_node_ids") or []
+    if not isinstance(completed_node_ids, list):
+        completed_node_ids = []
+
     return SkillTreeRecord(
         id=str(record["id"]),
-        user_id=str(record["user_id"]),
+        name=(record.get("title") or record.get("goal") or "").strip(),
         goal=record["goal"],
-        title=record.get("title"),
         tree=_normalize_tree_payload(record.get("tree_json")),
+        completed_node_ids=[str(node_id) for node_id in completed_node_ids],
         is_active=bool(record.get("is_active", False)),
         created_at=record.get("created_at"),
         updated_at=record.get("updated_at"),
     )
 
 
+# Map lower-level storage exceptions into stable HTTP responses.
 def _handle_supabase_error(exc: Exception) -> HTTPException:
     # Convert lower-level storage errors into API-friendly HTTP errors.
     if isinstance(exc, PostgrestAPIError):
@@ -87,19 +122,41 @@ def _handle_supabase_error(exc: Exception) -> HTTPException:
     )
 
 
+# Generate a new skill tree from the user's goal using the configured AI provider.
+def _generate_skill_tree(goal: str) -> SkillTreeNode:
+    ai_platform = get_ai_platform()
+    system_prompt = load_skill_tree_system_prompt()
+    messages: list[dict[str, str]] = []
+
+    if system_prompt:
+        messages.append({"role": "system", "content": system_prompt})
+
+    messages.append({"role": "user", "content": build_skill_tree_user_prompt(goal)})
+
+    try:
+        response_text, _ = ai_platform.chat_messages(messages, temperature=0.2, max_tokens=1200)
+        generated_tree = parse_skill_tree_response(response_text)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail="AI provider request failed.") from exc
+
+    return canonicalize_skill_tree(generated_tree_to_node(generated_tree))
+
+# Create and save a new generated skill tree for the current user.
 @router.post("/skill-trees", response_model=SkillTreeRecord, status_code=status.HTTP_201_CREATED)
 async def create_skill_tree(
     request: SkillTreeCreateRequest,
     current_user: User = Depends(get_current_user),
 ):
-    # Save a generated tree so the user can come back to it later instead of losing it after one request.
-    # "user_id"comes from the verified auth token, not from the client body.
+    # Generate and persist a new tree from the simple create payload.
+    tree = _generate_skill_tree(request.goal)
+
     payload = {
         "user_id": str(current_user.uuid),
         "goal": request.goal,
-        "title": request.title,
-        "tree_json": request.tree.model_dump(),
-        "is_active": request.is_active,
+        "title": request.name,
+        "tree_json": tree.model_dump(),
     }
 
     try:
@@ -116,7 +173,7 @@ async def create_skill_tree(
 
     return _record_to_response(response.data[0])
 
-
+# List the current user's saved skill trees, newest first.
 @router.get("/skill-trees", response_model=list[SkillTreeRecord])
 async def list_skill_trees(current_user: User = Depends(get_current_user)):
     # Return all saved trees for the logged-in user, newest first.
@@ -133,7 +190,7 @@ async def list_skill_trees(current_user: User = Depends(get_current_user)):
 
     return [_record_to_response(record) for record in response.data or []]
 
-
+# Fetch one saved skill tree if it belongs to the current user.
 @router.get("/skill-trees/{skill_tree_id}", response_model=SkillTreeRecord)
 async def get_skill_tree(skill_tree_id: str, current_user: User = Depends(get_current_user)):
     # Load one saved tree, but only if it belongs to the current user.
@@ -154,7 +211,7 @@ async def get_skill_tree(skill_tree_id: str, current_user: User = Depends(get_cu
 
     return _record_to_response(response.data[0])
 
-
+# Update mutable fields on a saved skill tree owned by the current user.
 @router.patch("/skill-trees/{skill_tree_id}", response_model=SkillTreeRecord)
 async def update_skill_tree(
     skill_tree_id: str,
@@ -165,9 +222,9 @@ async def update_skill_tree(
     # We build the update payload manually so missing PATCH fields do not overwrite stored data.
     updates: dict[str, Any] = {}
 
-    if request.title is not None:
+    if request.name is not None:
         # Rename the saved tree without touching the generated content.
-        updates["title"] = request.title
+        updates["title"] = request.name
     if request.tree is not None:
         # Replace the stored tree JSON when the frontend sends back progress or structure changes.
         updates["tree_json"] = request.tree.model_dump()

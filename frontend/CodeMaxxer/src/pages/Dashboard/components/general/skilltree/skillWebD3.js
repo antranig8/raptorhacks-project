@@ -2,6 +2,8 @@ import * as d3 from 'd3';
 import { calculateLevelData } from './levelUtils';
 
 export const initSkillWeb = (svgRef, data, width, height, zoom) => {
+    const getNodeKey = (node) => node.data.id ?? node.data.name;
+
     const svg = d3.select(svgRef.current)
         .attr("viewBox", [0, 0, width, height])
         .attr("width", "100%")
@@ -78,7 +80,7 @@ export const initSkillWeb = (svgRef, data, width, height, zoom) => {
     function saveHistory() {
         const state = {};
         root.descendants().forEach(n => {
-            state[n.data.name] = { x: n.x, y: n.y };
+            state[getNodeKey(n)] = { x: n.x, y: n.y };
         });
 
         // Avoid duplicate states in history (no effective move)
@@ -287,9 +289,10 @@ export const initSkillWeb = (svgRef, data, width, height, zoom) => {
 
     function applyState(state) {
         nodes.forEach(n => {
-            if (state[n.data.name]) {
-                n.x = state[n.data.name].x;
-                n.y = state[n.data.name].y;
+            const nodeKey = getNodeKey(n);
+            if (state[nodeKey]) {
+                n.x = state[nodeKey].x;
+                n.y = state[nodeKey].y;
             }
         });
         node.transition().duration(300).attr("transform", n => `translate(${n.x},${n.y})`);
