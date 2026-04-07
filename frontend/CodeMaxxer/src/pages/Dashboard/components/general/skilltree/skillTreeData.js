@@ -13,6 +13,32 @@ export async function fetchDataForUser(){
     return data
 }
 
+export async function createSkillTree(treeName, goal){
+    const { data: { session } } = await supabase.auth.getSession()
+
+    const skillTreeCreateSchema = {
+            "goal": goal,
+            "title": treeName,
+            "tree": {
+                "name": treeName,
+                "difficulty": "string",
+                "children": [
+                "string"
+                ]
+            },
+            "is_active": false
+    }
+
+    const res = await fetch("http://localhost:8000/api/v1/private/skill-trees", {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+        },
+    })
+    const data = await res.json()
+    return data
+}
+
 export const mockData = {
     "name": "User",
     "xp": 12500,
