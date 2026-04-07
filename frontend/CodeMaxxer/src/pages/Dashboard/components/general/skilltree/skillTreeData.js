@@ -1,85 +1,91 @@
+import supabase from "@/utils/supabase";
+
+const API_BASE_URL = "http://localhost:8000/api/v1/private";
+const COMPLETED_LEAF_XP = 100;
+
+async function getAccessToken() {
+    const { data: { session } } = await supabase.auth.getSession();
+
+    if (!session?.access_token) {
+        throw new Error("No authenticated session found.");
+    }
+
+    return session.access_token;
+}
+
+async function requestSkillTrees(path, options = {}) {
+    const accessToken = await getAccessToken();
+    const response = await fetch(`${API_BASE_URL}${path}`, {
+        ...options,
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+            ...(options.headers || {}),
+        },
+    });
+
+    if (!response.ok) {
+        const errorBody = await response.json().catch(() => ({}));
+        throw new Error(errorBody.detail || "Skill tree request failed.");
+    }
+
+    return response.json();
+}
+
+function selectPrimarySkillTree(skillTrees) {
+    if (!Array.isArray(skillTrees) || skillTrees.length === 0) {
+        return null;
+    }
+
+    return skillTrees.find((tree) => tree.is_active) || skillTrees[0];
+}
+
+function mapNodeToGraph(node, completedNodeIds) {
+    const children = (node.children || []).map((child) => mapNodeToGraph(child, completedNodeIds));
+    const isLeaf = children.length === 0;
+    const isCompleted = completedNodeIds.has(node.id);
+    const xp = isLeaf
+        ? (isCompleted ? COMPLETED_LEAF_XP : 0)
+        : children.reduce((totalXp, child) => totalXp + child.xp, 0);
+
+    return {
+        id: node.id,
+        name: node.name,
+        difficulty: node.difficulty ?? null,
+        completed: isCompleted,
+        xp,
+        children,
+    };
+}
+
+export function transformSkillTreeRecord(record) {
+    const completedNodeIds = new Set(record?.completed_node_ids || []);
+    return mapNodeToGraph(record.tree, completedNodeIds);
+}
+
+export async function fetchDataForUser() {
+    const skillTrees = await requestSkillTrees("/skill-trees", { method: "GET" });
+    const selectedTree = selectPrimarySkillTree(skillTrees);
+
+    if (!selectedTree) {
+        return mockData;
+    }
+
+    return transformSkillTreeRecord(selectedTree);
+}
+
+export async function createSkillTree(treeName, goal) {
+    return requestSkillTrees("/skill-trees", {
+        method: "POST",
+        body: JSON.stringify({
+            name: treeName,
+            goal,
+        }),
+    });
+}
+
 export const mockData = {
-    "name": "User",
-    "xp": 12500,
-    "children": [
-        {
-            "name": "Programming Concepts",
-            "xp": 4500,
-            "children": [
-                {
-                    "name": "Algorithms",
-                    "xp": 2500,
-                    "children": [
-                        { "name": "Sorting", "xp": 1000 },
-                        { "name": "Graph Theory", "xp": 800 },
-                        { "name": "Dynamic Programming", "xp": 700 }
-                    ]
-                },
-                {
-                    "name": "Data Structures",
-                    "xp": 2000,
-                    "children": [
-                        { "name": "Trees", "xp": 900 },
-                        { "name": "Hash Tables", "xp": 600 },
-                        { "name": "Linked Lists", "xp": 500 }
-                    ]
-                }
-            ]
-        },
-        {
-            "name": "Languages",
-            "xp": 5000,
-            "children": [
-                {
-                    "name": "C",
-                    "xp": 1500,
-                    "children": [
-                        { "name": "Pointers", "xp": 800 },
-                        { "name": "Memory Management", "xp": 700 }
-                    ]
-                },
-                {
-                    "name": "JavaScript",
-                    "xp": 2000,
-                    "children": [
-                        { "name": "Closures", "xp": 600 },
-                        { "name": "Asynchronous JS", "xp": 800 },
-                        { "name": "DOM Manipulation", "xp": 600 }
-                    ]
-                },
-                {
-                    "name": "Python",
-                    "xp": 1500,
-                    "children": [
-                        { "name": "List Comprehensions", "xp": 500 },
-                        { "name": "Decorators", "xp": 600 },
-                        { "name": "Generators", "xp": 400 }
-                    ]
-                }
-            ]
-        },
-        {
-            "name": "Tools & Frameworks",
-            "xp": 3000,
-            "children": [
-                {
-                    "name": "React",
-                    "xp": 1800,
-                    "children": [
-                        { "name": "Hooks", "xp": 800 },
-                        { "name": "Context API", "xp": 500 },
-                        { "name": "Component Lifecycle", "xp": 500 }
-                    ]
-                },
-                {
-                    "name": "Git",
-                    "xp": 1200,
-                    "children": [
-                        { "name": "Branching", "xp": 500 },
-                        { "name": "Merging & Rebasing", "xp": 700 }
-                    ]
-                }
-            ]
-        }
-    ]
+    name: "No Skill Tree Yet",
+    xp: 0,
+    children: [],
 };

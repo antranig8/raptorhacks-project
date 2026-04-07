@@ -47,6 +47,7 @@ class GeneratedSkillTree(BaseModel):
 
 
 class SkillTreeNode(BaseModel):
+    id: str | None = None
     name: str
     difficulty: str | None = None
     children: list["SkillTreeNode"] | None = None

@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from "react";
 import * as d3 from "d3";
 import styles from "@dashboard/styles/SkillTree.module.css";
 import { initSkillWeb } from "./skillWebD3";
-import { mockData } from "./skillTreeData";
+import { mockData, fetchDataForUser } from "./skillTreeData";
 import SkillTreeHeader from "./SkillTreeHeader";
 
 export default function SkillTree() {
@@ -13,17 +13,37 @@ export default function SkillTree() {
     useEffect(() => {
         if (!svgRef.current) return;
 
-        const container = d3.select(svgRef.current).node().parentNode;
-        const width = container.clientWidth || 800;
-        const height = container.clientHeight || 600;
-
         zoomRef.current = d3.zoom()
             .scaleExtent([0.2, 4])
             .on("zoom", (event) => {
                 d3.select(svgRef.current).select("g").attr("transform", event.transform);
             });
 
-        apiRef.current = initSkillWeb(svgRef, mockData, width, height, zoomRef.current);
+        let isCancelled = false;
+
+        const loadSkillTree = async () => {
+            try {
+                const data = await fetchDataForUser();
+                if (isCancelled || !svgRef.current) return;
+
+                const container = d3.select(svgRef.current).node().parentNode;
+                const width = container.clientWidth || 800;
+                const height = container.clientHeight || 600;
+
+                apiRef.current = initSkillWeb(svgRef, data, width, height, zoomRef.current);
+            } catch (error) {
+                if (isCancelled || !svgRef.current) return;
+
+                const container = d3.select(svgRef.current).node().parentNode;
+                const width = container.clientWidth || 800;
+                const height = container.clientHeight || 600;
+
+                console.error("Failed to load skill tree data.", error);
+                apiRef.current = initSkillWeb(svgRef, mockData, width, height, zoomRef.current);
+            }
+        };
+
+        loadSkillTree();
 
         const handleKeyDown = (e) => {
             if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
@@ -37,7 +57,10 @@ export default function SkillTree() {
         };
 
         window.addEventListener("keydown", handleKeyDown);
-        return () => window.removeEventListener("keydown", handleKeyDown);
+        return () => {
+            isCancelled = true;
+            window.removeEventListener("keydown", handleKeyDown);
+        };
     }, []);
 
     const handleZoomIn = () => {
