@@ -1,7 +1,7 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends
-from ..piston.piston import PistonWrapper, PistonOutput
+from ..piston.piston import PistonOutput, piston
 from contextlib import asynccontextmanager
 
 from ..auth.auth import get_current_user
@@ -9,7 +9,6 @@ from ..auth.user import User
 from . import ai
 from . import skill_tree
 
-piston = PistonWrapper()
 
 @asynccontextmanager
 async def lifespan(route: APIRouter):

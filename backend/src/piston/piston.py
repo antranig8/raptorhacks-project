@@ -135,3 +135,5 @@ class PistonWrapper():
             compile_stage = PistonStage(**piston_compile_stage)
 
         return PistonOutput(error=None,language=piston_lang, run_stage=run_stage, compile_stage=compile_stage)
+    
+piston = PistonWrapper()
