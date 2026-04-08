@@ -56,6 +56,7 @@ export default function Quizzes() {
                                     key={currentIdx}
                                     {...currentQuestion}
                                     number={currentIdx + 1}
+                                    quiz_id='805b9d8b-55ca-4a34-ab0f-6babc577d91d'
                                     isFirst={currentIdx === 0}
                                     isLast={currentIdx === QUESTIONS.length - 1}
                                     onResult={handleResult}

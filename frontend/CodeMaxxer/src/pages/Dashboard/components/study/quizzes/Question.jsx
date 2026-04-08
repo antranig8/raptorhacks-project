@@ -1,10 +1,12 @@
 import { useState } from 'react';
+import supabase from '@utils/supabase'
 import styles from '@dashboard/styles/Question.module.css';
 
 /**
  * Question component
  * Props:
  * - number: index of question
+ * - quiz_id: Id of the current quiz
  * - prompt: the question text
  * - type: 'Multiple' | 'Single' | 'SelectAll' | 'Coding' (coding logic can be stubbed)
  * - choices: array of { id, label, isCorrect, reasoning }
@@ -13,6 +15,8 @@ import styles from '@dashboard/styles/Question.module.css';
  */
 export default function Question({
     number = 1,
+    quiz_id = '',
+    userGuidance = '',
     prompt = '',
     type = 'Single',
     choices = [],
@@ -27,7 +31,7 @@ export default function Question({
 }) {
     const [selectedId, setSelectedId] = useState(null);
     const [selectedIds, setSelectedIds] = useState([]);
-    const [codeAnswer, setCodeAnswer] = useState('');
+    const [codeAnswer, setCodeAnswer] = useState(userGuidance);
     const [isSubmitted, setIsSubmitted] = useState(false);
 
     const isMultiChoice = type === 'Multiple' || type === 'SelectAll';
@@ -68,12 +72,6 @@ export default function Question({
 
     const handleCodeChange = (value) => {
         setCodeAnswer(value);
-        const submitted = value.trim().length > 0;
-        setIsSubmitted(submitted);
-
-        if (onResult) {
-            onResult(submitted);
-        }
     };
 
     const renderChoice = (choice) => {
@@ -115,14 +113,43 @@ export default function Question({
         );
     };
 
+    const testCode = async () => {
+        try {
+            const { data: { session } } = await supabase.auth.getSession()
+
+            const res = await fetch("http://localhost:8000/api/v1/private/quiz/answer-code", {
+                method: 'POST',
+                body: JSON.stringify({
+                    quiz_id: quiz_id,
+                    question_index: (number-1),
+                    answer: codeAnswer
+                }),
+                headers: {
+                    'Authorization': `Bearer ${session.access_token}`,
+                    'Content-Type': 'application/json'
+                },
+            })
+            const data = await res.json()
+            if(data.error == null){
+                onResult(true)
+                setIsSubmitted(true)
+            }else{
+                onResult(false)
+                setIsSubmitted(true)
+            }
+        } catch (err) {
+            console.error("Fetch error:", err)
+        }
+    }
+
     const renderCoding = () => (
         <div className={styles.codingContainer}>
             <textarea
                 className={styles.codingTextarea}
-                placeholder="Enter your code or pseudocode here..."
                 value={codeAnswer}
                 onChange={(e) => handleCodeChange(e.target.value)}
             />
+            <button onClick={()=>testCode()}>TEST CODE</button>
 
             {isSubmitted && answerHint && (
                 <div className={styles.feedback}>
