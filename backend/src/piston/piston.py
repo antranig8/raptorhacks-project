@@ -10,7 +10,7 @@ PISTON_API_KEY = os.getenv("PISTON_API_KEY")
 
 class PistonStage(BaseModel):
     stdout: str | None
-    stdrr: str | None
+    stderr: str | None
     output: str | None
     code: int | None
     signal: Any
@@ -42,7 +42,7 @@ mock_output = {
   "version": "3.10.0",
   "run_stage": {
     "stdout": "test\n",
-    "stdrr": None,
+    "stderr": None,
     "output": "test\n",
     "code": 0,
     "signal": None
@@ -62,7 +62,8 @@ class PistonWrapper():
 
     async def _worker_loop(self):
         while True:
-            # Get a 'job' from the queue
+            # Background worker used to serialize queued executions if this
+            # wrapper is expanded to use the queue-driven path.
             language, code, future = await self.queue.get()
             
             try:
@@ -82,7 +83,9 @@ class PistonWrapper():
         except TooManyRequests as e:
             return PistonOutput(error="Rate limit", language=language)
 
-        piston_lang = output.langauge
+        # Mirror the Pyston response into the app's stable schema so the quiz
+        # router can handle compile/run output consistently.
+        piston_lang = output.language
 
         piston_run_stage = output.run_stage
         run_stage = None
@@ -113,6 +116,7 @@ class PistonWrapper():
         await self.client.close_session()
 
     async def test_code(self, language: str, code: str) -> PistonOutput:
+        # Direct execution path currently used by quiz answer validation.
         if self.client == None:
             return PistonOutput(error="Client not initialized", language=language)
         try:
@@ -120,7 +124,7 @@ class PistonWrapper():
         except TooManyRequests as e:
             return PistonOutput(error="Rate limit", language=language)
 
-        piston_lang = output.langauge
+        piston_lang = output.language
 
         piston_run_stage = output.run_stage
         run_stage = None

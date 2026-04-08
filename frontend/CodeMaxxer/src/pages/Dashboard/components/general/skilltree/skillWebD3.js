@@ -1,7 +1,7 @@
 import * as d3 from 'd3';
 import { calculateLevelData } from './levelUtils';
 
-export const initSkillWeb = (svgRef, data, width, height, zoom) => {
+export const initSkillWeb = (svgRef, data, width, height, zoom, onNodeClick) => {
     const getNodeKey = (node) => node.data.id ?? node.data.name;
 
     const svg = d3.select(svgRef.current)
@@ -178,12 +178,21 @@ export const initSkillWeb = (svgRef, data, width, height, zoom) => {
             }))
         .on("click", (event, d) => {
             event.stopPropagation();
+            // Ignore the synthetic click that lands after a drag so moving
+            // nodes does not accidentally open a quiz.
+            if (d._didMove) {
+                d._didMove = false;
+                return;
+            }
             if (selectedNodes.has(d)) {
                 selectedNodes.delete(d);
             } else {
                 selectedNodes.add(d);
             }
             updateSelectionState();
+            // Bubble the clicked node back to React so routing and API calls
+            // stay in the normal component layer instead of inside D3 state.
+            onNodeClick?.(d.data);
         })
         .on("dblclick", (event, d) => {
             event.stopPropagation();

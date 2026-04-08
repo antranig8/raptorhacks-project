@@ -1,11 +1,13 @@
 import React, { useEffect, useRef } from "react";
 import * as d3 from "d3";
+import { useNavigate } from "react-router-dom";
 import styles from "@dashboard/styles/SkillTree.module.css";
 import { initSkillWeb } from "./skillWebD3";
-import { mockData, fetchDataForUser } from "./skillTreeData";
+import { MOCK_SKILL_TREE_ID, mockData, fetchDataForUser } from "./skillTreeData";
 import SkillTreeHeader from "./SkillTreeHeader";
 
 export default function SkillTree() {
+    const navigate = useNavigate();
     const svgRef = useRef(null);
     const zoomRef = useRef(null);
     const apiRef = useRef(null);
@@ -23,14 +25,35 @@ export default function SkillTree() {
 
         const loadSkillTree = async () => {
             try {
-                const data = await fetchDataForUser();
+                const skillTree = await fetchDataForUser();
                 if (isCancelled || !svgRef.current) return;
 
                 const container = d3.select(svgRef.current).node().parentNode;
                 const width = container.clientWidth || 800;
                 const height = container.clientHeight || 600;
 
-                apiRef.current = initSkillWeb(svgRef, data, width, height, zoomRef.current);
+                apiRef.current = initSkillWeb(
+                    svgRef,
+                    skillTree.data,
+                    width,
+                    height,
+                    zoomRef.current,
+                    (node) => {
+                        // A node click becomes the quiz entry point. We carry the
+                        // stable skillTreeId and nodeId through the route so the
+                        // quiz page can fetch its data without shared app state.
+                        if (!skillTree.skillTreeId || !node?.id) {
+                            return;
+                        }
+
+                        navigate(`/dashboard/quizzes?skillTreeId=${encodeURIComponent(skillTree.skillTreeId)}&nodeId=${encodeURIComponent(node.id)}`, {
+                            state: {
+                                nodeName: node.name,
+                                skillTreeName: skillTree.treeName,
+                            },
+                        });
+                    },
+                );
             } catch (error) {
                 if (isCancelled || !svgRef.current) return;
 
@@ -39,7 +62,25 @@ export default function SkillTree() {
                 const height = container.clientHeight || 600;
 
                 console.error("Failed to load skill tree data.", error);
-                apiRef.current = initSkillWeb(svgRef, mockData, width, height, zoomRef.current);
+                apiRef.current = initSkillWeb(
+                    svgRef,
+                    mockData,
+                    width,
+                    height,
+                    zoomRef.current,
+                    (node) => {
+                        if (!node?.id) {
+                            return;
+                        }
+
+                        navigate(`/dashboard/quizzes?skillTreeId=${encodeURIComponent(MOCK_SKILL_TREE_ID)}&nodeId=${encodeURIComponent(node.id)}`, {
+                            state: {
+                                nodeName: node.name,
+                                skillTreeName: "Mock Skill Tree",
+                            },
+                        });
+                    },
+                );
             }
         };
 
@@ -61,7 +102,7 @@ export default function SkillTree() {
             isCancelled = true;
             window.removeEventListener("keydown", handleKeyDown);
         };
-    }, []);
+    }, [navigate]);
 
     const handleZoomIn = () => {
         if (zoomRef.current && svgRef.current) {

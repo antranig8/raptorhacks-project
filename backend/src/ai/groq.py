@@ -53,6 +53,11 @@ class GroqAI(AIPlatform):
         temperature: float = 0.7,
         max_tokens: int = 800,
     ) -> tuple[str, UsageInfo | None]:
+        # Reuse the configured system prompt for structured-generation routes
+        # unless the caller already supplied an explicit system message.
+        if self.system_prompt and not any(message.get("role") == "system" for message in messages):
+            messages = [{"role": "system", "content": self.system_prompt}, *messages]
+
         response = self.client.chat.completions.create(
             model=self.model,
             messages=messages,
