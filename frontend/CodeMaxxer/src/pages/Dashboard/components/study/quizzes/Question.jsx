@@ -1,79 +1,102 @@
-import { useState } from 'react';
-import styles from '@dashboard/styles/Question.module.css';
+import { useEffect, useState } from "react";
+import styles from "@dashboard/styles/Question.module.css";
 
-/**
- * Question component
- * Props:
- * - number: index of question
- * - prompt: the question text
- * - type: 'Multiple' | 'Single' | 'SelectAll' | 'Coding' (coding logic can be stubbed)
- * - choices: array of { id, label, isCorrect, reasoning }
- *   each choice should include reasoning to explain why it is correct or incorrect
- * - onResult: callback(result: boolean)
- */
 export default function Question({
     number = 1,
-    prompt = '',
-    type = 'Single',
+    prompt = "",
+    type = "Single",
     choices = [],
-    answerHint = '',
+    answerHint = "",
+    userGuidance = "",
+    initialAnswer = null,
+    validationResult = null,
+    isValidating = false,
+    isMockMode = false,
+    onValidate,
     onResult,
     isSkippable = true,
     isFirst = false,
     isLast = false,
     onNext,
     onBack,
-    onSubmit
+    onSubmit,
 }) {
-    const [selectedId, setSelectedId] = useState(null);
-    const [selectedIds, setSelectedIds] = useState([]);
-    const [codeAnswer, setCodeAnswer] = useState('');
-    const [isSubmitted, setIsSubmitted] = useState(false);
+    const [selectedId, setSelectedId] = useState(typeof initialAnswer === "string" && type !== "Coding" ? initialAnswer : null);
+    const [selectedIds, setSelectedIds] = useState(Array.isArray(initialAnswer) ? initialAnswer : []);
+    const [codeAnswer, setCodeAnswer] = useState(typeof initialAnswer === "string" && type === "Coding" ? initialAnswer : (userGuidance || ""));
+    const [isSubmitted, setIsSubmitted] = useState(Boolean(validationResult));
 
-    const isMultiChoice = type === 'Multiple' || type === 'SelectAll';
+    useEffect(() => {
+        setSelectedId(typeof initialAnswer === "string" && type !== "Coding" ? initialAnswer : null);
+        setSelectedIds(Array.isArray(initialAnswer) ? initialAnswer : []);
+        setCodeAnswer(typeof initialAnswer === "string" && type === "Coding" ? initialAnswer : (userGuidance || ""));
+        setIsSubmitted(isMockMode ? Boolean(initialAnswer) : Boolean(validationResult));
+    }, [initialAnswer, isMockMode, number, type, userGuidance, validationResult]);
+
+    const isMultiChoice = type === "Multiple" || type === "SelectAll";
+    const hasBackendValidation = Boolean(validationResult);
 
     const evaluateMultiChoice = (selected) => {
-        const correctIds = choices.filter(c => c.isCorrect).map(c => c.id);
+        const correctIds = choices.filter((choice) => choice.isCorrect).map((choice) => choice.id);
         if (selected.length !== correctIds.length) return false;
-        return correctIds.every(id => selected.includes(id));
+        return correctIds.every((id) => selected.includes(id));
     };
 
     const handleSelect = (id) => {
-        if (type === 'Coding') return;
+        if (type === "Coding" || (isSubmitted && !isMockMode)) return;
 
         if (isMultiChoice) {
             const nextSelectedIds = selectedIds.includes(id)
-                ? selectedIds.filter(item => item !== id)
+                ? selectedIds.filter((item) => item !== id)
                 : [...selectedIds, id];
 
             setSelectedIds(nextSelectedIds);
-            const submitted = nextSelectedIds.length > 0;
-            setIsSubmitted(submitted);
 
-            if (onResult) {
-                onResult(submitted ? evaluateMultiChoice(nextSelectedIds) : false);
+            if (isMockMode) {
+                const submitted = nextSelectedIds.length > 0;
+                setIsSubmitted(submitted);
+                onResult?.(submitted ? evaluateMultiChoice(nextSelectedIds) : false, nextSelectedIds);
             }
             return;
         }
 
-        if (isSubmitted) return;
         setSelectedId(id);
-        setIsSubmitted(true);
 
-        const choice = choices.find(c => c.id === id);
-        if (onResult) {
-            onResult(choice?.isCorrect || false);
+        if (isMockMode) {
+            setIsSubmitted(true);
+            const choice = choices.find((item) => item.id === id);
+            onResult?.(choice?.isCorrect || false, id);
         }
     };
 
     const handleCodeChange = (value) => {
         setCodeAnswer(value);
-        const submitted = value.trim().length > 0;
-        setIsSubmitted(submitted);
 
-        if (onResult) {
-            onResult(submitted);
+        if (isMockMode) {
+            const submitted = value.trim().length > 0;
+            setIsSubmitted(submitted);
+            onResult?.(submitted, value);
         }
+    };
+
+    const handleValidate = async () => {
+        // Validation is explicit instead of auto-submitting on click so the
+        // user can change selections before the backend grades the answer.
+        if (isMockMode || !onValidate) {
+            return;
+        }
+
+        if (type === "Coding") {
+            await onValidate(codeAnswer);
+            return;
+        }
+
+        if (isMultiChoice) {
+            await onValidate(selectedIds);
+            return;
+        }
+
+        await onValidate(selectedId);
     };
 
     const renderChoice = (choice) => {
@@ -82,7 +105,8 @@ export default function Question({
 
         let containerClass = styles.choice;
         if (showResult) {
-            containerClass += choice.isCorrect ? ` ${styles.correct}` : ` ${styles.wrong}`;
+            const isCorrect = isMockMode ? choice.isCorrect : validationResult?.correct;
+            containerClass += isCorrect ? ` ${styles.correct}` : ` ${styles.wrong}`;
         }
 
         return (
@@ -96,14 +120,14 @@ export default function Question({
                     <span className={styles.choiceLabel}>{choice.label}</span>
                 </div>
 
-                {showResult && (
+                {showResult && isMockMode && (
                     <div className={styles.feedback}>
                         <div className={styles.status}>
                             <span className={styles.statusIcon}>
-                                {choice.isCorrect ? '✓' : '✕'}
+                                {choice.isCorrect ? "\u2713" : "\u2715"}
                             </span>
                             <span className={styles.statusText}>
-                                {choice.isCorrect ? 'Right answer' : 'Wrong answer'}
+                                {choice.isCorrect ? "Right answer" : "Wrong answer"}
                             </span>
                         </div>
                         {choice.reasoning && (
@@ -115,24 +139,61 @@ export default function Question({
         );
     };
 
+    const renderFeedback = () => {
+        if (!hasBackendValidation || isMockMode) {
+            return null;
+        }
+
+        // The backend is the source of truth for correctness, so the UI only
+        // renders the returned grading result and message.
+        const statusIcon = validationResult.correct ? "\u2713" : "\u2715";
+        const statusText = validationResult.correct ? "Correct" : "Incorrect";
+        const detail = validationResult.error || validationResult.reasoning;
+
+        return (
+            <div className={styles.feedback}>
+                <div className={styles.status}>
+                    <span className={styles.statusIcon}>{statusIcon}</span>
+                    <span className={styles.statusText}>{statusText}</span>
+                </div>
+                {detail && (
+                    <p className={styles.reasoning}>{detail}</p>
+                )}
+            </div>
+        );
+    };
+
     const renderCoding = () => (
         <div className={styles.codingContainer}>
             <textarea
                 className={styles.codingTextarea}
                 placeholder="Enter your code or pseudocode here..."
                 value={codeAnswer}
-                onChange={(e) => handleCodeChange(e.target.value)}
+                onChange={(event) => handleCodeChange(event.target.value)}
             />
 
-            {isSubmitted && answerHint && (
+            {!isMockMode && (
+                <button
+                    className={styles.nextBtn}
+                    onClick={handleValidate}
+                    disabled={codeAnswer.trim().length === 0 || isSubmitted || isValidating}
+                    type="button"
+                >
+                    {isValidating ? "Checking..." : "Run Check"}
+                </button>
+            )}
+
+            {isMockMode && isSubmitted && answerHint && (
                 <div className={styles.feedback}>
                     <div className={styles.status}>
-                        <span className={styles.statusIcon}>✓</span>
+                        <span className={styles.statusIcon}>&#10003;</span>
                         <span className={styles.statusText}>Answer received</span>
                     </div>
                     <p className={styles.reasoning}>{answerHint}</p>
                 </div>
             )}
+
+            {renderFeedback()}
         </div>
     );
 
@@ -143,7 +204,8 @@ export default function Question({
             </h3>
 
             <div className={styles.choicesList}>
-                {type === 'Coding' ? renderCoding() : choices.map(renderChoice)}
+                {type === "Coding" ? renderCoding() : choices.map(renderChoice)}
+                {type !== "Coding" && renderFeedback()}
             </div>
 
             <div className={styles.footer}>
@@ -155,6 +217,20 @@ export default function Question({
                     Back
                 </button>
                 <div className={styles.rightActions}>
+                    {!isMockMode && type !== "Coding" && (
+                        <button
+                            className={styles.nextBtn}
+                            onClick={handleValidate}
+                            disabled={
+                                isValidating
+                                || isSubmitted
+                                || (isMultiChoice ? selectedIds.length === 0 : !selectedId)
+                            }
+                            type="button"
+                        >
+                            {isValidating ? "Checking..." : "Check Answer"}
+                        </button>
+                    )}
                     {isLast ? (
                         <button
                             className={styles.submitBtn}

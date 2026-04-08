@@ -2,6 +2,7 @@ import supabase from "@/utils/supabase";
 
 const API_BASE_URL = "http://localhost:8000/api/v1/private";
 const COMPLETED_LEAF_XP = 100;
+export const MOCK_SKILL_TREE_ID = "mock-skill-tree";
 
 async function getAccessToken() {
     const { data: { session } } = await supabase.auth.getSession();
@@ -64,14 +65,24 @@ export function transformSkillTreeRecord(record) {
 }
 
 export async function fetchDataForUser() {
+    // Return both the rendered graph data and the owning skill tree id so a
+    // later node click can request the correct node-linked quiz from the API.
     const skillTrees = await requestSkillTrees("/skill-trees", { method: "GET" });
     const selectedTree = selectPrimarySkillTree(skillTrees);
 
     if (!selectedTree) {
-        return mockData;
+        return {
+            skillTreeId: MOCK_SKILL_TREE_ID,
+            treeName: "Mock Skill Tree",
+            data: mockData,
+        };
     }
 
-    return transformSkillTreeRecord(selectedTree);
+    return {
+        skillTreeId: selectedTree.id,
+        treeName: selectedTree.name,
+        data: transformSkillTreeRecord(selectedTree),
+    };
 }
 
 export async function createSkillTree(treeName, goal) {
@@ -85,7 +96,89 @@ export async function createSkillTree(treeName, goal) {
 }
 
 export const mockData = {
-    name: "No Skill Tree Yet",
-    xp: 0,
-    children: [],
+    id: "web-development",
+    name: "Web Development",
+    xp: 400,
+    children: [
+        {
+            id: "frontend",
+            name: "Frontend",
+            difficulty: "beginner",
+            xp: 200,
+            children: [
+                {
+                    id: "html-basics",
+                    name: "HTML Basics",
+                    difficulty: "beginner",
+                    completed: true,
+                    xp: 100,
+                    children: [],
+                },
+                {
+                    id: "css-layout",
+                    name: "CSS Layout",
+                    difficulty: "beginner",
+                    completed: false,
+                    xp: 0,
+                    children: [],
+                },
+                {
+                    id: "react-components",
+                    name: "React Components",
+                    difficulty: "intermediate",
+                    completed: false,
+                    xp: 0,
+                    children: [],
+                },
+            ],
+        },
+        {
+            id: "backend",
+            name: "Backend",
+            difficulty: "beginner",
+            xp: 100,
+            children: [
+                {
+                    id: "apis",
+                    name: "REST APIs",
+                    difficulty: "beginner",
+                    completed: true,
+                    xp: 100,
+                    children: [],
+                },
+                {
+                    id: "authentication",
+                    name: "Authentication",
+                    difficulty: "intermediate",
+                    completed: false,
+                    xp: 0,
+                    children: [],
+                },
+            ],
+        },
+        {
+            id: "tooling",
+            name: "Tooling",
+            difficulty: "beginner",
+            xp: 100,
+            children: [
+                {
+                    id: "git-basics",
+                    name: "Git Basics",
+                    difficulty: "beginner",
+                    completed: true,
+                    xp: 100,
+                    children: [],
+                },
+                {
+                    id: "debugging",
+                    name: "Debugging",
+                    difficulty: "intermediate",
+                    completed: false,
+                    xp: 0,
+                    children: [],
+                },
+            ],
+        },
+    ],
 };

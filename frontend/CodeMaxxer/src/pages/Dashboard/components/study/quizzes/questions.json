@@ -1,103 +1,234 @@
 {
-    "questions": [
+  "questions": [
+    {
+      "type": "Single",
+      "prompt": "Which is a valid Java identifier?",
+      "isSkippable": false,
+      "choices": [
         {
-            "type": "Single",
-            "prompt": "Which of the following describes the fastest storage locations available to the CPU for executing instructions?",
-            "isSkippable": true,
-            "choices": [
-                {
-                    "id": "A",
-                    "label": "Main Memory (RAM)",
-                    "isCorrect": false,
-                    "reasoning": "Main memory is much slower than the CPU registers and caches, so it is not the fastest storage location."
-                },
-                {
-                    "id": "B",
-                    "label": "Registers",
-                    "isCorrect": true,
-                    "reasoning": "Registers are located directly within the CPU and provide the lowest latency for data access."
-                },
-                {
-                    "id": "C",
-                    "label": "Virtual Memory",
-                    "isCorrect": false,
-                    "reasoning": "Virtual memory is an abstraction using disk and RAM, which is far slower than CPU register storage."
-                },
-                {
-                    "id": "D",
-                    "label": "Level 1 Cache",
-                    "isCorrect": false,
-                    "reasoning": "L1 cache is very fast, but CPU registers are still faster and are the closest storage to execution units."
-                }
-            ]
+          "id": "A",
+          "label": "2var",
+          "isCorrect": false,
+          "reasoning": "Starts with a digit"
         },
         {
-            "type": "Multiple",
-            "prompt": "Which of the following are common characteristics of RISC CPU architectures?",
-            "isSkippable": false,
-            "choices": [
-                {
-                    "id": "A",
-                    "label": "Simple instruction set with fixed-length instructions",
-                    "isCorrect": true,
-                    "reasoning": "RISC architectures favor a small set of simple, fixed-length instructions for faster decoding and pipelining."
-                },
-                {
-                    "id": "B",
-                    "label": "Complex addressing modes and microcoded operations",
-                    "isCorrect": false,
-                    "reasoning": "Complex addressing modes are more commonly associated with CISC architectures."
-                },
-                {
-                    "id": "C",
-                    "label": "A large number of general-purpose registers",
-                    "isCorrect": true,
-                    "reasoning": "RISC designs typically provide many registers to reduce memory access and improve performance."
-                },
-                {
-                    "id": "D",
-                    "label": "Default support for variable-length instruction formats",
-                    "isCorrect": false,
-                    "reasoning": "Variable-length instruction formats are more common in CISC designs, not RISC."
-                }
-            ]
+          "id": "B",
+          "label": "var-name",
+          "isCorrect": false,
+          "reasoning": "Contains hyphen"
         },
         {
-            "type": "SelectAll",
-            "prompt": "Select all x86 general-purpose registers that can hold integer values.",
-            "isSkippable": true,
-            "choices": [
-                {
-                    "id": "A",
-                    "label": "EAX",
-                    "isCorrect": true,
-                    "reasoning": "EAX is a general-purpose integer register in x86 architectures."
-                },
-                {
-                    "id": "B",
-                    "label": "EBX",
-                    "isCorrect": true,
-                    "reasoning": "EBX is also a general-purpose integer register on x86."
-                },
-                {
-                    "id": "C",
-                    "label": "ST0",
-                    "isCorrect": false,
-                    "reasoning": "ST0 is a floating-point stack register, not a general-purpose integer register."
-                },
-                {
-                    "id": "D",
-                    "label": "ESI",
-                    "isCorrect": true,
-                    "reasoning": "ESI is a general-purpose register used for string and memory operations."
-                }
-            ]
+          "id": "C",
+          "label": "public",
+          "isCorrect": false,
+          "reasoning": "Reserved keyword"
         },
         {
-            "type": "Coding",
-            "prompt": "Write a short pseudocode algorithm to swap the values of variables a and b using a temporary variable.",
-            "isSkippable": false,
-            "choices": []
+          "id": "D",
+          "label": "_myVar",
+          "isCorrect": true,
+          "reasoning": "Valid identifier format"
         }
-    ]
+      ],
+      "expectedStdout": null,
+      "language": null,
+      "codeTemplate": null,
+      "userGuidance": null
+    },
+    {
+      "type": "Multiple",
+      "prompt": "Which data types are primitive in Java?",
+      "isSkippable": false,
+      "choices": [
+        {
+          "id": "A",
+          "label": "String",
+          "isCorrect": false,
+          "reasoning": "String is a class"
+        },
+        {
+          "id": "B",
+          "label": "int",
+          "isCorrect": true,
+          "reasoning": "Primitive integer type"
+        },
+        {
+          "id": "C",
+          "label": "Boolean",
+          "isCorrect": false,
+          "reasoning": "Wrapper class"
+        },
+        {
+          "id": "D",
+          "label": "double",
+          "isCorrect": true,
+          "reasoning": "Primitive floating-point type"
+        }
+      ],
+      "expectedStdout": null,
+      "language": null,
+      "codeTemplate": null,
+      "userGuidance": null
+    },
+    {
+      "type": "SelectAll",
+      "prompt": "Which loops are valid in Java?",
+      "isSkippable": false,
+      "choices": [
+        {
+          "id": "A",
+          "label": "for",
+          "isCorrect": true,
+          "reasoning": "Standard loop"
+        },
+        {
+          "id": "B",
+          "label": "while",
+          "isCorrect": true,
+          "reasoning": "Standard loop"
+        },
+        {
+          "id": "C",
+          "label": "do-while",
+          "isCorrect": true,
+          "reasoning": "Post-condition loop"
+        },
+        {
+          "id": "D",
+          "label": "until",
+          "isCorrect": false,
+          "reasoning": "Not Java syntax"
+        }
+      ],
+      "expectedStdout": null,
+      "language": null,
+      "codeTemplate": null,
+      "userGuidance": null
+    },
+    {
+      "type": "Coding",
+      "prompt": "Write a function to reverse a string.",
+      "isSkippable": false,
+      "choices": [],
+      "expectedStdout": "olleh",
+      "language": "Java",
+      "codeTemplate": "public class Main {\n    public static void main(String[] args) {\n        String input = \"hello\";\n        String reversed = \"\";\n        %s\n        System.out.println(reversed);\n    }\n}",
+      "userGuidance": "// Reverse 'hello' and assign to reversed"
+    },
+    {
+      "type": "Single",
+      "prompt": "What does 'final' keyword do?",
+      "isSkippable": false,
+      "choices": [
+        {
+          "id": "A",
+          "label": "Allows inheritance",
+          "isCorrect": false,
+          "reasoning": "Opposite effect"
+        },
+        {
+          "id": "B",
+          "label": "Makes variable constant",
+          "isCorrect": true,
+          "reasoning": "Prevents reassignment"
+        },
+        {
+          "id": "C",
+          "label": "Enables polymorphism",
+          "isCorrect": false,
+          "reasoning": "Unrelated to polymorphism"
+        },
+        {
+          "id": "D",
+          "label": "Increases performance",
+          "isCorrect": false,
+          "reasoning": "No direct performance impact"
+        }
+      ],
+      "expectedStdout": null,
+      "language": null,
+      "codeTemplate": null,
+      "userGuidance": null
+    },
+    {
+      "type": "Multiple",
+      "prompt": "Which exceptions are checked?",
+      "isSkippable": false,
+      "choices": [
+        {
+          "id": "A",
+          "label": "IOException",
+          "isCorrect": true,
+          "reasoning": "Checked exception"
+        },
+        {
+          "id": "B",
+          "label": "NullPointerException",
+          "isCorrect": false,
+          "reasoning": "Runtime exception"
+        },
+        {
+          "id": "C",
+          "label": "ArrayIndexOutOfBoundsException",
+          "isCorrect": false,
+          "reasoning": "Runtime exception"
+        },
+        {
+          "id": "D",
+          "label": "SQLException",
+          "isCorrect": true,
+          "reasoning": "Checked exception"
+        }
+      ],
+      "expectedStdout": null,
+      "language": null,
+      "codeTemplate": null,
+      "userGuidance": null
+    },
+    {
+      "type": "Coding",
+      "prompt": "Calculate factorial of 5 using recursion.",
+      "isSkippable": false,
+      "choices": [],
+      "expectedStdout": "120",
+      "language": "Java",
+      "codeTemplate": "public class Main {\n    public static void main(String[] args) {\n        int result = factorial(5);\n        System.out.println(result);\n    }\n    %s\n}",
+      "userGuidance": "// Implement recursive factorial function"
+    },
+    {
+      "type": "Single",
+      "prompt": "What is method overloading?",
+      "isSkippable": false,
+      "choices": [
+        {
+          "id": "A",
+          "label": "Same name, different parameters",
+          "isCorrect": true,
+          "reasoning": "Definition of overloading"
+        },
+        {
+          "id": "B",
+          "label": "Same name, same parameters",
+          "isCorrect": false,
+          "reasoning": "Duplicate method"
+        },
+        {
+          "id": "C",
+          "label": "Private methods",
+          "isCorrect": false,
+          "reasoning": "Unrelated to overloading"
+        },
+        {
+          "id": "D",
+          "label": "Abstract methods",
+          "isCorrect": false,
+          "reasoning": "Unrelated to overloading"
+        }
+      ],
+      "expectedStdout": null,
+      "language": null,
+      "codeTemplate": null,
+      "userGuidance": null
+    }
+  ]
 }

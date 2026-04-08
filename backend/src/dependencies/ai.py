@@ -16,8 +16,8 @@ def _load_system_prompt(file: str) -> str:
 
 groq_api_key = os.getenv("GROQ_API_KEY")
 skill_tree_platform = GroqAI(api_key=groq_api_key, system_prompt=None)
+quiz_platform = GroqAI(api_key=groq_api_key, system_prompt=_load_system_prompt(base_path.parent / "prompts" / "quiz_prompt.md"))
 ai_platform = GroqAI(api_key=groq_api_key, system_prompt=_load_system_prompt(base_path.parent / "prompts" / "skill_tree_prompt.md"))
-
 
 def get_ai_platform() -> GroqAI:
     return ai_platform
