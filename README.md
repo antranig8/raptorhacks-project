@@ -1,28 +1,37 @@
 # CodeMaxxer
 
-CodeMaxxer is our RaptorHacks project: a coding-focused learning platform with a React frontend, a FastAPI backend, Supabase auth, and Groq-powered AI support.
+CodeMaxxer is the RaptorHacks project: a coding-focused learning platform with a React frontend, a FastAPI backend, Supabase authentication and storage, and Groq-powered AI features.
 
-## Current Status
+## Current State
 
-- Landing page
-- Login flow with Supabase auth
-- OAuth callback handling
-- Dashboard layout
-- Skill tree page
-- Coding page
-- Quizzes page
-- Typing practice page
-- Settings and help pages
-- FastAPI backend with protected route support
-- Groq-backed chat endpoint
+Implemented:
+
+- Landing page and login flow
+- Supabase authentication with OAuth callback handling
+- Protected dashboard routes
+- Skill tree generation with AI
+- Skill tree rendering in the frontend
+- Saved skill trees loaded from the backend
+- Node-linked quiz generation
+- Quiz answer validation and submission
+- Code-based quiz questions using Piston-backed execution
+- Groq-backed chat and AI route support
+
+Still in progress:
+
+- Skill completion and progress-tracking flows
+- Resume-session behavior and overall learning flow polish
+- Standalone coding page beyond placeholder scaffolding
+- Study-plan and topic-explanation style features
 
 ## Stack
 
 - Frontend: React + Vite
-- Backend: FastAPI
-- Auth: Supabase
+- Backend: FastAPI + Uvicorn
+- Auth and storage: Supabase
 - AI: Groq
-- Deployment: Vercel for the frontend
+- Code execution: Piston
+- Deployment: Vercel
 
 ## Project Structure
 
@@ -33,8 +42,13 @@ raptorhacks-project/
   docs/
 ```
 
+## Documentation
+
+- Project roadmap: [docs/README.md](docs/README.md)
+- Backend notes: [backend/README.md](backend/README.md)
+
 ## Notes
 
 - The frontend is still planned for Vercel deployment.
-- The backend is separate and still evolving as we build out more features.
-- This repo reflects the current hackathon progress, not a polished production release.
+- The backend and product flows are still evolving.
+- This repo reflects active development, not a polished production release.
