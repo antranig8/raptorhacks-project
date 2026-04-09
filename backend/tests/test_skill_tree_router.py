@@ -54,13 +54,19 @@ class FakeSupabaseClient:
 
 
 class FakeAIPlatform:
-    def __init__(self, response_text: str):
-        self.response_text = response_text
-        self.messages = None
+    def __init__(self, response_text: str | list[str]):
+        # Support one or many mocked AI responses so tests can simulate multi-step flows.
+        if isinstance(response_text, list):
+            self.response_queue = list(response_text)
+        else:
+            self.response_queue = [response_text]
+        self.messages = []
 
     def chat_messages(self, messages, temperature: float, max_tokens: int):
-        self.messages = messages
-        return self.response_text, None
+        self.messages.append(messages)
+        if not self.response_queue:
+            raise AssertionError("No fake AI responses left in the queue.")
+        return self.response_queue.pop(0), None
 
 
 class SkillTreeRouterTests(TestCase):
@@ -130,7 +136,7 @@ class SkillTreeRouterTests(TestCase):
         child_ids = [child["id"] for child in body["tree"]["children"]]
         self.assertEqual(len(child_ids), len(set(child_ids)))
         self.assertEqual(self.fake_supabase.skill_trees[0]["title"], "Python Roadmap")
-        self.assertEqual(fake_ai.messages[-1]["content"], "Learn Python")
+        self.assertEqual(fake_ai.messages[-1][-1]["content"], "Learn Python")
 
     def test_create_tree_still_accepts_legacy_title_field(self):
         fake_ai = FakeAIPlatform(
@@ -178,3 +184,58 @@ class SkillTreeRouterTests(TestCase):
         self.assertEqual(body["name"], "Backend API")
         self.assertEqual(body["tree"]["name"], "Learn FastAPI")
         self.assertIsNotNone(body["tree"]["id"])
+
+    def test_create_tree_accepts_prompt_and_normalizes_goal_before_generation(self):
+        fake_ai = FakeAIPlatform(
+            [
+                json.dumps({"goal": "Improve C programming for systems programming"}),
+                json.dumps(
+                    {
+                        "goal": "Improve C programming for systems programming",
+                        "skills": [
+                            {
+                                "name": "C Fundamentals",
+                                "subskills": [
+                                    {"name": "Types", "difficulty": "beginner"},
+                                    {"name": "Pointers", "difficulty": "beginner"},
+                                ],
+                            },
+                            {
+                                "name": "Memory",
+                                "subskills": [
+                                    {"name": "Stack vs Heap", "difficulty": "beginner"},
+                                    {"name": "Manual Allocation", "difficulty": "intermediate"},
+                                ],
+                            },
+                            {
+                                "name": "Systems Practice",
+                                "subskills": [
+                                    {"name": "File I/O", "difficulty": "intermediate"},
+                                    {"name": "Debugging", "difficulty": "intermediate"},
+                                ],
+                            },
+                        ],
+                    }
+                ),
+            ]
+        )
+
+        with patch.object(skill_tree_router, "supabase_client", self.fake_supabase), patch.object(
+            skill_tree_router, "get_ai_platform", return_value=fake_ai
+        ):
+            client = TestClient(app)
+            response = client.post(
+                "/api/v1/private/skill-trees",
+                json={
+                    "name": "C Roadmap",
+                    "prompt": "I want to get better at C for systems programming.",
+                },
+            )
+
+        self.assertEqual(response.status_code, 201)
+        body = response.json()
+        self.assertEqual(body["goal"], "Improve C programming for systems programming")
+        self.assertEqual(body["tree"]["name"], "Improve C programming for systems programming")
+        self.assertEqual(len(fake_ai.messages), 2)
+        self.assertEqual(fake_ai.messages[0][-1]["content"], "I want to get better at C for systems programming.")
+        self.assertEqual(fake_ai.messages[1][-1]["content"], "Improve C programming for systems programming")

@@ -5,7 +5,8 @@ import re
 
 from pydantic import ValidationError
 
-from ..schemas.ai import GeneratedSkillTree, SkillTreeNode
+from ..ai.base import AIPlatform
+from ..schemas.ai import ExtractedGoal, GeneratedSkillTree, SkillTreeNode
 from .prompts import load_prompt
 
 
@@ -14,10 +15,66 @@ def load_skill_tree_system_prompt() -> str | None:
     return load_prompt("skill_tree_prompt.md")
 
 
+# Load the system prompt that turns a messy user request into one canonical goal.
+def load_goal_extraction_system_prompt() -> str | None:
+    return load_prompt("goal_extraction_prompt.md")
+
+
 # Turn the user's goal into the plain prompt sent to the model.
 def build_skill_tree_user_prompt(goal: str) -> str:
     # Keep the user prompt simple; the system prompt carries most of the formatting rules.
     return goal.strip()
+
+
+# Turn the user's raw request into the plain prompt used by the goal extraction step.
+def build_goal_extraction_user_prompt(prompt: str) -> str:
+    # The extractor should see the original wording so it can infer the user's real intent.
+    return prompt.strip()
+
+
+# Parse the goal extraction response JSON and validate that it contains a usable goal.
+def parse_goal_extraction_response(raw_text: str) -> ExtractedGoal:
+    try:
+        # The extractor must answer with JSON only so the caller can chain it into tree generation.
+        payload = json.loads(raw_text)
+    except json.JSONDecodeError as exc:
+        raise ValueError("AI returned invalid JSON for goal extraction.") from exc
+
+    try:
+        # Validate the shape before any downstream route trusts the normalized goal.
+        return ExtractedGoal.model_validate(payload)
+    except ValidationError as exc:
+        raise ValueError("AI returned JSON that did not match the goal extraction schema.") from exc
+
+
+# Resolve the final canonical goal from either an explicit goal or a raw free-form prompt.
+def resolve_skill_tree_goal(ai_platform: AIPlatform, goal: str | None, prompt: str | None) -> str:
+    # Prefer a provided goal so callers can bypass normalization when they already have one.
+    if goal is not None and goal.strip():
+        return goal.strip()
+
+    if prompt is None or not prompt.strip():
+        raise ValueError("A goal or prompt is required to generate a skill tree.")
+
+    system_prompt = load_goal_extraction_system_prompt()
+    messages: list[dict[str, str]] = []
+
+    if system_prompt:
+        # Add explicit instructions so the model returns one clean goal instead of a whole tree.
+        messages.append({"role": "system", "content": system_prompt})
+
+    messages.append({"role": "user", "content": build_goal_extraction_user_prompt(prompt)})
+
+    try:
+        # Run the lightweight normalization pass before sending anything into the tree builder.
+        response_text, _ = ai_platform.chat_messages(messages, temperature=0.1, max_tokens=200)
+        extracted_goal = parse_goal_extraction_response(response_text)
+    except ValueError:
+        raise
+    except Exception as exc:
+        raise ValueError("AI provider request failed during goal extraction.") from exc
+
+    return extracted_goal.goal.strip()
 
 
 # Parse the AI response JSON and validate it against the generated tree schema.

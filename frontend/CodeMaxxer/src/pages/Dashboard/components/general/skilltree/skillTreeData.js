@@ -85,12 +85,13 @@ export async function fetchDataForUser() {
     };
 }
 
-export async function createSkillTree(treeName, goal) {
+export async function createSkillTree(treeName, userPrompt) {
+    // Send the raw user request so the backend can normalize it into a canonical goal first.
     return requestSkillTrees("/skill-trees", {
         method: "POST",
         body: JSON.stringify({
             name: treeName,
-            goal,
+            prompt: userPrompt,
         }),
     });
 }
