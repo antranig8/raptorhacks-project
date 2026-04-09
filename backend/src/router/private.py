@@ -1,15 +1,16 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends
-from ..piston.piston import PistonWrapper, PistonOutput
+from ..piston.piston import PistonOutput, piston
 from contextlib import asynccontextmanager
 
 from ..auth.auth import get_current_user
 from ..auth.user import User
 from . import ai
 from . import skill_tree
+from . import quiz
 
-piston = PistonWrapper()
+
 
 @asynccontextmanager
 async def lifespan(route: APIRouter):
@@ -24,6 +25,7 @@ router = APIRouter(lifespan=lifespan)
 # If this happens before `router` is reassigned, those routes are lost.
 router.include_router(ai.router, prefix="/ai", tags=["ai"])
 router.include_router(skill_tree.router, tags=["skill-trees"])
+router.include_router(quiz.router, prefix="/quiz", tags=["quiz"])
 
 @router.get("/test/")
 async def read_users(current_user: Annotated[User, Depends(get_current_user)]):
