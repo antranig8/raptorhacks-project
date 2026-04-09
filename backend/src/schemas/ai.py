@@ -28,6 +28,13 @@ class ChatResponse(BaseModel):
 
 
 class SkillTreeGenerateRequest(BaseModel):
+    # Accept either a normalized goal or the user's raw free-form prompt.
+    goal: str | None = Field(default=None, min_length=3, max_length=300)
+    prompt: str | None = Field(default=None, min_length=3, max_length=800)
+
+
+class ExtractedGoal(BaseModel):
+    # Keep the normalization payload minimal so the parser remains robust.
     goal: str = Field(min_length=3, max_length=300)
 
 

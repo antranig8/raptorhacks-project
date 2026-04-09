@@ -9,6 +9,7 @@ from ..services.skill_tree import (
     generated_tree_to_node,
     load_skill_tree_system_prompt,
     parse_skill_tree_response,
+    resolve_skill_tree_goal,
 )
 
 router = APIRouter()
@@ -42,6 +43,11 @@ async def chat(request: ChatRequest):
 async def generate_skill_tree(request: SkillTreeGenerateRequest):
     # Reuse the shared AI client so this route can ask Groq to build a roadmap.
     ai_platform = get_ai_platform()
+    # Resolve the final goal from whichever input shape the client sent.
+    try:
+        resolved_goal = resolve_skill_tree_goal(ai_platform, request.goal, request.prompt)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
     # Load the system instructions that tell the model what JSON shape to return.
     system_prompt = load_skill_tree_system_prompt()
     messages = []
@@ -49,8 +55,8 @@ async def generate_skill_tree(request: SkillTreeGenerateRequest):
     if system_prompt:
         messages.append({"role": "system", "content": system_prompt})
 
-    # The user's goal becomes the main prompt, for example "learn Python for Engineering".
-    messages.append({"role": "user", "content": build_skill_tree_user_prompt(request.goal)})
+    # The normalized goal becomes the main prompt, for example "Learn Python for engineering".
+    messages.append({"role": "user", "content": build_skill_tree_user_prompt(resolved_goal)})
 
     try:
         # Ask the model for a structured skill tree, then validate that the response is usable JSON.
