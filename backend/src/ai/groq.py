@@ -1,3 +1,5 @@
+from typing import Optional
+
 from .base import AIPlatform
 from groq import Groq
 from ..schemas.ai import UsageInfo
@@ -52,7 +54,7 @@ class GroqAI(AIPlatform):
         messages: list[dict[str, str]],
         temperature: float = 0.7,
         max_tokens: int = 800,
-    ) -> tuple[str, UsageInfo | None]:
+    ) -> tuple[str, Optional[UsageInfo]]:
         # Reuse the configured system prompt for structured-generation routes
         # unless the caller already supplied an explicit system message.
         if self.system_prompt and not any(message.get("role") == "system" for message in messages):

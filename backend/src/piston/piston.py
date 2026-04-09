@@ -1,7 +1,7 @@
 from pyston import PystonClient, File
 from pyston.exceptions import TooManyRequests
 from pydantic import BaseModel
-from typing import Any
+from typing import Any, Optional
 import asyncio
 import os
 
@@ -9,17 +9,17 @@ PISTON_API_KEY = os.getenv("PISTON_API_KEY")
 
 
 class PistonStage(BaseModel):
-    stdout: str | None
-    stderr: str | None
-    output: str | None
-    code: int | None
+    stdout: Optional[str]
+    stderr: Optional[str]
+    output: Optional[str]
+    code: Optional[int]
     signal: Any
 
 class PistonOutput(BaseModel):
     error: Any = None
-    run_stage: PistonStage | None = None
+    run_stage: Optional[PistonStage]
     language: str
-    compile_stage: PistonStage | None = None
+    compile_stage: Optional[PistonStage]
 
 mock_output = {
   "raw_json": {

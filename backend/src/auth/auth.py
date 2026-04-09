@@ -1,3 +1,5 @@
+from typing import Optional
+
 import jwt
 from uuid import UUID
 
@@ -50,7 +52,7 @@ async def get_current_user(
 
 
 async def get_optional_current_user(
-    credentials: HTTPAuthorizationCredentials | None = Depends(optional_bearer),
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(optional_bearer),
 ):
     if credentials is None:
         return None

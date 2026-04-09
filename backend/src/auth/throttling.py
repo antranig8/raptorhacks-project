@@ -1,5 +1,6 @@
 import time
 from collections import defaultdict
+from typing import Optional
 
 from fastapi import Depends, HTTPException, Request, status
 
@@ -63,7 +64,7 @@ def rate_limit_authenticated(
 
 def rate_limit_chat(
     request: Request,
-    current_user: User | None = Depends(get_optional_current_user),
+    current_user: Optional[User] = Depends(get_optional_current_user),
 ) -> bool:
     if current_user is not None:
         return apply_rate_limit(f"user:{current_user.uuid}")

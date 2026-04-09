@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import Optional
 
 from ..schemas.ai import UsageInfo
 
@@ -15,6 +16,6 @@ class AIPlatform(ABC):
         messages: list[dict[str, str]],
         temperature: float = 0.7,
         max_tokens: int = 800,
-    ) -> tuple[str, UsageInfo | None]:
+    ) -> tuple[str, Optional[UsageInfo]]:
         """Sends chat messages to the AI and returns response text plus usage."""
         pass

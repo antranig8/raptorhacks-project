@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import AliasChoices, BaseModel, Field, field_validator
@@ -46,13 +46,13 @@ class SkillTreeCreateRequest(BaseModel):
 
 class SkillTreeUpdateRequest(BaseModel):
     # All fields are optional here so PATCH can update only the changed pieces.
-    name: str | None = Field(
+    name: Optional[str] = Field(
         default=None,
         max_length=120,
         validation_alias=AliasChoices("name", "title"),
     )
-    tree: SkillTreeNode | None = None
-    is_active: bool | None = None
+    tree: Optional[SkillTreeNode]
+    is_active: Optional[bool]
 
     @field_validator("name")
     @classmethod
@@ -73,8 +73,8 @@ class SkillTreeRecord(BaseModel):
     tree: SkillTreeNode
     completed_node_ids: list[str] = Field(default_factory=list)
     is_active: bool = False
-    created_at: str | None = None
-    updated_at: str | None = None
+    created_at: Optional[str]
+    updated_at: Optional[str]
 
 
 # Validate the stored JSON payload and normalize it into the API node schema.

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Literal
+from typing import Literal, Optional, Union
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -20,10 +20,10 @@ class QuizQuestion(BaseModel):
     prompt: str = Field(min_length=1, max_length=600)
     isSkippable: bool = True
     choices: list[QuizChoice] = Field(default_factory=list)
-    expectedStdout: str | None = Field(default=None, max_length=2000)
-    language: str | None = Field(default=None, max_length=40)
-    codeTemplate: str | None = Field(default=None, max_length=8000)
-    userGuidance: str | None = Field(default=None, max_length=4000)
+    expectedStdout: Optional[str]= Field(default=None, max_length=2000)
+    language: Optional[str] = Field(default=None, max_length=40)
+    codeTemplate: Optional[str] = Field(default=None, max_length=8000)
+    userGuidance: Optional[str] = Field(default=None, max_length=4000)
 
 
 class QuizDefinition(BaseModel):
@@ -40,8 +40,8 @@ class ClientQuizQuestion(BaseModel):
     prompt: str
     isSkippable: bool
     choices: list[ClientQuizChoice] = Field(default_factory=list)
-    userGuidance: str | None = None
-    language: str | None = None
+    userGuidance: Optional[str]
+    language: Optional[str]
 
 
 class QuizResponse(BaseModel):
@@ -55,8 +55,8 @@ class QuizResponse(BaseModel):
 class QuizByNodeRequest(BaseModel):
     skill_tree_id: str = Field(min_length=1)
     node_id: str = Field(min_length=1)
-    node_name: str | None = Field(default=None, max_length=200)
-    skill_tree_name: str | None = Field(default=None, max_length=200)
+    node_name: Optional[str] = Field(default=None, max_length=200)
+    skill_tree_name: Optional[str] = Field(default=None, max_length=200)
     force_regenerate: bool = False
 
     @field_validator("skill_tree_id", "node_id")
@@ -80,7 +80,7 @@ class QuizAnswerRequest(BaseModel):
     quiz_id: str = Field(min_length=1)
     node_id: str = Field(min_length=1)
     question_index: int = Field(ge=0)
-    answer: str | list[str]
+    answer: Union[str, list[str]]
 
     @field_validator("quiz_id", "node_id")
     @classmethod
@@ -94,8 +94,8 @@ class QuizAnswerRequest(BaseModel):
 class QuizAnswerResult(BaseModel):
     question_index: int
     correct: bool
-    reasoning: str | None = None
-    error: str | None = None
+    reasoning: Optional[str]
+    error: Optional[str]
 
 
 class QuizSubmissionRequest(BaseModel):

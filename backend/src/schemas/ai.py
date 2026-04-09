@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Literal
+from typing import Literal, Optional
 
 from pydantic import BaseModel, Field
 
@@ -11,9 +11,9 @@ class ChatMessage(BaseModel):
 
 
 class UsageInfo(BaseModel):
-    prompt_tokens: int | None = None
-    completion_tokens: int | None = None
-    total_tokens: int | None = None
+    prompt_tokens: Optional[int]
+    completion_tokens: Optional[int]
+    total_tokens: Optional[int]
 
 
 class ChatRequest(BaseModel):
@@ -24,7 +24,7 @@ class ChatRequest(BaseModel):
 
 class ChatResponse(BaseModel):
     message: ChatMessage
-    usage: UsageInfo | None = None
+    usage: Optional[UsageInfo]
 
 
 class SkillTreeGenerateRequest(BaseModel):
@@ -47,10 +47,10 @@ class GeneratedSkillTree(BaseModel):
 
 
 class SkillTreeNode(BaseModel):
-    id: str | None = None
+    id: Optional[str]
     name: str
-    difficulty: str | None = None
-    children: list["SkillTreeNode"] | None = None
+    difficulty: Optional[str]
+    children: Optional[list["SkillTreeNode"]]
 
 
 SkillTreeNode.model_rebuild()
