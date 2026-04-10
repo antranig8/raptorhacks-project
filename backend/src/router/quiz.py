@@ -10,6 +10,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import ValidationError
 from postgrest import APIError as PostgrestAPIError
 
+from ..telemetry.telemetry import insert_exp_event, insert_quiz_complete_event
 from ..auth.auth import get_current_user
 from ..auth.supabase import client as supabase_client
 from ..auth.user import User
@@ -511,6 +512,8 @@ def _record_quiz_completion(quiz_id: str, exp_gained: int, current_user: User) -
         "exp_gained": exp_gained,
     }
 
+    insert_exp_event(user_id=current_user.uuid, quiz_id=uuid.UUID(quiz_id), exp_gained=exp_gained)
+
     try:
         supabase_client.table(QUIZ_DONE_TABLE).insert(payload).execute()
     except Exception as exc:
@@ -757,6 +760,7 @@ async def submit_quiz(
     correct_answers = sum(1 for result in results if result.correct)
     exp_gained = _calculate_submission_xp(correct_answers)
     _record_quiz_completion(request.quiz_id, exp_gained, current_user)
+    insert_quiz_complete_event(user_id=current_user.uuid, quiz_id=uuid.UUID(request.quiz_id), right_questions=correct_answers, total_questions=len(results))
 
     total_node_xp = 0
     unlocked_children: list[SkillTreeNode] = []

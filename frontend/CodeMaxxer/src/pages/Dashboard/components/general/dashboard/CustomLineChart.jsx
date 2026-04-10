@@ -1,14 +1,18 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react'
-import { VictoryChart, VictoryLine, VictoryAxis, VictoryTheme, VictoryLegend } from 'victory'
+import React, { useState, useEffect, useRef } from 'react'
+import { VictoryChart, VictoryLine, VictoryScatter, VictoryAxis, VictoryTheme, VictoryLegend } from 'victory'
 import styles from './CustomLineChart.module.css'
 
-const RANGES = ['1W', '1M', '3M', 'YTD', '1Y', 'ALL']
+const DEFAULT_RANGES = ['1W', '1M', '3M', 'YTD', '1Y', 'ALL']
 
-export default function CustomLineChart({ title, lines = [], showTimeControls = true, xAxisType = 'date', data = null, onRangeChange }) {
-    const [timeRange, setTimeRange] = useState('1M')
+export default function CustomLineChart({ title, lines = [], showTimeControls = true, xAxisType = 'date', data = null, onRangeChange, availableRanges = DEFAULT_RANGES }) {
+    const [timeRange, setTimeRange] = useState(availableRanges[0])
     const containerRef = useRef(null)
     const [dimensions, setDimensions] = useState({ width: 800, height: 200 })
     const chartData = data
+
+    useEffect(() => {
+        setTimeRange(availableRanges[0])
+    }, [availableRanges])
 
     useEffect(() => {
         if (onRangeChange) {
@@ -28,7 +32,6 @@ export default function CustomLineChart({ title, lines = [], showTimeControls = 
             }
         }
 
-        // Initial measure
         updateDimensions()
 
         const resizeObserver = new ResizeObserver((entries) => {
@@ -44,6 +47,11 @@ export default function CustomLineChart({ title, lines = [], showTimeControls = 
         return () => resizeObserver.disconnect()
     }, [])
 
+    const yMax = Math.max(
+        ...(Array.isArray(chartData?.[0]) ? chartData.flat() : (chartData ?? [])).map(d => d.y),
+        1
+    ) * 1.2
+
     return (
         <div className={styles.container}>
             <div className={styles.header}>
@@ -56,6 +64,7 @@ export default function CustomLineChart({ title, lines = [], showTimeControls = 
                         height={dimensions.height}
                         theme={VictoryTheme.material}
                         padding={{ top: 20, bottom: 40, left: 50, right: 30 }}
+                        domain={{ y: [0, yMax] }}
                     >
                         {lines.length > 0 && (
                             <VictoryLegend x={40} y={0}
@@ -86,21 +95,35 @@ export default function CustomLineChart({ title, lines = [], showTimeControls = 
                                 tickLabels: { padding: 5 }
                             }}
                         />
-                        {lines.map((line, idx) => (
-                            <VictoryLine
-                                key={idx}
-                                interpolation="monotoneX"
-                                data={chartData ? (Array.isArray(chartData[0]) ? chartData[idx] : chartData) : []}
-                                style={{ data: { stroke: line.color, strokeWidth: 3 } }}
-                            />
-                        ))}
+                        {lines.map((line, idx) => {
+                            const lineData = chartData
+                                ? (Array.isArray(chartData[0]) ? chartData[idx] : chartData)
+                                : []
+                            return lineData.length === 1
+                                ? (
+                                    <VictoryScatter
+                                        key={idx}
+                                        data={lineData}
+                                        size={5}
+                                        style={{ data: { fill: line.color } }}
+                                    />
+                                )
+                                : (
+                                    <VictoryLine
+                                        key={idx}
+                                        interpolation="monotoneX"
+                                        data={lineData}
+                                        style={{ data: { stroke: line.color, strokeWidth: 3 } }}
+                                    />
+                                )
+                        })}
                     </VictoryChart>
                 </div>
             </div>
             {showTimeControls && (
                 <div className={styles.timeSelectorContainer}>
                     <div className={styles.timeSelector}>
-                        {RANGES.map((r) => (
+                        {availableRanges.map((r) => (
                             <button
                                 key={r}
                                 className={`${styles.timeBtn} ${timeRange === r ? styles.timeBtnActive : ''}`}

@@ -9,6 +9,7 @@ from ..auth.user import User
 from . import ai
 from . import skill_tree
 from . import quiz
+from . import user_stats
 
 
 
@@ -26,6 +27,7 @@ router = APIRouter(lifespan=lifespan)
 router.include_router(ai.router, prefix="/ai", tags=["ai"])
 router.include_router(skill_tree.router, tags=["skill-trees"])
 router.include_router(quiz.router, prefix="/quiz", tags=["quiz"])
+router.include_router(user_stats.router, prefix="/user_stats", tags=["user_stats"])
 
 @router.get("/test/")
 async def read_users(current_user: Annotated[User, Depends(get_current_user)]):

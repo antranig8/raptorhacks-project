@@ -94,7 +94,7 @@ function aggregateSkillXpHistory(entries, range) {
     return { skillSeries, skillLines }
 }
 
-export default function Quadrant3() {
+export default function Quadrant3({ userData }) {
     const [xpEntries, setXpEntries] = useState([])
     const [loadError, setLoadError] = useState('')
     const [skillRange, setSkillRange] = useState('1M')
