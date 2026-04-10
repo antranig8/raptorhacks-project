@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import styles from '@dashboard/styles/Typing.module.css'
 import TextArea from '@d_general/typing/TextArea'
 import { randomText } from './wordBank'
@@ -27,8 +27,7 @@ const generateTypingMetricsData = (range) => {
 }
 
 export default function Typing() {
-    const keyboard = useRef(null)
-    const [input, setInput] = useState('')
+    const [, setInput] = useState('')
     const [isTopActive, setIsTopActive] = useState(false)
     const [isMobile, setIsMobile] = useState(false)
     const [realtimeChartData, setRealtimeChartData] = useState(null)
@@ -43,9 +42,8 @@ export default function Typing() {
         return () => window.removeEventListener('resize', checkMobile)
     }, [])
 
-    const handleStart = (config) => {
-        console.log('Starting typing with config:', config);
-    };
+    const handleStart = () => {
+    }
 
     const [practiceTemplate, setPracticeTemplate] = useState(() => randomText(25))
 

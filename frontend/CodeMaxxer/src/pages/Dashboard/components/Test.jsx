@@ -30,28 +30,36 @@ export default function Test() {
         }
     }
 
-    const fetchData = async () => {
-        try {
-            const { data: { session } } = await supabase.auth.getSession()
-
-            const res = await fetch(`${API_BASE_URL}/api/v1/private/test_code?language=python&code=print('test')`, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${session.access_token}`,
-                },
-            })
-            const data = await res.json()
-            setResp(data)
-        } catch (err) {
-            console.error("Fetch error:", err)
-        }
-    }
-
     useEffect(() => {
         if (ran.current) return
         ran.current = true
 
-        fetchData()
+        let isCancelled = false
+
+        const loadData = async () => {
+            try {
+                const { data: { session } } = await supabase.auth.getSession()
+
+                const res = await fetch(`${API_BASE_URL}/api/v1/private/test_code?language=python&code=print('test')`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${session.access_token}`,
+                    },
+                })
+                const data = await res.json()
+                if (!isCancelled) {
+                    setResp(data)
+                }
+            } catch (err) {
+                console.error("Fetch error:", err)
+            }
+        }
+
+        void loadData()
+
+        return () => {
+            isCancelled = true
+        }
     }, [])
 
     return (

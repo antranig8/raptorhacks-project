@@ -90,7 +90,7 @@ export default function Quizzes() {
         return () => {
             isCancelled = true;
         };
-    }, [hasNodeLinkedContext, skillTreeId, nodeId, nodeName]);
+    }, [hasNodeLinkedContext, skillTreeId, nodeId, nodeName, skillTreeName]);
 
     const handleMockGenerate = () => {
         // Restore the old static quiz flow for /dashboard/quizzes by loading

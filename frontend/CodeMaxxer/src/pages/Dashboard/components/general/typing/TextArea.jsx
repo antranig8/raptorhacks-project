@@ -2,7 +2,10 @@ import { useEffect, useRef, useState } from 'react'
 import { FaMousePointer, FaRedo } from 'react-icons/fa'
 import styles from '@dashboard/styles/TextArea.module.css'
 import TypingStats from './TypingStats'
+
 export default function TextArea({ target = '', onChange, onActiveChange, onRequestNewTarget, onComplete }) {
+    // This component owns the full typing-session lifecycle: input capture,
+    // progress tracking, replay history, and completion reporting.
     const [active, setActive] = useState(false)
     const [typed, setTyped] = useState('')
     const [completed, setCompleted] = useState(false)
@@ -26,6 +29,8 @@ export default function TextArea({ target = '', onChange, onActiveChange, onRequ
         if (onActiveChange) onActiveChange(false)
     }
 
+    // Record each keystroke snapshot so the parent can compute analytics and
+    // this component can later replay the exact typing session.
     const commitTyped = (next, key = '') => {
         const timestamp = Date.now()
 
@@ -85,13 +90,18 @@ export default function TextArea({ target = '', onChange, onActiveChange, onRequ
         }
     }, [active])
 
+    // Replay uses the original per-keystroke timestamps to restore the
+    // session progressively instead of jumping straight to the final text.
     useEffect(() => {
         if (!isReplaying || history.length === 0) return
 
         if (replayIndex >= history.length) {
-            setIsReplaying(false)
-            setCompleted(true)
-            return
+            const timeout = setTimeout(() => {
+                setIsReplaying(false)
+                setCompleted(true)
+            }, 0)
+
+            return () => clearTimeout(timeout)
         }
 
         const current = history[replayIndex]
@@ -143,9 +153,11 @@ export default function TextArea({ target = '', onChange, onActiveChange, onRequ
     useEffect(() => {
         if (!completed || !completionTime) return
         if (onComplete) {
+            // The parent page uses the raw session data to build the typing
+            // performance chart after the run finishes.
             onComplete({ history, sessionStart, completionTime, typed })
         }
-    }, [completed, completionTime])
+    }, [completed, completionTime, history, onComplete, sessionStart, typed])
 
     const targetChars = target.split('')
     const typedChars = typed.split('')
@@ -155,6 +167,8 @@ export default function TextArea({ target = '', onChange, onActiveChange, onRequ
             className={`${styles.wrapper} ${active ? styles.active : ''} ${isReplaying ? styles.replaying : ''}`}
             ref={containerRef}
             tabIndex={0}
+            // This is intentionally a focusable div instead of a native
+            // textarea so the app can fully control typing, replay, and UI.
             onFocus={handleFocus}
             onBlur={handleBlur}
             onKeyDown={onKeyDown}
@@ -212,7 +226,7 @@ export default function TextArea({ target = '', onChange, onActiveChange, onRequ
                             <FaRedo className={styles.icon} /> Restart
                         </button>
                         <button className={styles.button} onClick={handleWatchReplay}>
-                            « Watch replay
+                            {'<< Watch replay'}
                         </button>
                     </div>
                 </div>
@@ -220,4 +234,3 @@ export default function TextArea({ target = '', onChange, onActiveChange, onRequ
         </div>
     )
 }
-

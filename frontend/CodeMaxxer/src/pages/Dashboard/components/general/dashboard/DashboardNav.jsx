@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { FaHome, FaSeedling, FaGraduationCap, FaCog, FaQuestionCircle, FaKeyboard, FaClipboardList, FaAddressBook, FaUser, FaSignOutAlt } from 'react-icons/fa'
+import { FaHome, FaSeedling, FaGraduationCap, FaCog, FaQuestionCircle, FaKeyboard, FaClipboardList, FaAddressBook, FaUser, FaSignOutAlt, FaMapSigns } from 'react-icons/fa'
 import { CgDockLeft, CgDockRight } from 'react-icons/cg'
 import Logo from '@/components/Logo/Logo'
 import styles from '@dashboard/styles/DashboardNav.module.css'
@@ -21,6 +21,7 @@ const navSections = [
                 },
             },
             { label: 'Skill Tree', route: '/dashboard/skill-tree', icon: <FaSeedling /> },
+            { label: 'Plan', route: '/dashboard/plan', icon: <FaMapSigns /> },
             { label: 'BackendTest', route: '/dashboard/test', icon: <FaAddressBook /> },
         ],
     },
@@ -82,7 +83,7 @@ export default function DashboardNav() {
                 </button>
             </div>
             <nav className={styles.nav}>
-                {navSections.map((section, sectionIndex) => (
+                {navSections.map((section) => (
                     <div key={section.title} className={styles.sectionGroup}>
                         {!isDocked && <div className={styles.sectionTitle}>{section.title}</div>}
                         {section.items.map((item) => (

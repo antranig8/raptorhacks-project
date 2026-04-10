@@ -23,25 +23,73 @@ class FakeSupabaseTable:
     def __init__(self, store: list[dict]):
         self.store = store
         self._payload = None
+        self._filters: list[tuple[str, object]] = []
+        self._updates = None
+        self._delete_requested = False
+        self._order_column = None
+        self._order_desc = False
+
+    def select(self, _columns: str):
+        return self
+
+    def eq(self, column: str, value: object):
+        self._filters.append((column, value))
+        return self
+
+    def order(self, column: str, desc: bool = False):
+        self._order_column = column
+        self._order_desc = desc
+        return self
 
     def insert(self, payload: dict):
         self._payload = payload
         return self
 
+    def update(self, payload: dict):
+        self._updates = payload
+        return self
+
+    def delete(self):
+        self._delete_requested = True
+        return self
+
     def execute(self):
-        record = {
-            "id": "tree-1",
-            "user_id": self._payload["user_id"],
-            "goal": self._payload["goal"],
-            "title": self._payload["title"],
-            "tree_json": self._payload["tree_json"],
-            "completed_node_ids": self._payload.get("completed_node_ids", []),
-            "is_active": False,
-            "created_at": "2026-04-07T12:00:00Z",
-            "updated_at": "2026-04-07T12:00:00Z",
-        }
-        self.store.append(record)
-        return FakeResponse([record])
+        if self._payload is not None:
+            record = {
+                "id": f"tree-{len(self.store) + 1}",
+                "user_id": self._payload["user_id"],
+                "goal": self._payload["goal"],
+                "title": self._payload["title"],
+                "tree_json": self._payload["tree_json"],
+                "completed_node_ids": self._payload.get("completed_node_ids", []),
+                "is_active": False,
+                "created_at": "2026-04-07T12:00:00Z",
+                "updated_at": "2026-04-07T12:00:00Z",
+            }
+            self.store.append(record)
+            return FakeResponse([record])
+
+        matching_records = [
+            record for record in self.store
+            if all(record.get(column) == value for column, value in self._filters)
+        ]
+
+        if self._delete_requested:
+            deleted = [dict(record) for record in matching_records]
+            self.store[:] = [record for record in self.store if record not in matching_records]
+            return FakeResponse(deleted)
+
+        if self._updates is not None:
+            updated_records = []
+            for record in matching_records:
+                record.update(self._updates)
+                updated_records.append(dict(record))
+            return FakeResponse(updated_records)
+
+        ordered_records = [dict(record) for record in matching_records]
+        if self._order_column:
+            ordered_records.sort(key=lambda record: record.get(self._order_column), reverse=self._order_desc)
+        return FakeResponse(ordered_records)
 
 
 class FakeSupabaseClient:
@@ -239,3 +287,64 @@ class SkillTreeRouterTests(TestCase):
         self.assertEqual(len(fake_ai.messages), 2)
         self.assertEqual(fake_ai.messages[0][-1]["content"], "I want to get better at C for systems programming.")
         self.assertEqual(fake_ai.messages[1][-1]["content"], "Improve C programming for systems programming")
+
+    def test_update_tree_marks_only_one_tree_active(self):
+        self.fake_supabase.skill_trees.extend(
+            [
+                {
+                    "id": "tree-1",
+                    "user_id": str(self.user.uuid),
+                    "goal": "Learn Python",
+                    "title": "Python Roadmap",
+                    "tree_json": {"id": "python", "name": "Learn Python", "children": []},
+                    "completed_node_ids": [],
+                    "is_active": True,
+                    "created_at": "2026-04-07T12:00:00Z",
+                    "updated_at": "2026-04-07T12:00:00Z",
+                },
+                {
+                    "id": "tree-2",
+                    "user_id": str(self.user.uuid),
+                    "goal": "Learn FastAPI",
+                    "title": "API Roadmap",
+                    "tree_json": {"id": "fastapi", "name": "Learn FastAPI", "children": []},
+                    "completed_node_ids": [],
+                    "is_active": False,
+                    "created_at": "2026-04-08T12:00:00Z",
+                    "updated_at": "2026-04-08T12:00:00Z",
+                },
+            ]
+        )
+
+        with patch.object(skill_tree_router, "supabase_client", self.fake_supabase):
+            client = TestClient(app)
+            response = client.patch(
+                "/api/v1/private/skill-trees/tree-2",
+                json={"is_active": True},
+            )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(self.fake_supabase.skill_trees[0]["is_active"])
+        self.assertTrue(self.fake_supabase.skill_trees[1]["is_active"])
+
+    def test_delete_tree_removes_saved_plan(self):
+        self.fake_supabase.skill_trees.append(
+            {
+                "id": "tree-1",
+                "user_id": str(self.user.uuid),
+                "goal": "Learn Python",
+                "title": "Python Roadmap",
+                "tree_json": {"id": "python", "name": "Learn Python", "children": []},
+                "completed_node_ids": [],
+                "is_active": False,
+                "created_at": "2026-04-07T12:00:00Z",
+                "updated_at": "2026-04-07T12:00:00Z",
+            }
+        )
+
+        with patch.object(skill_tree_router, "supabase_client", self.fake_supabase):
+            client = TestClient(app)
+            response = client.delete("/api/v1/private/skill-trees/tree-1")
+
+        self.assertEqual(response.status_code, 204)
+        self.assertEqual(self.fake_supabase.skill_trees, [])

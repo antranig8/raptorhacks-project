@@ -34,7 +34,7 @@ export default function useInViewAnimation({ threshold = 0.2, rootMargin = '0px'
         return () => {
             observer.disconnect()
         }
-    }, [threshold, rootMargin, once, isVisible])
+    }, [threshold, rootMargin, root, once, isVisible, onVisible])
 
     return { ref, isVisible }
 }

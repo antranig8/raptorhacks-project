@@ -1,9 +1,9 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import * as d3 from "d3";
 import { useNavigate } from "react-router-dom";
 import styles from "@dashboard/styles/SkillTree.module.css";
 import { initSkillWeb } from "./skillWebD3";
-import { MOCK_SKILL_TREE_ID, mockData, fetchDataForUser } from "./skillTreeData";
+import { emptyPlanData, fetchDataForUser } from "./skillTreeData";
 import SkillTreeHeader from "./SkillTreeHeader";
 
 export default function SkillTree() {
@@ -11,6 +11,7 @@ export default function SkillTree() {
     const svgRef = useRef(null);
     const zoomRef = useRef(null);
     const apiRef = useRef(null);
+    const [isPlaceholder, setIsPlaceholder] = useState(false);
 
     useEffect(() => {
         if (!svgRef.current) return;
@@ -27,6 +28,7 @@ export default function SkillTree() {
             try {
                 const skillTree = await fetchDataForUser();
                 if (isCancelled || !svgRef.current) return;
+                setIsPlaceholder(Boolean(skillTree.isPlaceholder));
 
                 const container = d3.select(svgRef.current).node().parentNode;
                 const width = container.clientWidth || 800;
@@ -39,6 +41,11 @@ export default function SkillTree() {
                     height,
                     zoomRef.current,
                     (node) => {
+                        if (skillTree.isPlaceholder) {
+                            navigate('/dashboard/plan');
+                            return;
+                        }
+
                         // A node click becomes the quiz entry point. We carry the
                         // stable skillTreeId and nodeId through the route so the
                         // quiz page can fetch its data without shared app state.
@@ -56,6 +63,7 @@ export default function SkillTree() {
                 );
             } catch (error) {
                 if (isCancelled || !svgRef.current) return;
+                setIsPlaceholder(true);
 
                 const container = d3.select(svgRef.current).node().parentNode;
                 const width = container.clientWidth || 800;
@@ -64,21 +72,12 @@ export default function SkillTree() {
                 console.error("Failed to load skill tree data.", error);
                 apiRef.current = initSkillWeb(
                     svgRef,
-                    mockData,
+                    emptyPlanData,
                     width,
                     height,
                     zoomRef.current,
-                    (node) => {
-                        if (!node?.id) {
-                            return;
-                        }
-
-                        navigate(`/dashboard/quizzes?skillTreeId=${encodeURIComponent(MOCK_SKILL_TREE_ID)}&nodeId=${encodeURIComponent(node.id)}`, {
-                            state: {
-                                nodeName: node.name,
-                                skillTreeName: "Mock Skill Tree",
-                            },
-                        });
+                    () => {
+                        navigate('/dashboard/plan');
                     },
                 );
             }
@@ -128,8 +127,33 @@ export default function SkillTree() {
 
     return (
         <section className={styles.container} style={{ width: "100%", height: "calc(100vh - 100px)", overflow: "hidden", display: "flex", flexDirection: "column", padding: 0 }}>
-            <SkillTreeHeader onZoomIn={handleZoomIn} onZoomOut={handleZoomOut} onReset={handleReset} onUndo={handleUndo} onRedo={handleRedo} />
-            <div style={{ flex: 1, position: "relative", overflow: "hidden" }}>
+            <SkillTreeHeader
+                onZoomIn={handleZoomIn}
+                onZoomOut={handleZoomOut}
+                onReset={handleReset}
+                onUndo={handleUndo}
+                onRedo={handleRedo}
+                onTreesClick={() => navigate('/dashboard/plan')}
+            />
+            <div className={`${styles.canvasArea} ${isPlaceholder ? styles.canvasAreaPlaceholder : ''}`}>
+                {isPlaceholder && (
+                    <div className={styles.placeholderOverlay}>
+                        <div className={styles.placeholderCard}>
+                            <p className={styles.placeholderEyebrow}>No Active Tree</p>
+                            <h3 className={styles.placeholderTitle}>Create your first plan</h3>
+                            <p className={styles.placeholderText}>
+                                There is no saved skill tree yet. Start with a plan and the roadmap will appear here.
+                            </p>
+                            <button
+                                className={styles.placeholderButton}
+                                type="button"
+                                onClick={() => navigate('/dashboard/plan')}
+                            >
+                                Create Plan
+                            </button>
+                        </div>
+                    </div>
+                )}
                 <svg ref={svgRef}></svg>
             </div>
         </section>

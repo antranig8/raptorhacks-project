@@ -141,6 +141,21 @@ def _handle_supabase_error(exc: Exception) -> HTTPException:
     )
 
 
+def _list_skill_tree_records_for_user(current_user: User) -> list[dict[str, Any]]:
+    try:
+        response = (
+            supabase_client.table(SKILL_TREES_TABLE)
+            .select("*")
+            .eq("user_id", str(current_user.uuid))
+            .order("created_at", desc=True)
+            .execute()
+        )
+    except Exception as exc:
+        raise _handle_supabase_error(exc)
+
+    return response.data or []
+
+
 # Generate a new skill tree from either a normalized goal or a free-form user prompt.
 def _generate_skill_tree(goal: str | None, prompt: str | None) -> tuple[str, SkillTreeNode]:
     ai_platform = get_ai_platform()
@@ -197,18 +212,7 @@ async def create_skill_tree(
 @router.get("/skill-trees", response_model=list[SkillTreeRecord])
 async def list_skill_trees(current_user: User = Depends(get_current_user)):
     # Return all saved trees for the logged-in user, newest first.
-    try:
-        response = (
-            supabase_client.table(SKILL_TREES_TABLE)
-            .select("*")
-            .eq("user_id", str(current_user.uuid))
-            .order("created_at", desc=True)
-            .execute()
-        )
-    except Exception as exc:
-        raise _handle_supabase_error(exc)
-
-    return [_record_to_response(record) for record in response.data or []]
+    return [_record_to_response(record) for record in _list_skill_tree_records_for_user(current_user)]
 
 # Fetch one saved skill tree if it belongs to the current user.
 @router.get("/skill-trees/{skill_tree_id}", response_model=SkillTreeRecord)
@@ -257,6 +261,15 @@ async def update_skill_tree(
         raise HTTPException(status_code=400, detail="No skill tree changes were provided.")
 
     try:
+        if request.is_active is True:
+            # Keep one active plan at a time by clearing the flag on the user's other saved trees.
+            (
+                supabase_client.table(SKILL_TREES_TABLE)
+                .update({"is_active": False})
+                .eq("user_id", str(current_user.uuid))
+                .execute()
+            )
+
         # Update only the matching row that belongs to the current authenticated user.
         response = (
             supabase_client.table(SKILL_TREES_TABLE)
@@ -274,3 +287,20 @@ async def update_skill_tree(
 
     # Return the updated record in the same API shape used by create/list/get.
     return _record_to_response(response.data[0])
+
+
+@router.delete("/skill-trees/{skill_tree_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_skill_tree(skill_tree_id: str, current_user: User = Depends(get_current_user)):
+    try:
+        response = (
+            supabase_client.table(SKILL_TREES_TABLE)
+            .delete()
+            .eq("id", skill_tree_id)
+            .eq("user_id", str(current_user.uuid))
+            .execute()
+        )
+    except Exception as exc:
+        raise _handle_supabase_error(exc)
+
+    if not response.data:
+        raise HTTPException(status_code=404, detail="Skill tree not found.")

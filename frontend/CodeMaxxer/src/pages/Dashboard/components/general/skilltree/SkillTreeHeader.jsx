@@ -1,7 +1,7 @@
 import React from 'react';
 import styles from '@dashboard/styles/SkillTreeHeader.module.css';
 
-export default function SkillTreeHeader({ onZoomIn, onZoomOut, onReset, onUndo, onRedo }) {
+export default function SkillTreeHeader({ onZoomIn, onZoomOut, onReset, onUndo, onRedo, onTreesClick }) {
     return (
         <div className={styles.headerContainer}>
             <h2 className={styles.title}>Skill Tree</h2>
@@ -39,6 +39,10 @@ export default function SkillTreeHeader({ onZoomIn, onZoomOut, onReset, onUndo, 
                         <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
                         <polyline points="3 3 3 8 8 8"></polyline>
                     </svg>
+                </button>
+                <div className={styles.divider}></div>
+                <button className={`${styles.controlButton} ${styles.textButton}`} onClick={onTreesClick} title="View saved trees">
+                    Trees
                 </button>
             </div>
         </div>

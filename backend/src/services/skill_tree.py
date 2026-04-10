@@ -32,13 +32,36 @@ def build_goal_extraction_user_prompt(prompt: str) -> str:
     return prompt.strip()
 
 
+# Structured AI routes often receive JSON wrapped in markdown fences or with a
+# little surrounding text. Normalize that before strict schema validation.
+def _load_json_payload(raw_text: str, error_message: str) -> dict:
+    cleaned_text = (raw_text or "").strip()
+    cleaned_text = re.sub(r"```json|```", "", cleaned_text, flags=re.IGNORECASE).strip()
+    cleaned_text = re.sub(r"<think>.*?</think>", "", cleaned_text, flags=re.DOTALL).strip()
+
+    if not cleaned_text:
+        raise ValueError(error_message)
+
+    try:
+        return json.loads(cleaned_text)
+    except json.JSONDecodeError:
+        match = re.search(r"\{.*\}", cleaned_text, flags=re.DOTALL)
+        if not match:
+            raise ValueError(error_message) from None
+
+        try:
+            return json.loads(match.group(0))
+        except json.JSONDecodeError as exc:
+            raise ValueError(error_message) from exc
+
+
 # Parse the goal extraction response JSON and validate that it contains a usable goal.
 def parse_goal_extraction_response(raw_text: str) -> ExtractedGoal:
     try:
         # The extractor must answer with JSON only so the caller can chain it into tree generation.
-        payload = json.loads(raw_text)
-    except json.JSONDecodeError as exc:
-        raise ValueError("AI returned invalid JSON for goal extraction.") from exc
+        payload = _load_json_payload(raw_text, "AI returned invalid JSON for goal extraction.")
+    except ValueError:
+        raise
 
     try:
         # Validate the shape before any downstream route trusts the normalized goal.
@@ -81,9 +104,9 @@ def resolve_skill_tree_goal(ai_platform: AIPlatform, goal: str | None, prompt: s
 def parse_skill_tree_response(raw_text: str) -> GeneratedSkillTree:
     try:
         # The AI is expected to return JSON, not free-form text.
-        payload = json.loads(raw_text)
-    except json.JSONDecodeError as exc:
-        raise ValueError("AI returned invalid JSON for skill tree generation.") from exc
+        payload = _load_json_payload(raw_text, "AI returned invalid JSON for skill tree generation.")
+    except ValueError:
+        raise
 
     try:
         # Validate the JSON shape before the API returns anything to the frontend.
