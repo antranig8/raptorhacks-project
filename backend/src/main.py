@@ -26,7 +26,8 @@ app.add_middleware(
 app.include_router(
     private.router,
     prefix="/api/v1/private",
-    dependencies=[Depends(rate_limit_authenticated)]
+    dependencies=[Depends(rate_limit_authenticated)],
+    include_in_schema=False
 )
 
 app.include_router(
