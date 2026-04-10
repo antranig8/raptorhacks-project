@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Literal, Optional
+from typing import Any, Literal, Optional
 
 from pydantic import BaseModel, Field
 
@@ -53,11 +53,33 @@ class GeneratedSkillTree(BaseModel):
     skills: list[GeneratedSkill] = Field(min_length=3, max_length=6)
 
 
+class GeneratedAdvancementNode(BaseModel):
+    name: str = Field(min_length=1, max_length=80)
+    difficulty: Literal["beginner", "intermediate", "advanced"]
+
+
+class GeneratedAdvancementBranch(BaseModel):
+    children: list[GeneratedAdvancementNode] = Field(min_length=2, max_length=3)
+
+
+class SkillTreeNodeMetadata(BaseModel):
+    # Store per-node progression directly on the tree so the frontend can
+    # render unlock state without separately hydrating node progress.
+    xp: int = Field(default=0, ge=0)
+    unlock_threshold_xp: int = Field(default=100, ge=1)
+    advancement_count: int = Field(default=0, ge=0, le=3)
+    max_advancements: int = Field(default=3, ge=0, le=3)
+    last_unlocked_at: Optional[str] = None
+    branch_history: list[str] = Field(default_factory=list)
+    analytics: dict[str, Any] = Field(default_factory=dict)
+
+
 class SkillTreeNode(BaseModel):
     id: Optional[str] = None
     name: str
     difficulty: Optional[str] = None
     children: Optional[list["SkillTreeNode"]] = None
+    metadata: Optional[SkillTreeNodeMetadata] = None
 
 
 SkillTreeNode.model_rebuild()

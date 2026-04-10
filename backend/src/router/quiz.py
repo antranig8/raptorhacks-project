@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import re
 import uuid
+from datetime import datetime, timezone
 from typing import Any, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -12,9 +13,9 @@ from postgrest import APIError as PostgrestAPIError
 from ..auth.auth import get_current_user
 from ..auth.supabase import client as supabase_client
 from ..auth.user import User
-from ..dependencies.ai import quiz_platform
+from ..dependencies.ai import advancement_platform, quiz_platform
 from ..piston.piston import piston
-from ..schemas.ai import SkillTreeNode
+from ..schemas.ai import SkillTreeNode, SkillTreeNodeMetadata
 from ..schemas.quiz import (
     ClientQuizChoice,
     ClientQuizQuestion,
@@ -28,14 +29,21 @@ from ..schemas.quiz import (
     QuizSubmissionRequest,
     QuizSubmissionResult,
 )
-from ..services.skill_tree import canonicalize_skill_tree
+from ..services.skill_tree import (
+    build_default_node_metadata,
+    build_skill_tree_advancement_user_prompt,
+    canonicalize_skill_tree,
+    parse_skill_tree_advancement_response,
+)
 
 
 router = APIRouter()
 
 QUIZ_TABLE = "quizzes"
 SKILL_TREES_TABLE = "skill_trees"
+QUIZ_DONE_TABLE = "quiz_done"
 MOCK_SKILL_TREE_ID = "mock-skill-tree"
+XP_PER_CORRECT_ANSWER = 25
 
 
 def _handle_supabase_error(exc: Exception) -> HTTPException:
@@ -225,6 +233,154 @@ def _find_node_by_id(node: SkillTreeNode, node_id: str) -> SkillTreeNode | None:
     return None
 
 
+def _calculate_submission_xp(correct_answers: int) -> int:
+    # Keep XP math simple and transparent for the first progression version:
+    # each correct answer is worth 25 XP, so a perfect 4-question quiz grants 100 XP.
+    return max(0, correct_answers) * XP_PER_CORRECT_ANSWER
+
+
+def _current_iso_timestamp() -> str:
+    return datetime.now(timezone.utc).isoformat()
+
+
+def _next_unlock_target(metadata: SkillTreeNodeMetadata) -> int:
+    return metadata.unlock_threshold_xp * (metadata.advancement_count + 1)
+
+
+def _build_advancement_children(skill_tree_goal: str, node: SkillTreeNode) -> list[SkillTreeNode]:
+    prompt = build_skill_tree_advancement_user_prompt(skill_tree_goal, node)
+    last_error: Exception | None = None
+
+    for _attempt in range(3):
+        try:
+            response_text, _ = advancement_platform.chat_messages(
+                [{"role": "user", "content": prompt}],
+                temperature=0.2,
+                max_tokens=800,
+            )
+            branch = parse_skill_tree_advancement_response(response_text)
+            return [
+                SkillTreeNode(
+                    name=child.name,
+                    difficulty=child.difficulty,
+                    metadata=build_default_node_metadata(),
+                )
+                for child in branch.children
+            ]
+        except ValueError as exc:
+            last_error = exc
+            continue
+        except Exception as exc:
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail=f"AI provider request failed: {exc}",
+            ) from exc
+
+    raise HTTPException(
+        status_code=status.HTTP_502_BAD_GATEWAY,
+        detail=str(last_error or "AI skill-tree advancement failed."),
+    )
+
+
+def _dedupe_new_children(existing_children: list[SkillTreeNode], generated_children: list[SkillTreeNode]) -> list[SkillTreeNode]:
+    existing_keys = {child.id or child.name.strip().lower() for child in existing_children}
+    deduped_children: list[SkillTreeNode] = []
+
+    for child in generated_children:
+        child_key = child.id or child.name.strip().lower()
+        if child_key in existing_keys:
+            continue
+        existing_keys.add(child_key)
+        deduped_children.append(child)
+
+    return deduped_children
+
+
+def _apply_node_progression(
+    node: SkillTreeNode,
+    exp_gained: int,
+    skill_tree_goal: str,
+) -> tuple[SkillTreeNode, list[SkillTreeNode]]:
+    metadata = build_default_node_metadata(node.metadata)
+    metadata.xp += exp_gained
+    metadata.analytics["total_exp_earned"] = metadata.xp
+    unlocked_children: list[SkillTreeNode] = []
+
+    # Each node can expand only three times. The unlock target scales with the
+    # advancement count so later branches require 200 XP, then 300 XP total.
+    if metadata.advancement_count < metadata.max_advancements and metadata.xp >= _next_unlock_target(metadata):
+        generated_children = _build_advancement_children(
+            skill_tree_goal,
+            SkillTreeNode(
+                id=node.id,
+                name=node.name,
+                difficulty=node.difficulty,
+                children=node.children,
+                metadata=metadata,
+            ),
+        )
+        unlocked_children = _dedupe_new_children(node.children or [], generated_children)
+        if unlocked_children:
+            metadata.advancement_count += 1
+            metadata.last_unlocked_at = _current_iso_timestamp()
+            metadata.branch_history.append(f"advancement-{metadata.advancement_count}")
+
+    updated_children = list(node.children or [])
+    updated_children.extend(unlocked_children)
+
+    return (
+        SkillTreeNode(
+            id=node.id,
+            name=node.name,
+            difficulty=node.difficulty,
+            children=updated_children or None,
+            metadata=metadata,
+        ),
+        unlocked_children,
+    )
+
+
+def _update_tree_for_node_progress(
+    tree: SkillTreeNode,
+    node_id: str,
+    exp_gained: int,
+    skill_tree_goal: str,
+) -> tuple[SkillTreeNode, int, list[SkillTreeNode]]:
+    if tree.id == node_id:
+        updated_node, unlocked_children = _apply_node_progression(tree, exp_gained, skill_tree_goal)
+        metadata = build_default_node_metadata(updated_node.metadata)
+        return updated_node, metadata.xp, unlocked_children
+
+    updated_children: list[SkillTreeNode] = []
+    total_node_xp = 0
+    unlocked_children: list[SkillTreeNode] = []
+
+    for child in tree.children or []:
+        updated_child, child_total_node_xp, child_unlocked_children = _update_tree_for_node_progress(
+            child,
+            node_id,
+            exp_gained,
+            skill_tree_goal,
+        )
+        updated_children.append(updated_child)
+        if child_total_node_xp:
+            total_node_xp = child_total_node_xp
+        if child_unlocked_children:
+            unlocked_children = child_unlocked_children
+
+    return (
+        SkillTreeNode(
+            id=tree.id,
+            name=tree.name,
+            difficulty=tree.difficulty,
+            children=updated_children or None,
+            metadata=build_default_node_metadata(tree.metadata),
+        ),
+        total_node_xp,
+        unlocked_children,
+    )
+
+
 def _build_quiz_prompt(skill_tree_title: str, node: SkillTreeNode) -> str:
     # The model gets both the user-facing topic and the stable node id so the
     # generated quiz stays tightly scoped to a specific roadmap node.
@@ -344,6 +500,39 @@ def _get_quiz_record(quiz_id: str, current_user: User) -> dict[str, Any]:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Quiz not found.")
 
     return response.data[0]
+
+
+def _record_quiz_completion(quiz_id: str, exp_gained: int, current_user: User) -> None:
+    payload = {
+        "user": str(current_user.uuid),
+        "quiz_id": quiz_id,
+        "exp_gained": exp_gained,
+    }
+
+    try:
+        supabase_client.table(QUIZ_DONE_TABLE).insert(payload).execute()
+    except Exception as exc:
+        raise _handle_supabase_error(exc)
+
+
+def _persist_skill_tree_progress(
+    skill_tree_id: str,
+    tree: SkillTreeNode,
+    current_user: User,
+) -> None:
+    try:
+        response = (
+            supabase_client.table(SKILL_TREES_TABLE)
+            .update({"tree_json": canonicalize_skill_tree(tree).model_dump()})
+            .eq("id", skill_tree_id)
+            .eq("user_id", str(current_user.uuid))
+            .execute()
+        )
+    except Exception as exc:
+        raise _handle_supabase_error(exc)
+
+    if not response.data:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Skill tree not found.")
 
 
 def _get_question_for_answer(request: QuizAnswerRequest, current_user: User) -> QuizQuestion:
@@ -564,6 +753,22 @@ async def submit_quiz(
         results.append(await _evaluate_answer(answer, current_user))
 
     correct_answers = sum(1 for result in results if result.correct)
+    exp_gained = _calculate_submission_xp(correct_answers)
+    _record_quiz_completion(request.quiz_id, exp_gained, current_user)
+
+    total_node_xp = 0
+    unlocked_children: list[SkillTreeNode] = []
+    if record["skill_tree_id"] != MOCK_SKILL_TREE_ID:
+        skill_tree_record = _get_skill_tree_record(str(record["skill_tree_id"]), current_user)
+        skill_tree = canonicalize_skill_tree(SkillTreeNode.model_validate(skill_tree_record["tree_json"]))
+        updated_tree, total_node_xp, unlocked_children = _update_tree_for_node_progress(
+            skill_tree,
+            request.node_id,
+            exp_gained,
+            str(skill_tree_record.get("goal") or skill_tree_record.get("title") or request.node_id),
+        )
+        _persist_skill_tree_progress(str(record["skill_tree_id"]), updated_tree, current_user)
+
     return QuizSubmissionResult(
         quiz_id=request.quiz_id,
         node_id=request.node_id,
@@ -571,4 +776,10 @@ async def submit_quiz(
         answered_questions=len(results),
         correct_answers=correct_answers,
         results=results,
+        exp_gained=exp_gained,
+        total_node_xp=total_node_xp,
+        branch_unlocked=bool(unlocked_children),
+        unlocked_children=canonicalize_skill_tree(
+            SkillTreeNode(name="unlocked-children", children=unlocked_children)
+        ).children or [],
     )

@@ -4,6 +4,8 @@ from typing import Literal, Optional, Union
 
 from pydantic import BaseModel, Field, field_validator
 
+from .ai import SkillTreeNode
+
 
 QuestionType = Literal["Single", "Multiple", "SelectAll", "Coding"]
 
@@ -132,3 +134,7 @@ class QuizSubmissionResult(BaseModel):
     answered_questions: int
     correct_answers: int
     results: list[QuizAnswerResult]
+    exp_gained: int = 0
+    total_node_xp: int = 0
+    branch_unlocked: bool = False
+    unlocked_children: list[SkillTreeNode] = Field(default_factory=list)

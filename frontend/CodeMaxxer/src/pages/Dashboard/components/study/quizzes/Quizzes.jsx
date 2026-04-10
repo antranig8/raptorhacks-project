@@ -27,6 +27,7 @@ export default function Quizzes() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [submissionMessage, setSubmissionMessage] = useState("");
+    const [submissionDetails, setSubmissionDetails] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [validatingIndex, setValidatingIndex] = useState(null);
     const [isQuizMode, setIsQuizMode] = useState(hasNodeLinkedContext);
@@ -51,6 +52,7 @@ export default function Quizzes() {
         setAnswers({});
         setCurrentIdx(0);
         setSubmissionMessage("");
+        setSubmissionDetails(null);
         setValidatingIndex(null);
         setIsQuizComplete(false);
 
@@ -100,6 +102,7 @@ export default function Quizzes() {
         setLoading(true);
         setError("");
         setSubmissionMessage("");
+        setSubmissionDetails(null);
 
         try {
             const nextQuiz = await generateQuiz({ language, prompt });
@@ -116,6 +119,7 @@ export default function Quizzes() {
         setResults({});
         setAnswers({});
         setSubmissionMessage("");
+        setSubmissionDetails(null);
         setIsQuizComplete(false);
     };
 
@@ -201,6 +205,7 @@ export default function Quizzes() {
 
         setIsSubmitting(true);
         setSubmissionMessage("");
+        setSubmissionDetails(null);
         setError("");
 
         try {
@@ -217,8 +222,15 @@ export default function Quizzes() {
                 answers: preparedAnswers,
             });
 
-            const message = `Submitted! You got ${submission.correct_answers} out of ${submission.total_questions} right.`;
+            const unlockedNames = Array.isArray(submission.unlocked_children)
+                ? submission.unlocked_children.map((child) => child?.name).filter(Boolean)
+                : [];
+            let message = `Submitted! You got ${submission.correct_answers} out of ${submission.total_questions} right and earned ${submission.exp_gained ?? 0} XP.`;
+            if (submission.branch_unlocked && unlockedNames.length > 0) {
+                message += ` New branch unlocked: ${unlockedNames.join(", ")}.`;
+            }
             setSubmissionMessage(message);
+            setSubmissionDetails(submission);
             setIsQuizComplete(true);
         } catch (requestError) {
             setError(requestError.message || "Failed to submit quiz.");
@@ -271,6 +283,7 @@ export default function Quizzes() {
                                             setResults({});
                                             setAnswers({});
                                             setSubmissionMessage("");
+                                            setSubmissionDetails(null);
                                         } catch (requestError) {
                                             setError(requestError.message || "Failed to regenerate quiz.");
                                         } finally {
@@ -309,6 +322,18 @@ export default function Quizzes() {
                         <div className={styles.placeholder}>
                             <h3 className={styles.placeholderTitle}>Quiz Submitted</h3>
                             <p className={styles.placeholderText}>{submissionMessage}</p>
+                            {submissionDetails && (
+                                <>
+                                    <p className={styles.placeholderText}>
+                                        {`Total node XP: ${submissionDetails.total_node_xp ?? 0}`}
+                                    </p>
+                                    {submissionDetails.branch_unlocked && Array.isArray(submissionDetails.unlocked_children) && submissionDetails.unlocked_children.length > 0 && (
+                                        <p className={styles.placeholderText}>
+                                            {`Unlocked topics: ${submissionDetails.unlocked_children.map((child) => child?.name).filter(Boolean).join(", ")}`}
+                                        </p>
+                                    )}
+                                </>
+                            )}
                         </div>
                     ) : currentQuestion ? (
                         <>

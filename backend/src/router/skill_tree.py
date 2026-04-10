@@ -251,7 +251,7 @@ async def update_skill_tree(
         updates["title"] = request.name
     if request.tree is not None:
         # Replace the stored tree JSON when the frontend sends back progress or structure changes.
-        updates["tree_json"] = request.tree.model_dump()
+        updates["tree_json"] = canonicalize_skill_tree(request.tree).model_dump()
     if request.is_active is not None:
         # Let the UI mark one tree as the user's current active roadmap.
         updates["is_active"] = request.is_active

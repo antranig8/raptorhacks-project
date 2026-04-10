@@ -7,7 +7,13 @@ from typing import Optional
 from pydantic import ValidationError
 
 from ..ai.base import AIPlatform
-from ..schemas.ai import ExtractedGoal, GeneratedSkillTree, SkillTreeNode
+from ..schemas.ai import (
+    ExtractedGoal,
+    GeneratedAdvancementBranch,
+    GeneratedSkillTree,
+    SkillTreeNode,
+    SkillTreeNodeMetadata,
+)
 from .prompts import load_prompt
 
 
@@ -116,16 +122,64 @@ def parse_skill_tree_response(raw_text: str) -> GeneratedSkillTree:
         raise ValueError("AI returned JSON that did not match the skill tree schema.") from exc
 
 
+def parse_skill_tree_advancement_response(raw_text: str) -> GeneratedAdvancementBranch:
+    try:
+        payload = _load_json_payload(raw_text, "AI returned invalid JSON for skill tree advancement.")
+    except ValueError:
+        raise
+
+    try:
+        return GeneratedAdvancementBranch.model_validate(payload)
+    except ValidationError as exc:
+        raise ValueError("AI returned JSON that did not match the skill tree advancement schema.") from exc
+
+
+def build_skill_tree_advancement_user_prompt(goal: str, node: SkillTreeNode) -> str:
+    existing_children = ", ".join(child.name for child in (node.children or [])) or "None"
+    advancement_count = node.metadata.advancement_count if node.metadata else 0
+    next_stage = advancement_count + 1
+    difficulty = node.difficulty or "advanced"
+    return (
+        f"Goal: {goal.strip()}\n"
+        f"Current topic: {node.name.strip()}\n"
+        f"Current difficulty: {difficulty}\n"
+        f"Existing child topics: {existing_children}\n"
+        f"Advancement stage: {next_stage} of 3\n"
+        "Generate the next advanced child topics for this node."
+    )
+
+
+def build_default_node_metadata(existing: SkillTreeNodeMetadata | None = None) -> SkillTreeNodeMetadata:
+    if existing is None:
+        return SkillTreeNodeMetadata()
+
+    return SkillTreeNodeMetadata(
+        xp=max(0, existing.xp),
+        unlock_threshold_xp=max(1, existing.unlock_threshold_xp),
+        advancement_count=min(max(0, existing.advancement_count), 3),
+        max_advancements=min(max(0, existing.max_advancements), 3),
+        last_unlocked_at=existing.last_unlocked_at,
+        branch_history=list(existing.branch_history or []),
+        analytics=dict(existing.analytics or {}),
+    )
+
+
 # Convert the generated schema into the recursive node shape used by the app.
 def generated_tree_to_node(tree: GeneratedSkillTree) -> SkillTreeNode:
     # Convert the generated skill/subskill structure into the recursive node format used by the UI.
     return SkillTreeNode(
         name=tree.goal,
+        metadata=build_default_node_metadata(),
         children=[
             SkillTreeNode(
                 name=skill.name,
+                metadata=build_default_node_metadata(),
                 children=[
-                    SkillTreeNode(name=subskill.name, difficulty=subskill.difficulty)
+                    SkillTreeNode(
+                        name=subskill.name,
+                        difficulty=subskill.difficulty,
+                        metadata=build_default_node_metadata(),
+                    )
                     for subskill in skill.subskills
                 ],
             )
@@ -163,6 +217,7 @@ def canonicalize_skill_tree(tree: SkillTreeNode) -> SkillTreeNode:
             name=node.name,
             difficulty=node.difficulty,
             children=children or None,
+            metadata=build_default_node_metadata(node.metadata),
         )
 
     return _canonicalize(tree, "root", 1)

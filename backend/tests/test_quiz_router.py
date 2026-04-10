@@ -48,6 +48,8 @@ class FakeSupabaseQuery:
     def execute(self):
         if self.payload is not None:
             record = dict(self.payload)
+            if "id" not in record:
+                record["id"] = len(self.store) + 1
             self.store.append(record)
             return FakeResponse([record])
 
@@ -72,12 +74,15 @@ class FakeSupabaseClient:
     def __init__(self):
         self.skill_trees: list[dict] = []
         self.quizzes: list[dict] = []
+        self.quiz_done: list[dict] = []
 
     def table(self, name: str):
         if name == quiz_router.SKILL_TREES_TABLE:
             return FakeSupabaseQuery(self.skill_trees)
         if name == quiz_router.QUIZ_TABLE:
             return FakeSupabaseQuery(self.quizzes)
+        if name == quiz_router.QUIZ_DONE_TABLE:
+            return FakeSupabaseQuery(self.quiz_done)
         raise AssertionError(f"Unexpected table: {name}")
 
 
@@ -89,6 +94,10 @@ class FakeQuizPlatform:
     def chat_messages(self, messages, temperature: float, max_tokens: int):
         self.calls += 1
         return self.response_text, None
+
+
+class FakeAdvancementPlatform(FakeQuizPlatform):
+    pass
 
 
 class FakePistonOutput:
@@ -475,3 +484,161 @@ class QuizRouterTests(TestCase):
         self.assertEqual(response.status_code, 502)
         self.assertIn('requested language "rust"', response.json()["detail"])
         self.assertEqual(len(self.fake_supabase.quizzes), 0)
+
+    def test_submit_unlocks_advanced_branch_and_records_exp(self):
+        self.fake_supabase.quizzes.append(
+            {
+                "id": "quiz-3",
+                "user_id": str(self.user.uuid),
+                "skill_tree_id": "tree-1",
+                "node_id": "functions",
+                "title": "Functions Quiz",
+                "data": {
+                    "questions": [
+                        {
+                            "type": "Single",
+                            "prompt": "Q1",
+                            "isSkippable": True,
+                            "choices": [
+                                {"id": "A", "label": "A", "isCorrect": True, "reasoning": "Correct."},
+                                {"id": "B", "label": "B", "isCorrect": False, "reasoning": "Incorrect."},
+                                {"id": "C", "label": "C", "isCorrect": False, "reasoning": "Incorrect."},
+                                {"id": "D", "label": "D", "isCorrect": False, "reasoning": "Incorrect."},
+                            ],
+                        },
+                        {
+                            "type": "Single",
+                            "prompt": "Q2",
+                            "isSkippable": True,
+                            "choices": [
+                                {"id": "A", "label": "A", "isCorrect": True, "reasoning": "Correct."},
+                                {"id": "B", "label": "B", "isCorrect": False, "reasoning": "Incorrect."},
+                                {"id": "C", "label": "C", "isCorrect": False, "reasoning": "Incorrect."},
+                                {"id": "D", "label": "D", "isCorrect": False, "reasoning": "Incorrect."},
+                            ],
+                        },
+                        {
+                            "type": "Single",
+                            "prompt": "Q3",
+                            "isSkippable": True,
+                            "choices": [
+                                {"id": "A", "label": "A", "isCorrect": True, "reasoning": "Correct."},
+                                {"id": "B", "label": "B", "isCorrect": False, "reasoning": "Incorrect."},
+                                {"id": "C", "label": "C", "isCorrect": False, "reasoning": "Incorrect."},
+                                {"id": "D", "label": "D", "isCorrect": False, "reasoning": "Incorrect."},
+                            ],
+                        },
+                        {
+                            "type": "Single",
+                            "prompt": "Q4",
+                            "isSkippable": True,
+                            "choices": [
+                                {"id": "A", "label": "A", "isCorrect": True, "reasoning": "Correct."},
+                                {"id": "B", "label": "B", "isCorrect": False, "reasoning": "Incorrect."},
+                                {"id": "C", "label": "C", "isCorrect": False, "reasoning": "Incorrect."},
+                                {"id": "D", "label": "D", "isCorrect": False, "reasoning": "Incorrect."},
+                            ],
+                        },
+                    ]
+                },
+            }
+        )
+
+        fake_advancement = FakeAdvancementPlatform(
+            """
+            {
+              "children": [
+                {"name": "Closures", "difficulty": "intermediate"},
+                {"name": "Decorators", "difficulty": "advanced"}
+              ]
+            }
+            """
+        )
+
+        with patch.object(quiz_router, "supabase_client", self.fake_supabase), patch.object(
+            quiz_router, "advancement_platform", fake_advancement
+        ):
+            client = TestClient(app)
+            response = client.post(
+                "/api/v1/private/quiz/submit",
+                json={
+                    "quiz_id": "quiz-3",
+                    "node_id": "functions",
+                    "answers": [
+                        {"quiz_id": "quiz-3", "node_id": "functions", "question_index": 0, "answer": "A"},
+                        {"quiz_id": "quiz-3", "node_id": "functions", "question_index": 1, "answer": "A"},
+                        {"quiz_id": "quiz-3", "node_id": "functions", "question_index": 2, "answer": "A"},
+                        {"quiz_id": "quiz-3", "node_id": "functions", "question_index": 3, "answer": "A"},
+                    ],
+                },
+            )
+
+        self.assertEqual(response.status_code, 200)
+        body = response.json()
+        self.assertEqual(body["exp_gained"], 100)
+        self.assertEqual(body["total_node_xp"], 100)
+        self.assertTrue(body["branch_unlocked"])
+        self.assertEqual(len(body["unlocked_children"]), 2)
+        self.assertEqual(len(self.fake_supabase.quiz_done), 1)
+        updated_tree = self.fake_supabase.skill_trees[0]["tree_json"]
+        updated_node = updated_tree["children"][0]
+        self.assertEqual(updated_node["metadata"]["xp"], 100)
+        self.assertEqual(updated_node["metadata"]["advancement_count"], 1)
+        self.assertEqual(len(updated_node["children"]), 2)
+
+    def test_submit_does_not_unlock_after_three_advancements(self):
+        self.fake_supabase.skill_trees[0]["tree_json"]["children"][0]["metadata"] = {
+            "xp": 300,
+            "unlock_threshold_xp": 100,
+            "advancement_count": 3,
+            "max_advancements": 3,
+            "branch_history": ["advancement-1", "advancement-2", "advancement-3"],
+            "analytics": {"total_exp_earned": 300},
+        }
+        self.fake_supabase.quizzes.append(
+            {
+                "id": "quiz-4",
+                "user_id": str(self.user.uuid),
+                "skill_tree_id": "tree-1",
+                "node_id": "functions",
+                "title": "Functions Quiz",
+                "data": {
+                    "questions": [
+                        {
+                            "type": "Single",
+                            "prompt": "Q1",
+                            "isSkippable": True,
+                            "choices": [
+                                {"id": "A", "label": "A", "isCorrect": True, "reasoning": "Correct."},
+                                {"id": "B", "label": "B", "isCorrect": False, "reasoning": "Incorrect."},
+                                {"id": "C", "label": "C", "isCorrect": False, "reasoning": "Incorrect."},
+                                {"id": "D", "label": "D", "isCorrect": False, "reasoning": "Incorrect."},
+                            ],
+                        }
+                    ]
+                },
+            }
+        )
+        fake_advancement = FakeAdvancementPlatform('{"children":[{"name":"Ignored","difficulty":"advanced"},{"name":"Ignored Two","difficulty":"advanced"}]}')
+
+        with patch.object(quiz_router, "supabase_client", self.fake_supabase), patch.object(
+            quiz_router, "advancement_platform", fake_advancement
+        ):
+            client = TestClient(app)
+            response = client.post(
+                "/api/v1/private/quiz/submit",
+                json={
+                    "quiz_id": "quiz-4",
+                    "node_id": "functions",
+                    "answers": [
+                        {"quiz_id": "quiz-4", "node_id": "functions", "question_index": 0, "answer": "A"},
+                    ],
+                },
+            )
+
+        self.assertEqual(response.status_code, 200)
+        body = response.json()
+        self.assertEqual(body["exp_gained"], 25)
+        self.assertEqual(body["total_node_xp"], 325)
+        self.assertFalse(body["branch_unlocked"])
+        self.assertEqual(fake_advancement.calls, 0)

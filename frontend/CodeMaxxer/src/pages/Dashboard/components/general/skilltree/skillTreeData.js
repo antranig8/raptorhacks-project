@@ -4,7 +4,6 @@ const rawApiBaseUrl = (import.meta.env.VITE_API_URL || "http://127.0.0.1:8000").
 const API_BASE_URL = rawApiBaseUrl.endsWith("/api/v1/private")
     ? rawApiBaseUrl
     : `${rawApiBaseUrl}/api/v1/private`;
-const COMPLETED_LEAF_XP = 100;
 export const MOCK_SKILL_TREE_ID = "mock-skill-tree";
 export const EMPTY_PLAN_NODE_ID = "create-plan";
 
@@ -54,11 +53,9 @@ function selectPrimarySkillTree(skillTrees) {
 
 function mapNodeToGraph(node, completedNodeIds) {
     const children = (node.children || []).map((child) => mapNodeToGraph(child, completedNodeIds));
-    const isLeaf = children.length === 0;
     const isCompleted = completedNodeIds.has(node.id);
-    const xp = isLeaf
-        ? (isCompleted ? COMPLETED_LEAF_XP : 0)
-        : children.reduce((totalXp, child) => totalXp + child.xp, 0);
+    const metadata = node.metadata || {};
+    const xp = Number.isFinite(metadata.xp) ? metadata.xp : 0;
 
     return {
         id: node.id,
@@ -66,6 +63,7 @@ function mapNodeToGraph(node, completedNodeIds) {
         difficulty: node.difficulty ?? null,
         completed: isCompleted,
         xp,
+        metadata,
         children,
     };
 }
