@@ -22,14 +22,12 @@ const navSections = [
             },
             { label: 'Skill Tree', route: '/dashboard/skill-tree', icon: <FaSeedling /> },
             { label: 'Plan', route: '/dashboard/plan', icon: <FaMapSigns /> },
-            { label: 'BackendTest', route: '/dashboard/test', icon: <FaAddressBook /> },
         ],
     },
     {
         title: 'Study',
         items: [
             { label: 'Typing', route: '/dashboard/typing', icon: <FaKeyboard /> },
-            { label: 'Coding', route: '/dashboard/coding', icon: <FaGraduationCap /> },
             { label: 'Quizzes', route: '/dashboard/quizzes', icon: <FaClipboardList /> },
         ],
     },
