@@ -313,3 +313,165 @@ class QuizRouterTests(TestCase):
         body = response.json()
         self.assertTrue(body["correct"])
         self.assertIsNone(body["error"])
+
+    def test_generate_creates_freeform_quiz_from_language_and_prompt(self):
+        fake_ai = FakeQuizPlatform(
+            """
+            {
+              "questions": [
+                {
+                  "type": "Single",
+                  "prompt": "What does a Rust borrow checker prevent?",
+                  "isSkippable": true,
+                  "choices": [
+                    {"id": "A", "label": "Data races", "isCorrect": true, "reasoning": "Correct."},
+                    {"id": "B", "label": "Compilation", "isCorrect": false, "reasoning": "Incorrect."},
+                    {"id": "C", "label": "Comments", "isCorrect": false, "reasoning": "Incorrect."},
+                    {"id": "D", "label": "Formatting", "isCorrect": false, "reasoning": "Incorrect."}
+                  ],
+                  "expectedStdout": null,
+                  "language": null,
+                  "codeTemplate": null,
+                  "userGuidance": null
+                },
+                {
+                  "type": "Multiple",
+                  "prompt": "Which Rust items can own data?",
+                  "isSkippable": true,
+                  "choices": [
+                    {"id": "A", "label": "String", "isCorrect": true, "reasoning": "Correct."},
+                    {"id": "B", "label": "Vec", "isCorrect": true, "reasoning": "Correct."},
+                    {"id": "C", "label": "&str", "isCorrect": false, "reasoning": "Incorrect."},
+                    {"id": "D", "label": "&[i32]", "isCorrect": false, "reasoning": "Incorrect."}
+                  ],
+                  "expectedStdout": null,
+                  "language": null,
+                  "codeTemplate": null,
+                  "userGuidance": null
+                },
+                {
+                  "type": "SelectAll",
+                  "prompt": "Select valid Rust ownership ideas.",
+                  "isSkippable": true,
+                  "choices": [
+                    {"id": "A", "label": "Moves transfer ownership", "isCorrect": true, "reasoning": "Correct."},
+                    {"id": "B", "label": "One mutable reference at a time", "isCorrect": true, "reasoning": "Correct."},
+                    {"id": "C", "label": "Garbage collection is required", "isCorrect": false, "reasoning": "Incorrect."},
+                    {"id": "D", "label": "Borrowing avoids taking ownership", "isCorrect": true, "reasoning": "Correct."}
+                  ],
+                  "expectedStdout": null,
+                  "language": null,
+                  "codeTemplate": null,
+                  "userGuidance": null
+                },
+                {
+                  "type": "Coding",
+                  "prompt": "Return the sum.",
+                  "isSkippable": false,
+                  "choices": [],
+                  "expectedStdout": "3",
+                  "language": "rust",
+                  "codeTemplate": "fn main() { let x = 1; let y = 2; println!(\\\"{}\\\", %s); }",
+                  "userGuidance": "Write one expression that adds x and y."
+                }
+              ]
+            }
+            """
+        )
+
+        with patch.object(quiz_router, "supabase_client", self.fake_supabase), patch.object(
+            quiz_router, "quiz_platform", fake_ai
+        ):
+            client = TestClient(app)
+            response = client.post(
+                "/api/v1/private/quiz/generate",
+                json={"language": "rust", "prompt": "ownership basics"},
+            )
+
+        self.assertEqual(response.status_code, 200)
+        body = response.json()
+        self.assertEqual(body["skill_tree_id"], quiz_router.MOCK_SKILL_TREE_ID)
+        self.assertTrue(body["node_id"].startswith("freeform-"))
+        self.assertEqual(body["title"], "rust Quiz")
+        self.assertEqual(body["questions"][3]["language"], "rust")
+        self.assertEqual(len(self.fake_supabase.quizzes), 1)
+        self.assertEqual(self.fake_supabase.quizzes[0]["title"], "rust Quiz")
+        self.assertEqual(fake_ai.calls, 1)
+
+    def test_generate_rejects_coding_question_with_wrong_language(self):
+        fake_ai = FakeQuizPlatform(
+            """
+            {
+              "questions": [
+                {
+                  "type": "Single",
+                  "prompt": "What does Rust emphasize?",
+                  "isSkippable": true,
+                  "choices": [
+                    {"id": "A", "label": "Safety", "isCorrect": true, "reasoning": "Correct."},
+                    {"id": "B", "label": "Inheritance", "isCorrect": false, "reasoning": "Incorrect."},
+                    {"id": "C", "label": "Macros only", "isCorrect": false, "reasoning": "Incorrect."},
+                    {"id": "D", "label": "Reflection", "isCorrect": false, "reasoning": "Incorrect."}
+                  ],
+                  "expectedStdout": null,
+                  "language": null,
+                  "codeTemplate": null,
+                  "userGuidance": null
+                },
+                {
+                  "type": "Multiple",
+                  "prompt": "Pick Rust ownership ideas.",
+                  "isSkippable": true,
+                  "choices": [
+                    {"id": "A", "label": "Moves", "isCorrect": true, "reasoning": "Correct."},
+                    {"id": "B", "label": "Borrowing", "isCorrect": true, "reasoning": "Correct."},
+                    {"id": "C", "label": "GC only", "isCorrect": false, "reasoning": "Incorrect."},
+                    {"id": "D", "label": "Manual headers", "isCorrect": false, "reasoning": "Incorrect."}
+                  ],
+                  "expectedStdout": null,
+                  "language": null,
+                  "codeTemplate": null,
+                  "userGuidance": null
+                },
+                {
+                  "type": "SelectAll",
+                  "prompt": "Select valid Rust concepts.",
+                  "isSkippable": true,
+                  "choices": [
+                    {"id": "A", "label": "Traits", "isCorrect": true, "reasoning": "Correct."},
+                    {"id": "B", "label": "Enums", "isCorrect": true, "reasoning": "Correct."},
+                    {"id": "C", "label": "Classes", "isCorrect": false, "reasoning": "Incorrect."},
+                    {"id": "D", "label": "Lifetimes", "isCorrect": true, "reasoning": "Correct."}
+                  ],
+                  "expectedStdout": null,
+                  "language": null,
+                  "codeTemplate": null,
+                  "userGuidance": null
+                },
+                {
+                  "type": "Coding",
+                  "prompt": "Return the sum.",
+                  "isSkippable": false,
+                  "choices": [],
+                  "expectedStdout": "3",
+                  "language": "python",
+                  "codeTemplate": "print(%s)",
+                  "userGuidance": "Write one expression that evaluates to 3."
+                }
+              ]
+            }
+            """
+        )
+
+        with patch.object(quiz_router, "supabase_client", self.fake_supabase), patch.object(
+            quiz_router, "quiz_platform", fake_ai
+        ):
+            client = TestClient(app)
+            response = client.post(
+                "/api/v1/private/quiz/generate",
+                json={"language": "rust", "prompt": "ownership basics"},
+            )
+
+        self.assertEqual(response.status_code, 502)
+        self.assertIn('requested language "rust"', response.json()["detail"])
+        self.assertEqual(len(self.fake_supabase.quizzes), 0)

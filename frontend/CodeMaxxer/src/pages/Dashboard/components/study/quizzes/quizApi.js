@@ -50,6 +50,18 @@ export async function fetchQuizByNode({ skillTreeId, nodeId, nodeName = null, sk
     });
 }
 
+export async function generateQuiz({ language, prompt }) {
+    // Standalone quiz generation uses a direct language + topic request
+    // instead of a saved skill-tree node.
+    return requestQuiz("/quiz/generate", {
+        method: "POST",
+        body: JSON.stringify({
+            language,
+            prompt,
+        }),
+    });
+}
+
 export async function submitQuizAnswer({ quizId, nodeId, questionIndex, answer }) {
     // Per-question validation keeps the UI responsive without needing any
     // quiz session state on the backend.
