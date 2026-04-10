@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import re
+from typing import Optional
 
 from pydantic import ValidationError
 
@@ -11,12 +12,12 @@ from .prompts import load_prompt
 
 
 # Load the system prompt template used for AI skill tree generation.
-def load_skill_tree_system_prompt() -> str | None:
+def load_skill_tree_system_prompt() -> Optional[str]:
     return load_prompt("skill_tree_prompt.md")
 
 
 # Load the system prompt that turns a messy user request into one canonical goal.
-def load_goal_extraction_system_prompt() -> str | None:
+def load_goal_extraction_system_prompt() -> Optional[str]:
     return load_prompt("goal_extraction_prompt.md")
 
 
@@ -71,7 +72,7 @@ def parse_goal_extraction_response(raw_text: str) -> ExtractedGoal:
 
 
 # Resolve the final canonical goal from either an explicit goal or a raw free-form prompt.
-def resolve_skill_tree_goal(ai_platform: AIPlatform, goal: str | None, prompt: str | None) -> str:
+def resolve_skill_tree_goal(ai_platform: AIPlatform, goal: Optional[str], prompt: Optional[str]) -> str:
     # Prefer a provided goal so callers can bypass normalization when they already have one.
     if goal is not None and goal.strip():
         return goal.strip()

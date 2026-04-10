@@ -34,8 +34,8 @@ class SkillTreeCreateRequest(BaseModel):
         max_length=120,
         validation_alias=AliasChoices("name", "title"),
     )
-    goal: str | None = Field(default=None, min_length=3, max_length=300)
-    prompt: str | None = Field(default=None, min_length=3, max_length=800)
+    goal: Optional[str] = Field(default=None, min_length=3, max_length=300)
+    prompt: Optional[str]= Field(default=None, min_length=3, max_length=800)
 
     @field_validator("name")
     @classmethod
@@ -47,7 +47,7 @@ class SkillTreeCreateRequest(BaseModel):
 
     @field_validator("goal", "prompt")
     @classmethod
-    def _strip_optional_text(cls, value: str | None) -> str | None:
+    def _strip_optional_text(cls, value: Optional[str]) -> Optional[str]:
         if value is None:
             return None
         value = value.strip()
@@ -75,7 +75,7 @@ class SkillTreeUpdateRequest(BaseModel):
 
     @field_validator("name")
     @classmethod
-    def _strip_name(cls, value: str | None) -> str | None:
+    def _strip_name(cls, value: Optional[str]) -> Optional[str]:
         if value is None:
             return None
         value = value.strip()
@@ -157,7 +157,7 @@ def _list_skill_tree_records_for_user(current_user: User) -> list[dict[str, Any]
 
 
 # Generate a new skill tree from either a normalized goal or a free-form user prompt.
-def _generate_skill_tree(goal: str | None, prompt: str | None) -> tuple[str, SkillTreeNode]:
+def _generate_skill_tree(goal: Optional[str], prompt: Optional[str]) -> tuple[str, SkillTreeNode]:
     ai_platform = get_ai_platform()
     resolved_goal = resolve_skill_tree_goal(ai_platform, goal, prompt)
     system_prompt = load_skill_tree_system_prompt()

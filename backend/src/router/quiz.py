@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import re
 import uuid
-from typing import Any
+from typing import Any, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import ValidationError
@@ -50,7 +50,7 @@ def _handle_supabase_error(exc: Exception) -> HTTPException:
     )
 
 
-def _normalize_output(value: str | None) -> str:
+def _normalize_output(value: Optional[str]) -> str:
     # Normalize stdout before comparison so harmless formatting differences
     # do not fail otherwise-correct coding answers.
     if value is None:

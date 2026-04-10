@@ -69,7 +69,7 @@ class QuizByNodeRequest(BaseModel):
 
     @field_validator("node_name", "skill_tree_name")
     @classmethod
-    def _strip_optional_names(cls, value: str | None) -> str | None:
+    def _strip_optional_names(cls, value: Optional[str]) -> Optional[str]:
         if value is None:
             return None
         value = value.strip()
