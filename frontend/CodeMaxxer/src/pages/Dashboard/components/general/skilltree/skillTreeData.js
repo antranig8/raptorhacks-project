@@ -1,6 +1,6 @@
 import supabase from "@/utils/supabase";
 
-const API_BASE_URL = "http://localhost:8000/api/v1/private";
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 const COMPLETED_LEAF_XP = 100;
 export const MOCK_SKILL_TREE_ID = "mock-skill-tree";
 

@@ -2,6 +2,8 @@ import styles from '@dashboard/styles/Coding.module.css'
 import { useEffect, useState, useRef } from 'react'
 import supabase from '@utils/supabase'
 
+const API_BASE_URL = import.meta.env.VITE_API_URL;
+
 export default function Test() {
     const [resp, setResp] = useState(null)
     const ran = useRef(false)
@@ -11,7 +13,7 @@ export default function Test() {
         try {
             const { data: { session } } = await supabase.auth.getSession()
 
-            const res = await fetch("http://localhost:8000/api/v1/private/quiz/create", {
+            const res = await fetch(`${API_BASE_URL}/api/v1/private/quiz/create`, {
                 method: 'POST',
                 body: JSON.stringify({
                     prompt: "Create a 8 question Java quiz"
@@ -32,7 +34,7 @@ export default function Test() {
         try {
             const { data: { session } } = await supabase.auth.getSession()
 
-            const res = await fetch("http://localhost:8000/api/v1/private/test_code?language=python&code=print('test')", {
+            const res = await fetch(`${API_BASE_URL}/api/v1/private/test_code?language=python&code=print('test')`, {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${session.access_token}`,
