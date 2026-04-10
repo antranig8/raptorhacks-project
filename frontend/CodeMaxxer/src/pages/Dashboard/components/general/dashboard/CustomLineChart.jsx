@@ -1,14 +1,20 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useMemo } from 'react'
 import { VictoryChart, VictoryLine, VictoryAxis, VictoryTheme, VictoryLegend } from 'victory'
 import styles from './CustomLineChart.module.css'
 
 const RANGES = ['1W', '1M', '3M', 'YTD', '1Y', 'ALL']
 
-export default function CustomLineChart({ title, initialDataGenerator, lines = [], showTimeControls = true, xAxisType = 'date', data = null }) {
+export default function CustomLineChart({ title, lines = [], showTimeControls = true, xAxisType = 'date', data = null, onRangeChange }) {
     const [timeRange, setTimeRange] = useState('1M')
     const containerRef = useRef(null)
     const [dimensions, setDimensions] = useState({ width: 800, height: 200 })
-    const chartData = data ?? initialDataGenerator(timeRange)
+    const chartData = data
+
+    useEffect(() => {
+        if (onRangeChange) {
+            onRangeChange(timeRange)
+        }
+    }, [timeRange, onRangeChange])
 
     useEffect(() => {
         if (!containerRef.current) return
@@ -84,7 +90,7 @@ export default function CustomLineChart({ title, initialDataGenerator, lines = [
                             <VictoryLine
                                 key={idx}
                                 interpolation="monotoneX"
-                                data={Array.isArray(chartData[0]) ? chartData[idx] : chartData}
+                                data={chartData ? (Array.isArray(chartData[0]) ? chartData[idx] : chartData) : []}
                                 style={{ data: { stroke: line.color, strokeWidth: 3 } }}
                             />
                         ))}

@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react'
+import React, { useState, useMemo } from 'react'
 import CustomLineChart from './CustomLineChart'
 import styles from './Quadrant3.module.css'
 
@@ -15,14 +15,16 @@ const generateData = (range) => {
 };
 
 export default function Quadrant3() {
-    const getLocData = useCallback((range) => generateData(range), []);
+    const [range, setRange] = useState('1M');
+    const locData = useMemo(() => generateData(range), [range]);
 
     return (
         <div className={styles.root}>
             <div className={styles.container}>
                 <CustomLineChart
                     title="Lines of Code Written"
-                    initialDataGenerator={getLocData}
+                    data={locData}
+                    onRangeChange={setRange}
                     lines={[{ name: "LOC", color: "#a855f7" }]}
                 />
             </div>

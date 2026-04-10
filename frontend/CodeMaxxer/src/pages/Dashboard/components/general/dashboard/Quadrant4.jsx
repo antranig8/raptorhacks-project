@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react'
+import React, { useState, useMemo } from 'react'
 import { VictoryPie } from 'victory'
 import CustomLineChart from './CustomLineChart'
 import styles from './Quadrant4.module.css'
@@ -16,7 +16,8 @@ const generateData = (range) => {
 };
 
 export default function Quadrant4() {
-    const getQuizzesTakenData = useCallback((range) => generateData(range), []);
+    const [range, setRange] = useState('1M');
+    const quizData = useMemo(() => generateData(range), [range]);
 
     return (
         <div className={styles.root}>
@@ -55,7 +56,8 @@ export default function Quadrant4() {
                 <div className={styles.stackItemLarge}>
                     <CustomLineChart
                         title="Quizzes Taken"
-                        initialDataGenerator={getQuizzesTakenData}
+                        data={quizData}
+                        onRangeChange={setRange}
                         lines={[{ name: "Quizzes", color: "#3b82f6" }]}
                     />
                 </div>

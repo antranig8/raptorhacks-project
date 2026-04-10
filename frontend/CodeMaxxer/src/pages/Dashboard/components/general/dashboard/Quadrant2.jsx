@@ -106,6 +106,8 @@ function aggregateXpHistory(entries, range) {
 export default function Quadrant2() {
     const [xpEntries, setXpEntries] = useState([])
     const [loadError, setLoadError] = useState('')
+    const [overallRange, setOverallRange] = useState('1M')
+    const [skillRange, setSkillRange] = useState('1M')
 
     useEffect(() => {
         let isCancelled = false
@@ -199,9 +201,9 @@ export default function Quadrant2() {
         }
     }, [])
 
-    const getOverallData = useCallback((range) => aggregateXpHistory(xpEntries, range).overall, [xpEntries])
-    const getSkillChartData = useCallback((range) => aggregateXpHistory(xpEntries, range).skillSeries, [xpEntries])
-    const skillLines = useMemo(() => aggregateXpHistory(xpEntries, 'ALL').skillLines, [xpEntries])
+    const overallData = useMemo(() => aggregateXpHistory(xpEntries, overallRange).overall, [xpEntries, overallRange])
+    const skillChartData = useMemo(() => aggregateXpHistory(xpEntries, skillRange).skillSeries, [xpEntries, skillRange])
+    const skillLines = useMemo(() => aggregateXpHistory(xpEntries, skillRange).skillLines, [xpEntries, skillRange])
 
     return (
         <div className={styles.root}>
@@ -209,14 +211,16 @@ export default function Quadrant2() {
                 <div className={styles.stackItem}>
                     <CustomLineChart
                         title={loadError || 'Overall Exp'}
-                        initialDataGenerator={getOverallData}
+                        data={overallData}
+                        onRangeChange={setOverallRange}
                         lines={[{ name: 'Global XP', color: '#22c55e' }]}
                     />
                 </div>
                 <div className={styles.stackItem}>
                     <CustomLineChart
                         title="Exp by Skill"
-                        initialDataGenerator={getSkillChartData}
+                        data={skillChartData}
+                        onRangeChange={setSkillRange}
                         lines={skillLines.length > 0 ? skillLines : [{ name: 'No XP Yet', color: '#94a3b8' }]}
                     />
                 </div>
