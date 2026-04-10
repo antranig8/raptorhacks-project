@@ -124,7 +124,7 @@ class PistonWrapper():
         except TooManyRequests as e:
             return PistonOutput(error="Rate limit", language=language)
 
-        piston_lang = output.language
+        piston_lang = output.langauge
 
         piston_run_stage = output.run_stage
         run_stage = None
