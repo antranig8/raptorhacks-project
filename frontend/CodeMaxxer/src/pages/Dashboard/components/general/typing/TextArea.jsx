@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import { FaMousePointer, FaRedo } from 'react-icons/fa'
 import styles from '@dashboard/styles/TextArea.module.css'
 import TypingStats from './TypingStats'
@@ -10,7 +10,6 @@ export default function TextArea({ target = '', onChange, onActiveChange, onRequ
     const [typed, setTyped] = useState('')
     const [completed, setCompleted] = useState(false)
     const [isReplaying, setIsReplaying] = useState(false)
-    const [replayIndex, setReplayIndex] = useState(0)
     const [history, setHistory] = useState([])
     const [sessionStart, setSessionStart] = useState(null)
     const [completionTime, setCompletionTime] = useState(null)
@@ -36,16 +35,15 @@ export default function TextArea({ target = '', onChange, onActiveChange, onRequ
 
         setTyped(next)
 
-        setHistory((prev) => {
-            const entry = {
-                value: next,
-                key,
-                timestamp,
-            }
-            const newHistory = [...prev, entry]
-            if (onChange) onChange(next, newHistory)
-            return newHistory
-        })
+        const entry = {
+            value: next,
+            key,
+            timestamp,
+        }
+
+        const newHistory = [...history, entry]
+        setHistory(newHistory)
+        if (onChange) onChange(next, newHistory)
 
         if (!sessionStart) {
             setSessionStart(timestamp)
@@ -92,45 +90,46 @@ export default function TextArea({ target = '', onChange, onActiveChange, onRequ
     }, [active])
 
     // Replay uses the original per-keystroke timestamps to restore the
-    // session progressively instead of jumping straight to the final text.
+    // session progressively. Scheduling all timeouts relative to the start
+    // prevents React render times from accumulating as a delay over time.
     useEffect(() => {
         if (!isReplaying || history.length === 0) return
 
-        if (replayIndex >= history.length) {
+        const timeouts = []
+        const baseTimestamp = history[0].timestamp
+
+        history.forEach((entry, idx) => {
+            // First character plays at 300ms, rest play sequentially after
+            const delay = 300 + (entry.timestamp - baseTimestamp)
+
             const timeout = setTimeout(() => {
-                setIsReplaying(false)
-                setCompleted(true)
-            }, 0)
+                setTyped(entry.value)
+                
+                const elapsedMinutes = Math.max(1000, entry.timestamp - baseTimestamp) / 60000
+                const wpm = Math.round((entry.value.length / 5) / elapsedMinutes)
+                setLiveWpm(wpm)
 
-            return () => clearTimeout(timeout)
-        }
+                if (onChange) onChange(entry.value, history.slice(0, idx + 1))
 
-        const current = history[replayIndex]
-        const previous = history[replayIndex - 1]
-        const delay = replayIndex === 0 ? 300 : current.timestamp - (previous?.timestamp || 0)
+                // End of replay
+                if (idx === history.length - 1) {
+                    setIsReplaying(false)
+                    setCompleted(true)
+                }
+            }, delay)
 
-        const timeout = setTimeout(() => {
-            setTyped(current.value)
-            if (onChange) onChange(current.value, history.slice(0, replayIndex + 1))
+            timeouts.push(timeout)
+        })
 
-            const startTimestamp = history[0]?.timestamp || current.timestamp
-            const elapsed = Math.max(1000, current.timestamp - startTimestamp)
-            const elapsedMinutes = elapsed / 60000
-            const wpm = Math.round((current.value.length / 5) / elapsedMinutes)
-            setLiveWpm(wpm)
-
-            setReplayIndex((prev) => prev + 1)
-        }, delay)
-
-        return () => clearTimeout(timeout)
-    }, [isReplaying, replayIndex, history, onChange])
+        return () => timeouts.forEach(clearTimeout)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isReplaying])
 
     const handleRestart = () => {
         setCompleted(false)
         setIsReplaying(false)
         setTyped('')
         setHistory([])
-        setReplayIndex(0)
         setSessionStart(null)
         setCompletionTime(null)
         setLiveWpm(0)
@@ -145,7 +144,6 @@ export default function TextArea({ target = '', onChange, onActiveChange, onRequ
         setCompleted(false)
         setIsReplaying(true)
         setTyped('')
-        setReplayIndex(0)
         setActive(false)
         if (onActiveChange) onActiveChange(false)
         if (onChange) onChange('', [])
@@ -158,7 +156,16 @@ export default function TextArea({ target = '', onChange, onActiveChange, onRequ
             // performance chart after the run finishes.
             onComplete({ history, sessionStart, completionTime, typed })
         }
-    }, [completed, completionTime, history, onComplete, sessionStart, typed])
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [completed, completionTime])
+
+    const handleTimeUp = useCallback(() => {
+        setCompleted(true)
+        setActive(false)
+        setCompletionTime(Date.now())
+        if (onActiveChange) onActiveChange(false)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
 
     const targetChars = target.split('')
     const typedChars = typed.split('')
@@ -182,12 +189,7 @@ export default function TextArea({ target = '', onChange, onActiveChange, onRequ
                 completed={completed}
                 duration={60}
                 wpm={liveWpm}
-                onTimeUp={() => {
-                    setCompleted(true)
-                    setActive(false)
-                    setCompletionTime(Date.now())
-                    if (onActiveChange) onActiveChange(false)
-                }}
+                onTimeUp={handleTimeUp}
             />
             <div className={styles.content}>
                 <span className={styles.typed}>

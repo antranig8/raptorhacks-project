@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import styles from '@dashboard/styles/Typing.module.css'
 import TextArea from '@d_general/typing/TextArea'
 import { randomText } from './wordBank'
@@ -13,6 +13,7 @@ export default function Typing() {
     const [isMobile, setIsMobile] = useState(false)
     const [isTablet, setIsTablet] = useState(false)
     const [realtimeChartData, setRealtimeChartData] = useState(null)
+    const lastChartUpdate = useRef(0)
 
     useEffect(() => {
         const checkMobile = () => {
@@ -122,9 +123,11 @@ export default function Typing() {
                         target={practiceTemplate}
                         onChange={(next, history) => {
                             setInput(next)
-                            if (history && history.length) {
+                            const now = Date.now()
+                            if (history && history.length > 0 && now - lastChartUpdate.current > 1000) {
                                 const chart = buildRealtimeFromHistory(history)
                                 setRealtimeChartData(chart)
+                                lastChartUpdate.current = now
                             }
                         }}
                         onActiveChange={setIsTopActive}
@@ -167,9 +170,11 @@ export default function Typing() {
                             target={practiceTemplate}
                             onChange={(next, history) => {
                                 setInput(next)
-                                if (history && history.length) {
+                                const now = Date.now()
+                                if (history && history.length > 0 && now - lastChartUpdate.current > 1000) {
                                     const chart = buildRealtimeFromHistory(history)
                                     setRealtimeChartData(chart)
+                                    lastChartUpdate.current = now
                                 }
                             }}
                             onActiveChange={setIsTopActive}
