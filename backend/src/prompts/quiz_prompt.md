@@ -89,6 +89,7 @@ Coding rules:
 - "expectedStdout" must exactly match the printed output.
 - "userGuidance" must clearly tell the learner what to write into the placeholder.
 - "userGuidance" should be short and concrete, for example: "Write one expression that returns the sum." or "Write the loop body only."
+- "userGuidance" should tell the learner what variables to use.
 - "userGuidance" should name the exact kind of code expected, such as expression, statement, condition, function body, SQL query, or command.
 - "userGuidance" should tell the learner any important constraints, such as "do not print anything extra" or "return the value, do not print it".
 - Do not make "userGuidance" vague like "finish the code" or "write code here".
