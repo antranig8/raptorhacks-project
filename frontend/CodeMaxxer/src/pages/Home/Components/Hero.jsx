@@ -39,7 +39,7 @@ function Hero() {
                         className={`${styles.subtitle} ${contentVisible ? styles.fallInVisible : styles.fallInHidden}`}
                         style={{ transitionDelay: '220ms' }}
                     >
-                        Learn flexibly, Learn faster, Learn better.
+                        Learn flexibly, faster, better.
                     </p>
                     <button
                         className={`${styles.ctaButton} ${contentVisible ? styles.fallInVisible : styles.fallInHidden}`}

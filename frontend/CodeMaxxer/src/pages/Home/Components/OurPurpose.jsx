@@ -7,7 +7,7 @@ function OurPurpose() {
     return (
         <section ref={ref} className={`${styles.purpose} ${isVisible ? styles.visible : styles.hidden}`} aria-label="Our Purpose">
             <div className={`${styles.content} ${isVisible ? styles.fallInVisible : styles.fallInHidden}`} style={{ transitionDelay: '120ms' }}>
-                <h2 className={styles.text}>Something inspirational or corny</h2>
+                <h2 className={styles.text}>Stop guessing what to learn next.</h2>
             </div>
         </section>
     )
