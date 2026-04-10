@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import styles from "@dashboard/styles/Question.module.css";
 
 export default function Question({
@@ -24,17 +24,11 @@ export default function Question({
     const [selectedId, setSelectedId] = useState(typeof initialAnswer === "string" && type !== "Coding" ? initialAnswer : null);
     const [selectedIds, setSelectedIds] = useState(Array.isArray(initialAnswer) ? initialAnswer : []);
     const [codeAnswer, setCodeAnswer] = useState(typeof initialAnswer === "string" && type === "Coding" ? initialAnswer : (userGuidance || ""));
-    const [isSubmitted, setIsSubmitted] = useState(Boolean(validationResult));
-
-    useEffect(() => {
-        setSelectedId(typeof initialAnswer === "string" && type !== "Coding" ? initialAnswer : null);
-        setSelectedIds(Array.isArray(initialAnswer) ? initialAnswer : []);
-        setCodeAnswer(typeof initialAnswer === "string" && type === "Coding" ? initialAnswer : (userGuidance || ""));
-        setIsSubmitted(isMockMode ? Boolean(initialAnswer) : Boolean(validationResult));
-    }, [initialAnswer, isMockMode, number, type, userGuidance, validationResult]);
-
     const isMultiChoice = type === "Multiple" || type === "SelectAll";
     const hasBackendValidation = Boolean(validationResult);
+    const isSubmitted = isMockMode
+        ? (type === "Coding" ? codeAnswer.trim().length > 0 : (isMultiChoice ? selectedIds.length > 0 : selectedId !== null))
+        : hasBackendValidation;
 
     const evaluateMultiChoice = (selected) => {
         const correctIds = choices.filter((choice) => choice.isCorrect).map((choice) => choice.id);
@@ -53,9 +47,7 @@ export default function Question({
             setSelectedIds(nextSelectedIds);
 
             if (isMockMode) {
-                const submitted = nextSelectedIds.length > 0;
-                setIsSubmitted(submitted);
-                onResult?.(submitted ? evaluateMultiChoice(nextSelectedIds) : false, nextSelectedIds);
+                onResult?.(nextSelectedIds.length > 0 ? evaluateMultiChoice(nextSelectedIds) : false, nextSelectedIds);
             }
             return;
         }
@@ -63,7 +55,6 @@ export default function Question({
         setSelectedId(id);
 
         if (isMockMode) {
-            setIsSubmitted(true);
             const choice = choices.find((item) => item.id === id);
             onResult?.(choice?.isCorrect || false, id);
         }
@@ -73,9 +64,7 @@ export default function Question({
         setCodeAnswer(value);
 
         if (isMockMode) {
-            const submitted = value.trim().length > 0;
-            setIsSubmitted(submitted);
-            onResult?.(submitted, value);
+            onResult?.(value.trim().length > 0, value);
         }
     };
 

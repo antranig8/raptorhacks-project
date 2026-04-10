@@ -7,13 +7,15 @@ function Hero() {
     const [contentVisible, setContentVisible] = useState(false)
 
     useEffect(() => {
-        let timer
+        let timer = null
         if (isVisible) {
             timer = setTimeout(() => {
                 setContentVisible(true)
             }, 700) // after backdrop fade-in completes
-        } else {
-            setContentVisible(false)
+        } else if (contentVisible) {
+            timer = setTimeout(() => {
+                setContentVisible(false)
+            }, 0)
         }
 
         return () => {
@@ -21,7 +23,7 @@ function Hero() {
                 clearTimeout(timer)
             }
         }
-    }, [isVisible])
+    }, [contentVisible, isVisible])
 
     return (
         <section ref={ref} className={`${styles.hero} ${isVisible ? styles.visible : styles.hidden}`}>

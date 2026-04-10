@@ -1,24 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { VictoryChart, VictoryLine, VictoryAxis, VictoryTheme, VictoryLegend, VictoryContainer } from 'victory'
+import { VictoryChart, VictoryLine, VictoryAxis, VictoryTheme, VictoryLegend } from 'victory'
 import styles from './CustomLineChart.module.css'
 
 const RANGES = ['1W', '1M', '3M', 'YTD', '1Y', 'ALL']
 
 export default function CustomLineChart({ title, initialDataGenerator, lines = [], showTimeControls = true, xAxisType = 'date', data = null }) {
     const [timeRange, setTimeRange] = useState('1M')
-    const [chartData, setChartData] = useState([])
     const containerRef = useRef(null)
     const [dimensions, setDimensions] = useState({ width: 800, height: 200 })
-
-    useEffect(() => {
-        if (data) return
-        setChartData(initialDataGenerator(timeRange))
-    }, [timeRange, initialDataGenerator, data])
-
-    useEffect(() => {
-        if (!data) return
-        setChartData(data)
-    }, [data])
+    const chartData = data ?? initialDataGenerator(timeRange)
 
     useEffect(() => {
         if (!containerRef.current) return

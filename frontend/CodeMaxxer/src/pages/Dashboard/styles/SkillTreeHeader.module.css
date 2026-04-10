@@ -49,3 +49,8 @@
     color: #1e293b;
     border-color: #cbd5e1;
 }
+
+.textButton {
+    min-width: 0;
+    font-weight: 400;
+}

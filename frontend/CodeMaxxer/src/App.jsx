@@ -4,6 +4,7 @@ import Login from '@login/login.jsx'
 import LoginCallback from '@login/callback.jsx'
 import Dashboard from '@dashboard/dashboard.jsx'
 import DashboardHome from '@d_general/dashboard/DashboardHome.jsx'
+import Plan from '@d_general/plan/Plan.jsx'
 import SkillTree from '@d_general/skilltree/SkillTree.jsx'
 import Test from '@dashboard/components/Test.jsx'
 import Coding from '@d_study/coding/Coding.jsx'
@@ -26,6 +27,7 @@ function App() {
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<Dashboard />}>
               <Route index element={<DashboardHome />} />
+              <Route path="plan" element={<Plan />} />
               <Route path="skill-tree" element={<SkillTree />} />
               <Route path="test" element={<Test />} />
               <Route path="coding" element={<Coding />} />

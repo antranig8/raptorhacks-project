@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import AliasChoices, BaseModel, Field, field_validator
+from pydantic import AliasChoices, BaseModel, Field, field_validator, model_validator
 from postgrest import APIError as PostgrestAPIError
 
 from ..auth.auth import get_current_user
@@ -17,6 +17,7 @@ from ..services.skill_tree import (
     generated_tree_to_node,
     load_skill_tree_system_prompt,
     parse_skill_tree_response,
+    resolve_skill_tree_goal,
 )
 
 
@@ -27,21 +28,39 @@ router = APIRouter()
 
 
 class SkillTreeCreateRequest(BaseModel):
-    # The frontend only needs to supply a display name and a goal.
+    # The frontend supplies a display name and either a normalized goal or a raw prompt.
     name: str = Field(
         min_length=1,
         max_length=120,
         validation_alias=AliasChoices("name", "title"),
     )
-    goal: str = Field(min_length=3, max_length=300)
+    goal: str | None = Field(default=None, min_length=3, max_length=300)
+    prompt: str | None = Field(default=None, min_length=3, max_length=800)
 
-    @field_validator("name", "goal")
+    @field_validator("name")
     @classmethod
-    def _strip_text(cls, value: str) -> str:
+    def _strip_name(cls, value: str) -> str:
         value = value.strip()
         if not value:
             raise ValueError("Value cannot be blank.")
         return value
+
+    @field_validator("goal", "prompt")
+    @classmethod
+    def _strip_optional_text(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        value = value.strip()
+        if not value:
+            raise ValueError("Value cannot be blank.")
+        return value
+
+    @model_validator(mode="after")
+    def _require_goal_or_prompt(self) -> "SkillTreeCreateRequest":
+        # Force callers to provide at least one input that can drive tree generation.
+        if not self.goal and not self.prompt:
+            raise ValueError("Either goal or prompt is required.")
+        return self
 
 
 class SkillTreeUpdateRequest(BaseModel):
@@ -122,16 +141,32 @@ def _handle_supabase_error(exc: Exception) -> HTTPException:
     )
 
 
-# Generate a new skill tree from the user's goal using the configured AI provider.
-def _generate_skill_tree(goal: str) -> SkillTreeNode:
+def _list_skill_tree_records_for_user(current_user: User) -> list[dict[str, Any]]:
+    try:
+        response = (
+            supabase_client.table(SKILL_TREES_TABLE)
+            .select("*")
+            .eq("user_id", str(current_user.uuid))
+            .order("created_at", desc=True)
+            .execute()
+        )
+    except Exception as exc:
+        raise _handle_supabase_error(exc)
+
+    return response.data or []
+
+
+# Generate a new skill tree from either a normalized goal or a free-form user prompt.
+def _generate_skill_tree(goal: str | None, prompt: str | None) -> tuple[str, SkillTreeNode]:
     ai_platform = get_ai_platform()
+    resolved_goal = resolve_skill_tree_goal(ai_platform, goal, prompt)
     system_prompt = load_skill_tree_system_prompt()
     messages: list[dict[str, str]] = []
 
     if system_prompt:
         messages.append({"role": "system", "content": system_prompt})
 
-    messages.append({"role": "user", "content": build_skill_tree_user_prompt(goal)})
+    messages.append({"role": "user", "content": build_skill_tree_user_prompt(resolved_goal)})
 
     try:
         response_text, _ = ai_platform.chat_messages(messages, temperature=0.2, max_tokens=1200)
@@ -141,7 +176,7 @@ def _generate_skill_tree(goal: str) -> SkillTreeNode:
     except Exception as exc:
         raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail="AI provider request failed.") from exc
 
-    return canonicalize_skill_tree(generated_tree_to_node(generated_tree))
+    return resolved_goal, canonicalize_skill_tree(generated_tree_to_node(generated_tree))
 
 # Create and save a new generated skill tree for the current user.
 @router.post("/skill-trees", response_model=SkillTreeRecord, status_code=status.HTTP_201_CREATED)
@@ -149,12 +184,12 @@ async def create_skill_tree(
     request: SkillTreeCreateRequest,
     current_user: User = Depends(get_current_user),
 ):
-    # Generate and persist a new tree from the simple create payload.
-    tree = _generate_skill_tree(request.goal)
+    # Generate and persist a new tree from either the explicit goal or the raw user prompt.
+    resolved_goal, tree = _generate_skill_tree(request.goal, request.prompt)
 
     payload = {
         "user_id": str(current_user.uuid),
-        "goal": request.goal,
+        "goal": resolved_goal,
         "title": request.name,
         "tree_json": tree.model_dump(),
     }
@@ -177,18 +212,7 @@ async def create_skill_tree(
 @router.get("/skill-trees", response_model=list[SkillTreeRecord])
 async def list_skill_trees(current_user: User = Depends(get_current_user)):
     # Return all saved trees for the logged-in user, newest first.
-    try:
-        response = (
-            supabase_client.table(SKILL_TREES_TABLE)
-            .select("*")
-            .eq("user_id", str(current_user.uuid))
-            .order("created_at", desc=True)
-            .execute()
-        )
-    except Exception as exc:
-        raise _handle_supabase_error(exc)
-
-    return [_record_to_response(record) for record in response.data or []]
+    return [_record_to_response(record) for record in _list_skill_tree_records_for_user(current_user)]
 
 # Fetch one saved skill tree if it belongs to the current user.
 @router.get("/skill-trees/{skill_tree_id}", response_model=SkillTreeRecord)
@@ -237,6 +261,15 @@ async def update_skill_tree(
         raise HTTPException(status_code=400, detail="No skill tree changes were provided.")
 
     try:
+        if request.is_active is True:
+            # Keep one active plan at a time by clearing the flag on the user's other saved trees.
+            (
+                supabase_client.table(SKILL_TREES_TABLE)
+                .update({"is_active": False})
+                .eq("user_id", str(current_user.uuid))
+                .execute()
+            )
+
         # Update only the matching row that belongs to the current authenticated user.
         response = (
             supabase_client.table(SKILL_TREES_TABLE)
@@ -254,3 +287,20 @@ async def update_skill_tree(
 
     # Return the updated record in the same API shape used by create/list/get.
     return _record_to_response(response.data[0])
+
+
+@router.delete("/skill-trees/{skill_tree_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_skill_tree(skill_tree_id: str, current_user: User = Depends(get_current_user)):
+    try:
+        response = (
+            supabase_client.table(SKILL_TREES_TABLE)
+            .delete()
+            .eq("id", skill_tree_id)
+            .eq("user_id", str(current_user.uuid))
+            .execute()
+        )
+    except Exception as exc:
+        raise _handle_supabase_error(exc)
+
+    if not response.data:
+        raise HTTPException(status_code=404, detail="Skill tree not found.")

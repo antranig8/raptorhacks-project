@@ -43,19 +43,19 @@ export const initSkillWeb = (svgRef, data, width, height, zoom, onNodeClick) => 
             d.x = width / 2;
             d.y = height / 2;
         } else if (d.depth === 1) {
-            const ring1Radius = 300;
+            const ring1Radius = 360;
             const siblings = d.parent.children;
             const index = siblings.indexOf(d);
             const angle = (index / siblings.length) * 2 * Math.PI;
             d.x = width / 2 + Math.cos(angle) * ring1Radius;
             d.y = height / 2 + Math.sin(angle) * ring1Radius;
         } else if (d.depth >= 2) {
-            const orbitRadius = d.depth === 2 ? 180 : 120; // Level 2 and Level 3 have their own radius around their parent
+            const orbitRadius = d.depth === 2 ? 235 : 165; // Give lower levels more room around their parent.
             const siblings = d.parent.children;
             const index = siblings.indexOf(d);
             // Calculate angle pointing away from the grandparent to spread outward
             const parentAngle = Math.atan2(d.parent.y - d.parent.parent.y, d.parent.x - d.parent.parent.x);
-            const spread = Math.PI / 1.5; // Spread angle
+            const spread = Math.PI / 1.2; // Widen sibling spread to reduce branch overlap.
             const step = siblings.length > 1 ? spread / (siblings.length - 1) : 0;
             const angle = parentAngle - (spread / 2) + (index * step);
             d.x = d.parent.x + Math.cos(angle) * orbitRadius;
@@ -64,15 +64,15 @@ export const initSkillWeb = (svgRef, data, width, height, zoom, onNodeClick) => 
     });
 
     // Use D3 force simulation to resolve overlaps, specifically for leaf nodes
-    const leafNodes = root.leaves();
-    const simulation = d3.forceSimulation(leafNodes)
+    const movableNodes = root.descendants().filter(node => node.depth > 0);
+    const simulation = d3.forceSimulation(movableNodes)
         .force("x", d3.forceX(d => d.x).strength(0.5))
         .force("y", d3.forceY(d => d.y).strength(0.5))
-        .force("collide", d3.forceCollide().radius(d => Math.max(d.dims.w, d.dims.h) * 0.7).iterations(4))
+        .force("collide", d3.forceCollide().radius(d => (Math.max(d.dims.w, d.dims.h) / 2) + 34).iterations(5))
         .stop();
 
     // Run the simulation for a few ticks to stabilize
-    for (let i = 0; i < 120; ++i) simulation.tick();
+    for (let i = 0; i < 180; ++i) simulation.tick();
 
     let history = [];
     let historyIndex = -1;

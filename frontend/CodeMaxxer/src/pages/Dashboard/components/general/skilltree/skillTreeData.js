@@ -3,6 +3,14 @@ import supabase from "@/utils/supabase";
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 const COMPLETED_LEAF_XP = 100;
 export const MOCK_SKILL_TREE_ID = "mock-skill-tree";
+export const EMPTY_PLAN_NODE_ID = "create-plan";
+
+export const emptyPlanData = {
+    id: EMPTY_PLAN_NODE_ID,
+    name: "Create Plan",
+    xp: 0,
+    children: [],
+};
 
 async function getAccessToken() {
     const { data: { session } } = await supabase.auth.getSession();
@@ -72,9 +80,10 @@ export async function fetchDataForUser() {
 
     if (!selectedTree) {
         return {
-            skillTreeId: MOCK_SKILL_TREE_ID,
-            treeName: "Mock Skill Tree",
-            data: mockData,
+            skillTreeId: null,
+            treeName: "Create Plan",
+            data: emptyPlanData,
+            isPlaceholder: true,
         };
     }
 
@@ -82,16 +91,46 @@ export async function fetchDataForUser() {
         skillTreeId: selectedTree.id,
         treeName: selectedTree.name,
         data: transformSkillTreeRecord(selectedTree),
+        isPlaceholder: false,
     };
 }
 
-export async function createSkillTree(treeName, goal) {
+export async function listSkillTrees() {
+    return requestSkillTrees("/skill-trees", { method: "GET" });
+}
+
+export async function setActiveSkillTree(skillTreeId) {
+    return requestSkillTrees(`/skill-trees/${encodeURIComponent(skillTreeId)}`, {
+        method: "PATCH",
+        body: JSON.stringify({ is_active: true }),
+    });
+}
+
+export async function deleteSkillTree(skillTreeId) {
+    const accessToken = await getAccessToken();
+    const response = await fetch(`${API_BASE_URL}/skill-trees/${encodeURIComponent(skillTreeId)}`, {
+        method: "DELETE",
+        headers: {
+            Authorization: `Bearer ${accessToken}`,
+        },
+    });
+
+    if (!response.ok) {
+        const errorBody = await response.json().catch(() => ({}));
+        throw new Error(errorBody.detail || "Skill tree request failed.");
+    }
+}
+
+export async function createSkillTree(input) {
+    const payload = typeof input === 'object' && input !== null
+        ? input
+        : { name: arguments[0], prompt: arguments[1] }
+
+    // Callers can either send a raw prompt for backend-side normalization or
+    // a direct goal when the UI already collected enough structure up front.
     return requestSkillTrees("/skill-trees", {
         method: "POST",
-        body: JSON.stringify({
-            name: treeName,
-            goal,
-        }),
+        body: JSON.stringify(payload),
     });
 }
 
