@@ -27,7 +27,7 @@ async function getAccessToken() {
 
 async function requestSkillTrees(path, options = {}) {
     const accessToken = await getAccessToken();
-    const response = await fetch(`${API_BASE_URL}/api/v1/private/${path}`, {
+    const response = await fetch(`${API_BASE_URL}${path}`, {
         ...options,
         headers: {
             "Content-Type": "application/json",
