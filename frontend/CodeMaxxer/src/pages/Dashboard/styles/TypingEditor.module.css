@@ -69,9 +69,10 @@
     font-size: 0.85rem;
     font-weight: 500;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: background-color 0.2s, border-color 0.2s, color 0.2s;
     background: #ffffff;
     user-select: none;
+    line-height: 1.2;
 }
 
 .option:hover {
@@ -125,4 +126,10 @@
 
 .generateBtn:hover {
     background-color: #0842a0;
+}
+
+@media (max-width: 1600px) {
+    .editorContainer {
+        padding: 0.5rem;
+    }
 }

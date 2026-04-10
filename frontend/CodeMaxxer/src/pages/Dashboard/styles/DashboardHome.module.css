@@ -22,12 +22,13 @@
     height: 100%;
 }
 
-h1 {
+/* Scope headings and paragraphs to the container to avoid global element selectors */
+.container h1 {
     margin: 0 0 0.75rem;
-    font-size: 2rem;
+    font-size: 1.25rem;
 }
 
-p {
+.container p {
     margin: 0;
     color: #475569;
 }

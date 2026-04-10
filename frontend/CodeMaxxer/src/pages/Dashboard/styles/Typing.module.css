@@ -8,6 +8,24 @@
     box-sizing: border-box;
 }
 
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: #ffffff;
+    border-bottom: 1px solid #e5e9f0;
+    border-radius: 14px 14px 0 0;
+    z-index: 10;
+}
+
+.title {
+    margin: 0;
+    font-size: 1.25rem;
+    color: #1e293b;
+    font-weight: 600;
+}
+
 .leftColumn {
     flex: 0 0 calc(70% - 0.75rem);
     display: flex;
@@ -35,11 +53,19 @@
     background: #ffffff;
     border: 1px solid #e5e9f0;
     border-radius: 14px;
-    padding: 1.5rem;
     display: flex;
     flex-direction: column;
     min-height: 0;
     box-sizing: border-box;
+    overflow: hidden;
+}
+
+.typingAreaContent {
+    flex: 1;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
 }
 
 .analyticsArea {
@@ -54,20 +80,50 @@
     flex-direction: column;
 }
 
+@media (max-width: 1600px) {
+
+    .header {
+        padding: 0.5rem;
+    }
+
+    .typingAreaContent,
+    .analyticsArea {
+        padding: 0.5rem;
+    }
+
+    .container,
+    .leftColumn {
+        gap: 0.75rem;
+    }
+
+    /* Scaling inner elements of TypingEditor since they are inside rightColumn */
+    .rightColumn {
+        font-size: 0.5rem;
+    }
+
+    .rightColumn * {
+        font-size: 0.75rem !important;
+    }
+
+    .rightColumn h2,
+    .rightColumn h3 {
+        font-size: 0.9375rem !important;
+    }
+}
+
 @media (max-width: 1024px) {
 
-    .typingArea,
+    .typingArea {
+        padding: 0;
+    }
+
+    .typingAreaContent,
     .analyticsArea {
         padding: 1rem;
     }
 }
 
-.typingArea>h1 {
-    margin-bottom: 1rem;
-    flex: 0;
-}
-
-.typingArea> :not(h1) {
+.typingAreaContent> :not(h1) {
     flex: 1;
     min-height: 0;
 }
@@ -120,11 +176,6 @@
     background: #ffffff;
     border: 1px solid #e5e9f0;
     border-radius: 14px;
-}
-
-.topMain h1 {
-    margin: 0 0 0.75rem;
-    font-size: 2rem;
 }
 
 .inputArea {

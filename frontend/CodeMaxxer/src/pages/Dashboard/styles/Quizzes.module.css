@@ -59,7 +59,7 @@
 }
 
 /* On screens below 1600px, show only one column based on the mode class applied to .fullCol */
-@media (max-width: 1599px) {
+@media (max-width: 1600px) {
     .fullCol.editorMode>.leftCol {
         display: block;
     }

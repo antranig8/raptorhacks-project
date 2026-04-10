@@ -17,7 +17,7 @@
 .heroCard,
 .formCard,
 .previewCard {
-    background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+    background: #ffffff;
     border: 1px solid #dbe6f2;
     border-radius: 24px;
     box-shadow: 0 18px 40px rgba(15, 23, 42, 0.06);
@@ -29,7 +29,7 @@
 
 .heroCard {
     padding: 1.4rem 1.5rem;
-    background: linear-gradient(160deg, #0f172a 0%, #17304f 100%);
+    background: #17304f;
     color: #eff6ff;
 }
 
@@ -181,7 +181,7 @@
 
 .choiceActive {
     border-color: #2563eb;
-    background: linear-gradient(180deg, #eef5ff 0%, #e0ecff 100%);
+    background: #e0ecff;
     box-shadow: 0 12px 24px rgba(37, 99, 235, 0.12);
 }
 
@@ -333,7 +333,7 @@
 .primaryButton {
     border: none;
     color: #ffffff;
-    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    background: #1d4ed8;
     box-shadow: 0 14px 28px rgba(37, 99, 235, 0.22);
 }
 
@@ -366,7 +366,7 @@
     display: flex;
     flex-direction: column;
     gap: 1.25rem;
-    background: linear-gradient(180deg, #ffffff 0%, #f4f8ff 100%);
+    background: #f4f8ff;
 }
 
 .previewHeader {
@@ -407,6 +407,7 @@
 }
 
 @media (max-width: 1080px) {
+
     .hero,
     .layout {
         grid-template-columns: 1fr;
