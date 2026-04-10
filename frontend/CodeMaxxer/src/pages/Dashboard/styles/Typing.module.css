@@ -122,11 +122,6 @@
     border-radius: 14px;
 }
 
-.topMain h1 {
-    margin: 0 0 0.75rem;
-    font-size: 2rem;
-}
-
 .inputArea {
     width: 100%;
     height: calc(100% - 2.5rem);

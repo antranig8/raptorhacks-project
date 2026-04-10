@@ -1,4 +1,19 @@
-@import url('https://fonts.cdnfonts.com/css/mona-sans');
+/* Prefer self-hosted Mona Sans. Place font files under /public/fonts/ */
+@font-face {
+  font-family: 'Mona Sans';
+  src: url('/fonts/MonaSans-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Mona Sans';
+  src: url('/fonts/MonaSans-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
 
 :global(html) {
   --global-font-scale: 1.5;

@@ -407,6 +407,7 @@
 }
 
 @media (max-width: 1080px) {
+
     .hero,
     .layout {
         grid-template-columns: 1fr;
