@@ -29,8 +29,7 @@
     align-items: center;
     justify-content: center;
     padding: 1.5rem;
-    background:
-        radial-gradient(circle at center, rgba(255, 255, 255, 0.34) 0%, rgba(248, 251, 255, 0.72) 48%, rgba(248, 251, 255, 0.9) 100%);
+    background: rgba(248, 251, 255, 0.9);
     z-index: 2;
 }
 
@@ -76,7 +75,7 @@
     font-size: 0.92rem;
     font-weight: 700;
     color: #ffffff;
-    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    background: #1d4ed8;
     cursor: pointer;
     box-shadow: 0 14px 28px rgba(37, 99, 235, 0.22);
 }
