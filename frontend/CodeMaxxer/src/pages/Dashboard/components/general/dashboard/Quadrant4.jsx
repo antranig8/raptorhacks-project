@@ -57,24 +57,6 @@ export default function Quadrant4({ userData }) {
 
     const quizEvents = useMemo(() => userData?.quiz_complete?.events ?? [], [userData])
 
-    const availableRanges = useMemo(() => {
-        if (!quizEvents.length) return ['ALL']
-
-        const sorted = [...quizEvents].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
-        const earliest = new Date(sorted[0].timestamp)
-        const latest = new Date(sorted[sorted.length - 1].timestamp)
-        const daySpan = Math.ceil((latest - earliest) / (1000 * 60 * 60 * 24))
-
-        return [
-            daySpan >= 7   && '1W',
-            daySpan >= 30  && '1M',
-            daySpan >= 90  && '3M',
-            daySpan >= 365 && 'YTD',
-            daySpan >= 365 && '1Y',
-            'ALL',
-        ].filter(Boolean)
-    }, [quizEvents])
-
     const quizData = useMemo(
         () => aggregateQuizEvents(quizEvents, range).overall,
         [quizEvents, range]
@@ -89,7 +71,6 @@ export default function Quadrant4({ userData }) {
                         data={quizData}
                         onRangeChange={setRange}
                         lines={[{ name: 'Quizzes', color: '#3b82f6' }]}
-                        availableRanges={availableRanges}
                     />
                 </div>
             </div>

@@ -76,24 +76,6 @@ export default function Quadrant2({ userData }) {
 
     const expEvents = useMemo(() => userData?.exp?.events ?? [], [userData])
 
-    const availableRanges = useMemo(() => {
-        if (!expEvents.length) return ['ALL']
-
-        const sorted = [...expEvents].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
-        const earliest = new Date(sorted[0].timestamp)
-        const latest = new Date(sorted[sorted.length - 1].timestamp)
-        const daySpan = Math.ceil((latest - earliest) / (1000 * 60 * 60 * 24))
-
-        return [
-            daySpan >= 7   && '1W',
-            daySpan >= 30  && '1M',
-            daySpan >= 90  && '3M',
-            daySpan >= 365 && 'YTD',
-            daySpan >= 365 && '1Y',
-            'ALL',
-        ].filter(Boolean)
-    }, [expEvents])
-
     const overallData = useMemo(
         () => aggregateExpEvents(expEvents, overallRange).overall,
         [expEvents, overallRange]
@@ -108,7 +90,6 @@ export default function Quadrant2({ userData }) {
                         data={overallData}
                         onRangeChange={setOverallRange}
                         lines={[{ name: 'Global XP', color: '#22c55e' }]}
-                        availableRanges={availableRanges}
                     />
                 </div>
             </div>
