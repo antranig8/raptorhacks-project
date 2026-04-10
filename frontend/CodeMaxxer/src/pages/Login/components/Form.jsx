@@ -26,7 +26,7 @@ export default function Form() {
                     email,
                     password,
                     options: {
-                        emailRedirectTo: `https://${BASE_URL}/login/callback`,
+                        emailRedirectTo: `${BASE_URL}/login/callback`,
                     }
                 })
                 if (error) throw error
@@ -50,7 +50,7 @@ export default function Form() {
         await supabase.auth.signInWithOAuth({
             provider,
             options: {
-                redirectTo: 'http://localhost:5173/login/callback',
+                redirectTo: `${BASE_URL}/login/callback`,
             }
         })
     }
