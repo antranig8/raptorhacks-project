@@ -4,6 +4,8 @@ import { FaDiscord, FaEye, FaEyeSlash, FaGoogle } from 'react-icons/fa'
 import supabase from '@utils/supabase'
 import styles from '@login/styles/login.module.css'
 
+const BASE_URL = import.meta.env.VITE_VERCEL_ENV ? `https://${import.meta.env.VITE_VERCEL_PROJECT_PRODUCTION_URL}` : "http://localhost:5173"
+
 export default function Form() {
     const [showPassword, setShowPassword] = useState(false)
     const [isSignUp, setIsSignUp] = useState(false)
@@ -24,7 +26,7 @@ export default function Form() {
                     email,
                     password,
                     options: {
-                        emailRedirectTo: 'http://localhost:5173/login/callback',
+                        emailRedirectTo: `https://${BASE_URL}/login/callback`,
                     }
                 })
                 if (error) throw error
