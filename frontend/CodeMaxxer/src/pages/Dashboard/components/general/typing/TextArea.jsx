@@ -34,7 +34,6 @@ export default function TextArea({ target = '', onChange, onActiveChange, onRequ
     const commitTyped = (next, key = '') => {
         const timestamp = Date.now()
 
-        if (onChange) onChange(next)
         setTyped(next)
 
         setHistory((prev) => {
@@ -43,7 +42,9 @@ export default function TextArea({ target = '', onChange, onActiveChange, onRequ
                 key,
                 timestamp,
             }
-            return [...prev, entry]
+            const newHistory = [...prev, entry]
+            if (onChange) onChange(next, newHistory)
+            return newHistory
         })
 
         if (!sessionStart) {
@@ -110,7 +111,7 @@ export default function TextArea({ target = '', onChange, onActiveChange, onRequ
 
         const timeout = setTimeout(() => {
             setTyped(current.value)
-            if (onChange) onChange(current.value)
+            if (onChange) onChange(current.value, history.slice(0, replayIndex + 1))
 
             const startTimestamp = history[0]?.timestamp || current.timestamp
             const elapsed = Math.max(1000, current.timestamp - startTimestamp)
@@ -136,7 +137,7 @@ export default function TextArea({ target = '', onChange, onActiveChange, onRequ
         if (onRequestNewTarget) onRequestNewTarget()
         setActive(true)
         if (onActiveChange) onActiveChange(true)
-        if (onChange) onChange('')
+        if (onChange) onChange('', [])
     }
 
     const handleWatchReplay = () => {
@@ -147,7 +148,7 @@ export default function TextArea({ target = '', onChange, onActiveChange, onRequ
         setReplayIndex(0)
         setActive(false)
         if (onActiveChange) onActiveChange(false)
-        if (onChange) onChange('')
+        if (onChange) onChange('', [])
     }
 
     useEffect(() => {

@@ -5,29 +5,10 @@ import { randomText } from './wordBank'
 import TypingEditor from './TypingEditor'
 import CustomLineChart from '@d_general/dashboard/CustomLineChart'
 
-// data generator for EPM and WPM series
-const generateTypingMetricsData = (range) => {
-    const points = range === '1W' ? 7 : range === '1M' ? 30 : range === '1D' ? 10 : 12
-    const epm = []
-    const wpm = []
-    let currentEpm = 80
-    let currentWpm = 45
-
-    for (let i = 0; i < points; i++) {
-        currentEpm = Math.max(0, currentEpm + (Math.random() - 0.5) * 15)
-        currentWpm = Math.max(0, currentWpm + (Math.random() - 0.5) * 8)
-
-        // Using i * 5 to simulate 5-second intervals on the X axis
-        const seconds = i * 5
-        epm.push({ x: seconds, y: Number(currentEpm.toFixed(0)) })
-        wpm.push({ x: seconds, y: Number(currentWpm.toFixed(0)) })
-    }
-
-    return [epm, wpm]
-}
+// Typing chart will use live session data provided by the TextArea
 
 export default function Typing() {
-    const [, setInput] = useState('')
+    const [input, setInput] = useState('')
     const [isTopActive, setIsTopActive] = useState(false)
     const [isMobile, setIsMobile] = useState(false)
     const [realtimeChartData, setRealtimeChartData] = useState(null)
@@ -46,6 +27,38 @@ export default function Typing() {
     }
 
     const [practiceTemplate, setPracticeTemplate] = useState(() => randomText(25))
+
+    const buildRealtimeFromHistory = (history, sessionStartParam) => {
+        if (!history || history.length === 0) return null
+        const start = sessionStartParam || history[0].timestamp
+
+        const wpmSeries = []
+        const epmSeries = []
+
+        for (let i = 0; i < history.length; i++) {
+            const entry = history[i]
+            const elapsedSec = Math.floor((entry.timestamp - start) / 1000)
+            const elapsedMin = Math.max(1 / 60, (entry.timestamp - start) / 60000)
+            const wpm = Math.round((entry.value.length / 5) / elapsedMin)
+
+            // Count character mismatches as errors at each snapshot
+            let errors = 0
+            for (let j = 0; j < entry.value.length; j++) {
+                if (entry.value[j] !== (practiceTemplate[j] || '')) errors++
+            }
+            const epm = Math.round(errors / elapsedMin)
+
+            wpmSeries.push({ x: elapsedSec, y: wpm })
+            epmSeries.push({ x: elapsedSec, y: epm })
+        }
+
+        const smoothedEpm = movingAverage(epmSeries, 3)
+        const smoothedWpm = movingAverage(wpmSeries, 3)
+        const interpEpm = interpolateSeries(smoothedEpm, 0.5)
+        const interpWpm = interpolateSeries(smoothedWpm, 0.5)
+
+        return [interpEpm, interpWpm]
+    }
 
     // Smooth / interpolate helpers
     const movingAverage = (series, window = 3) => {
@@ -97,47 +110,35 @@ export default function Typing() {
         <section className={styles.container}>
             <div className={styles.leftColumn}>
                 <div className={`${styles.typingArea} ${isTopActive ? styles.active : ''}`}>
-                    <h1>Practice Typing</h1>
-                    <TextArea
-                        target={practiceTemplate}
-                        onChange={setInput}
-                        onActiveChange={setIsTopActive}
-                        onRequestNewTarget={() => {
-                            setPracticeTemplate(randomText(25))
-                            setRealtimeChartData(null)
-                        }}
-                        onComplete={(session) => {
-                            // session: { history, sessionStart, completionTime, typed }
-                            const { history, sessionStart } = session
-                            if (!history || history.length === 0 || !sessionStart) return
-
-                            const wpmSeries = []
-                            const epmSeries = []
-
-                            for (let i = 0; i < history.length; i++) {
-                                const entry = history[i]
-                                const elapsedSec = Math.floor((entry.timestamp - sessionStart) / 1000)
-                                const elapsedMin = Math.max(1 / 60, (entry.timestamp - sessionStart) / 60000)
-                                const wpm = Math.round((entry.value.length / 5) / elapsedMin)
-                                const epm = Math.round(((i + 1) / elapsedMin))
-                                wpmSeries.push({ x: elapsedSec, y: wpm })
-                                epmSeries.push({ x: elapsedSec, y: epm })
-                            }
-
-                            // apply light smoothing then interpolate for smoother curves
-                            const smoothedEpm = movingAverage(epmSeries, 3)
-                            const smoothedWpm = movingAverage(wpmSeries, 3)
-                            const interpEpm = interpolateSeries(smoothedEpm, 0.5)
-                            const interpWpm = interpolateSeries(smoothedWpm, 0.5)
-
-                            setRealtimeChartData([interpEpm, interpWpm])
-                        }}
-                    />
+                    <div className={styles.header}>
+                        <h2 className={styles.title}>Practice Typing</h2>
+                    </div>
+                    <div className={styles.typingAreaContent}>
+                        <TextArea
+                            target={practiceTemplate}
+                            onChange={(next, history) => {
+                                setInput(next)
+                                if (history && history.length) {
+                                    const chart = buildRealtimeFromHistory(history)
+                                    setRealtimeChartData(chart)
+                                }
+                            }}
+                            onActiveChange={setIsTopActive}
+                            onRequestNewTarget={() => {
+                                setPracticeTemplate(randomText(25))
+                                setRealtimeChartData(null)
+                            }}
+                            onComplete={(session) => {
+                                const { history, sessionStart } = session
+                                const chart = buildRealtimeFromHistory(history, sessionStart)
+                                if (chart) setRealtimeChartData(chart)
+                            }}
+                        />
+                    </div>
                 </div>
                 <div className={styles.analyticsArea}>
                     <CustomLineChart
                         title="Typing Performance"
-                        initialDataGenerator={generateTypingMetricsData}
                         lines={[
                             { name: 'EPM', color: '#3b82f6' },
                             { name: 'WPM', color: '#10b981' }
