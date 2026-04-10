@@ -27,7 +27,7 @@
 }
 
 .leftColumn {
-    flex: 0 0 calc(70% - 0.75rem);
+    flex: 0 0 calc(70%);
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
@@ -36,7 +36,6 @@
 }
 
 .rightColumn {
-    flex: 0 0 calc(30% - 0.75rem);
     background: #ffffff;
     border: 1px solid #e5e9f0;
     border-radius: 14px;
@@ -101,13 +100,8 @@
         font-size: 0.5rem;
     }
 
-    .rightColumn * {
-        font-size: 0.75rem !important;
-    }
-
-    .rightColumn h2,
-    .rightColumn h3 {
-        font-size: 0.9375rem !important;
+    .rightColumn label {
+        font-size: 0.7rem;
     }
 }
 
