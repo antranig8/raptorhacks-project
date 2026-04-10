@@ -286,6 +286,7 @@
 }
 
 
+
 @media screen and (max-width: 480px) {
     .loginPage {
         padding: 0;
@@ -372,31 +373,36 @@
     }
 
     .subtitle {
-        font-size: 0.8rem;
+        font-size: 0.5rem;
     }
 
     .header {
-        margin-bottom: 1rem;
+        margin-bottom: 0.5rem;
     }
 
     .divider {
         margin: 0.5rem 0;
         font-size: 0.7rem;
+        font-size: 0.6rem;
     }
 
     .socialButton {
         padding: 0.55rem 0.7rem;
-        font-size: 0.8rem;
+        font-size: 0.5rem;
     }
 
     .optionsRow,
     .toggleRow {
-        font-size: 0.6rem;
+        font-size: 0.5rem;
     }
 
     .inputGroup input {
-        font-size: 0.85rem;
+        font-size: 0.5rem;
         padding: 0.5rem 0.7rem;
+    }
+
+    .inputGroup label {
+        font-size: 0.5rem;
     }
 
     .loginButton {
