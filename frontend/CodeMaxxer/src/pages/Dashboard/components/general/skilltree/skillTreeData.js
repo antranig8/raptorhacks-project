@@ -1,6 +1,9 @@
 import supabase from "@/utils/supabase";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL;
+const rawApiBaseUrl = (import.meta.env.VITE_API_URL || "http://127.0.0.1:8000").replace(/\/$/, "");
+const API_BASE_URL = rawApiBaseUrl.endsWith("/api/v1/private")
+    ? rawApiBaseUrl
+    : `${rawApiBaseUrl}/api/v1/private`;
 const COMPLETED_LEAF_XP = 100;
 export const MOCK_SKILL_TREE_ID = "mock-skill-tree";
 export const EMPTY_PLAN_NODE_ID = "create-plan";

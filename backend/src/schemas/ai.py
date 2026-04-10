@@ -11,9 +11,9 @@ class ChatMessage(BaseModel):
 
 
 class UsageInfo(BaseModel):
-    prompt_tokens: Optional[int]
-    completion_tokens: Optional[int]
-    total_tokens: Optional[int]
+    prompt_tokens: Optional[int] = None
+    completion_tokens: Optional[int] = None
+    total_tokens: Optional[int] = None
 
 
 class ChatRequest(BaseModel):
@@ -24,7 +24,7 @@ class ChatRequest(BaseModel):
 
 class ChatResponse(BaseModel):
     message: ChatMessage
-    usage: Optional[UsageInfo]
+    usage: Optional[UsageInfo] = None
 
 
 class SkillTreeGenerateRequest(BaseModel):
@@ -54,10 +54,10 @@ class GeneratedSkillTree(BaseModel):
 
 
 class SkillTreeNode(BaseModel):
-    id: Optional[str]
+    id: Optional[str] = None
     name: str
-    difficulty: Optional[str]
-    children: Optional[list["SkillTreeNode"]]
+    difficulty: Optional[str] = None
+    children: Optional[list["SkillTreeNode"]] = None
 
 
 SkillTreeNode.model_rebuild()

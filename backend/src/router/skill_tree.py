@@ -70,8 +70,8 @@ class SkillTreeUpdateRequest(BaseModel):
         max_length=120,
         validation_alias=AliasChoices("name", "title"),
     )
-    tree: Optional[SkillTreeNode]
-    is_active: Optional[bool]
+    tree: Optional[SkillTreeNode] = None
+    is_active: Optional[bool] = None
 
     @field_validator("name")
     @classmethod
@@ -92,8 +92,8 @@ class SkillTreeRecord(BaseModel):
     tree: SkillTreeNode
     completed_node_ids: list[str] = Field(default_factory=list)
     is_active: bool = False
-    created_at: Optional[str]
-    updated_at: Optional[str]
+    created_at: Optional[str] = None
+    updated_at: Optional[str] = None
 
 
 # Validate the stored JSON payload and normalize it into the API node schema.
