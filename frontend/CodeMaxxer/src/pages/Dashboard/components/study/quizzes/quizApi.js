@@ -1,6 +1,9 @@
 import supabase from "@utils/supabase";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL;
+const rawApiBaseUrl = (import.meta.env.VITE_API_URL || "http://127.0.0.1:8000").replace(/\/$/, "");
+const API_BASE_URL = rawApiBaseUrl.endsWith("/api/v1/private")
+    ? rawApiBaseUrl
+    : `${rawApiBaseUrl}/api/v1/private`;
 
 async function getAccessToken() {
     const { data: { session } } = await supabase.auth.getSession();

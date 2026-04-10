@@ -40,8 +40,8 @@ class ClientQuizQuestion(BaseModel):
     prompt: str
     isSkippable: bool
     choices: list[ClientQuizChoice] = Field(default_factory=list)
-    userGuidance: Optional[str]
-    language: Optional[str]
+    userGuidance: Optional[str] = None
+    language: Optional[str] = None
 
 
 class QuizResponse(BaseModel):
@@ -94,8 +94,8 @@ class QuizAnswerRequest(BaseModel):
 class QuizAnswerResult(BaseModel):
     question_index: int
     correct: bool
-    reasoning: Optional[str]
-    error: Optional[str]
+    reasoning: Optional[str] = None
+    error: Optional[str] = None
 
 
 class QuizSubmissionRequest(BaseModel):
