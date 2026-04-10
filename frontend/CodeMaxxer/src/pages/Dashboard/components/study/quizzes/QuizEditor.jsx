@@ -2,11 +2,90 @@ import { useState } from 'react';
 import styles from '@dashboard/styles/QuizEditor.module.css';
 
 const LANGUAGES = [
-    { id: 'python', label: 'Python' },
-    { id: 'javascript', label: 'JavaScript' },
-    { id: 'cpp', label: 'C++' },
-    { id: 'java', label: 'Java' },
-    { id: 'asm', label: 'x86 Assembly' }
+    'haskell',
+    'sqlite3',
+    'forth',
+    'nasm64',
+    'bash',
+    'fsharp.net',
+    'swift',
+    'ponylang',
+    'crystal',
+    'elixir',
+    'yeethon',
+    'vlang',
+    'c++',
+    'nasm',
+    'pascal',
+    'raku',
+    'japt',
+    'powershell',
+    'jelly',
+    'vyxal',
+    'llvm_ir',
+    'iverilog',
+    'emacs',
+    'lolcode',
+    'python',
+    'fortran',
+    'typescript',
+    'rockstar',
+    'befunge93',
+    'csharp',
+    'ruby',
+    'php',
+    'coffeescript',
+    'd',
+    'lisp',
+    'groovy',
+    'cow',
+    'julia',
+    'freebasic',
+    'javascript',
+    'racket',
+    'dart',
+    'nim',
+    'samarium',
+    'octave',
+    'fsi',
+    'lua',
+    'basic',
+    'retina',
+    'perl',
+    'golfscript',
+    'csharp.net',
+    'emojicode',
+    'kotlin',
+    'husk',
+    'scala',
+    'paradoc',
+    'zig',
+    'dash',
+    'awk',
+    'ocaml',
+    'cjam',
+    'java',
+    'cobol',
+    'prolog',
+    'rscript',
+    'file',
+    'forte',
+    'python2',
+    'erlang',
+    'basic.net',
+    'pure',
+    'clojure',
+    'smalltalk',
+    'go',
+    'dragon',
+    'brachylog',
+    'osabie',
+    'bqn',
+    'rust',
+    'matl',
+    'pyth',
+    'c',
+    'brainfuck',
 ];
 
 const QUESTION_AMOUNTS = [5, 10, 15, 20];
@@ -18,11 +97,12 @@ const CONFIG_OPTIONS = [
     { id: 'hard', label: 'Hard Mode' }
 ];
 
-export default function QuizEditor({ onGenerate }) {
-    const [language, setLanguage] = useState(LANGUAGES[0].id);
+export default function QuizEditor({ onGenerate, isGenerating = false, error = "" }) {
+    const [language, setLanguage] = useState('python');
     const [amount, setAmount] = useState(10);
     const [configs, setConfigs] = useState(['explanations']);
     const [prompt, setPrompt] = useState('');
+    const [localError, setLocalError] = useState('');
 
     const toggleConfig = (id) => {
         setConfigs(prev =>
@@ -31,8 +111,14 @@ export default function QuizEditor({ onGenerate }) {
     };
 
     const handleGenerate = () => {
+        const normalizedLanguage = language.trim().toLowerCase();
+        if (!normalizedLanguage || !prompt.trim()) {
+            setLocalError('Enter both a language and a topic before generating a quiz.');
+            return;
+        }
+        setLocalError('');
         if (onGenerate) {
-            onGenerate({ language, amount, configs, prompt });
+            onGenerate({ language: normalizedLanguage, amount, configs, prompt });
         }
     };
 
@@ -42,15 +128,21 @@ export default function QuizEditor({ onGenerate }) {
 
             <div className={styles.section}>
                 <label className={styles.label}>Programming Language</label>
-                <select
-                    className={styles.select}
+                <input
+                    className={styles.searchInput}
+                    type="text"
+                    list="quiz-language-options"
                     value={language}
                     onChange={(e) => setLanguage(e.target.value)}
-                >
-                    {LANGUAGES.map(lang => (
-                        <option key={lang.id} value={lang.id}>{lang.label}</option>
+                    placeholder="Search or enter a language, e.g. python or rust"
+                    autoComplete="off"
+                    spellCheck={false}
+                />
+                <datalist id="quiz-language-options">
+                    {LANGUAGES.map((lang) => (
+                        <option key={lang} value={lang} />
                     ))}
-                </select>
+                </datalist>
             </div>
 
             <div className={styles.section}>
@@ -83,8 +175,6 @@ export default function QuizEditor({ onGenerate }) {
                 </div>
             </div>
 
-            <hr className={styles.spacer} />
-
             <div className={`${styles.section} ${styles.textareaSection}`}>
                 <label className={styles.label}>Topic / Prompt</label>
                 <textarea
@@ -98,9 +188,11 @@ export default function QuizEditor({ onGenerate }) {
             <button
                 className={styles.generateBtn}
                 onClick={handleGenerate}
+                disabled={isGenerating}
             >
-                I'm Ready!
+                {isGenerating ? 'Generating...' : "I'm Ready!"}
             </button>
+            {(localError || error) && <p className={styles.errorText}>{localError || error}</p>}
         </div>
     );
 }

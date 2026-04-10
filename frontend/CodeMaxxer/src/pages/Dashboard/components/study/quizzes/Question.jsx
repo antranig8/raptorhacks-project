@@ -93,6 +93,9 @@ export default function Question({
         const showResult = isSubmitted && isSelected;
 
         let containerClass = styles.choice;
+        if (isSelected && !showResult) {
+            containerClass += ` ${styles.selected}`;
+        }
         if (showResult) {
             const isCorrect = isMockMode ? choice.isCorrect : validationResult?.correct;
             containerClass += isCorrect ? ` ${styles.correct}` : ` ${styles.wrong}`;

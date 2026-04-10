@@ -76,8 +76,24 @@ Choice rules:
 
 Coding rules:
 - The generated coding question must be runnable by itself.
+- "language" must be one exact identifier from the supported-languages reference provided with this prompt.
+- Choose the language that best matches the topic or the user's request.
+- "codeTemplate" must be valid runnable starter code for the selected language.
+- "codeTemplate" must contain exactly one "%s" placeholder where the user's answer will be inserted.
+- "codeTemplate" should include the surrounding boilerplate the learner should not have to rewrite.
+- "codeTemplate" should isolate one clear task, such as filling in one expression, one condition, one loop body, one function body, or one small missing block.
+- "codeTemplate" should give enough surrounding context that the learner can infer the expected answer from the code itself.
+- "codeTemplate" should avoid requiring imports, setup, or large multi-function solutions inside the placeholder unless the topic truly requires it.
+- "codeTemplate" should avoid placing the placeholder where indentation or syntax is ambiguous.
 - "codeTemplate" must print the final answer directly.
 - "expectedStdout" must exactly match the printed output.
-- Prefer Python for coding questions unless the topic strongly requires another language.
+- "userGuidance" must clearly tell the learner what to write into the placeholder.
+- "userGuidance" should be short and concrete, for example: "Write one expression that returns the sum." or "Write the loop body only."
+- "userGuidance" should name the exact kind of code expected, such as expression, statement, condition, function body, SQL query, or command.
+- "userGuidance" should tell the learner any important constraints, such as "do not print anything extra" or "return the value, do not print it".
+- Do not make "userGuidance" vague like "finish the code" or "write code here".
+- Do not put "%s" inside comments, quotes, or multiple locations.
+- Make the task small enough that the inserted answer can reasonably fit into one focused snippet.
+- Favor questions where there is one clearly correct output and the placeholder can be graded reliably by running the completed code.
 
 If you are unsure, still return valid JSON that matches the schema exactly.

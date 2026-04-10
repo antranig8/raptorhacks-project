@@ -5,9 +5,8 @@ import styles from "@dashboard/styles/Quizzes.module.css";
 import ProgressSummary from "./ProgressSummary";
 import Question from "./Question";
 import QuizEditor from "./QuizEditor";
-import { fetchQuizByNode, submitQuiz, submitQuizAnswer } from "./quizApi";
+import { fetchQuizByNode, generateQuiz, submitQuiz, submitQuizAnswer } from "./quizApi";
 import { evaluateMockAnswer } from "./mockQuizData";
-import { MOCK_SKILL_TREE_ID } from "@d_general/skilltree/skillTreeData";
 import questionData from "./questions.json";
 
 const STATIC_MOCK_QUESTIONS = questionData.questions;
@@ -31,8 +30,9 @@ export default function Quizzes() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [validatingIndex, setValidatingIndex] = useState(null);
     const [isQuizMode, setIsQuizMode] = useState(hasNodeLinkedContext);
+    const [isQuizComplete, setIsQuizComplete] = useState(false);
 
-    const isMockMode = !hasNodeLinkedContext || Boolean(quiz?.isMock);
+    const isMockMode = Boolean(quiz?.isMock);
     const activeQuestions = quiz?.questions || STATIC_MOCK_QUESTIONS;
     const currentQuestion = activeQuestions[currentIdx] || null;
     const total = activeQuestions.length;
@@ -52,6 +52,7 @@ export default function Quizzes() {
         setCurrentIdx(0);
         setSubmissionMessage("");
         setValidatingIndex(null);
+        setIsQuizComplete(false);
 
         if (!hasNodeLinkedContext) {
             setError("");
@@ -92,23 +93,30 @@ export default function Quizzes() {
         };
     }, [hasNodeLinkedContext, skillTreeId, nodeId, nodeName, skillTreeName]);
 
-    const handleMockGenerate = () => {
-        // Restore the old static quiz flow for /dashboard/quizzes by loading
-        // the sample questions.json data into a local mock quiz object.
-        setQuiz({
-            quiz_id: "mock-static-quiz",
-            skill_tree_id: MOCK_SKILL_TREE_ID,
-            node_id: "mock-static-node",
-            title: "Computer Architecture Quiz",
-            questions: STATIC_MOCK_QUESTIONS,
-            isMock: true,
-        });
+    const handleGenerateQuiz = async ({ language, prompt }) => {
+        // The standalone editor now calls the backend so freeform quizzes use
+        // the same generation and grading contract as node-linked quizzes.
+        setIsQuizMode(true);
+        setLoading(true);
+        setError("");
+        setSubmissionMessage("");
+
+        try {
+            const nextQuiz = await generateQuiz({ language, prompt });
+            setQuiz(nextQuiz);
+        } catch (requestError) {
+            setError(requestError.message || "Failed to generate quiz.");
+            setIsQuizMode(false);
+            return;
+        } finally {
+            setLoading(false);
+        }
+
         setCurrentIdx(0);
         setResults({});
         setAnswers({});
         setSubmissionMessage("");
-        setError("");
-        setIsQuizMode(true);
+        setIsQuizComplete(false);
     };
 
     const handleMockResult = (isCorrect, answer) => {
@@ -198,7 +206,8 @@ export default function Quizzes() {
         try {
             if (quiz.isMock) {
                 const correctAnswers = Object.values(results).filter((result) => result?.correct).length;
-                setSubmissionMessage(`${correctAnswers} of ${quiz.questions.length} mock answers were correct.`);
+                setSubmissionMessage(`Submitted! You got ${correctAnswers} out of ${quiz.questions.length} right.`);
+                setIsQuizComplete(true);
                 return;
             }
 
@@ -208,8 +217,9 @@ export default function Quizzes() {
                 answers: preparedAnswers,
             });
 
-            const message = `${submission.correct_answers} of ${submission.total_questions} validated answers were correct.`;
+            const message = `Submitted! You got ${submission.correct_answers} out of ${submission.total_questions} right.`;
             setSubmissionMessage(message);
+            setIsQuizComplete(true);
         } catch (requestError) {
             setError(requestError.message || "Failed to submit quiz.");
         } finally {
@@ -275,7 +285,7 @@ export default function Quizzes() {
                             )}
                         </div>
                     ) : (
-                        <QuizEditor onGenerate={handleMockGenerate} />
+                        <QuizEditor onGenerate={handleGenerateQuiz} isGenerating={loading} error={error} />
                     )}
                 </div>
 
@@ -290,10 +300,15 @@ export default function Quizzes() {
                             <h3 className={styles.placeholderTitle}>Loading Quiz</h3>
                             <p className={styles.placeholderText}>Fetching the saved quiz for this node or generating a new one.</p>
                         </div>
-                    ) : error && !quiz && hasNodeLinkedContext ? (
+                    ) : error && !quiz ? (
                         <div className={styles.placeholder}>
                             <h3 className={styles.placeholderTitle}>Quiz Error</h3>
                             <p className={styles.placeholderText}>{error}</p>
+                        </div>
+                    ) : isQuizComplete ? (
+                        <div className={styles.placeholder}>
+                            <h3 className={styles.placeholderTitle}>Quiz Submitted</h3>
+                            <p className={styles.placeholderText}>{submissionMessage}</p>
                         </div>
                     ) : currentQuestion ? (
                         <>

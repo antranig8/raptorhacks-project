@@ -1,7 +1,7 @@
 .editorContainer {
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
+    gap: 1rem;
     padding: 1rem;
     height: 100%;
     color: #111827;
@@ -24,7 +24,7 @@
     flex-direction: column;
     gap: 0.5rem;
     flex: 1;
-    min-height: 0;
+    min-height: 9rem;
 }
 
 .label {
@@ -33,7 +33,7 @@
     color: #4b5563;
 }
 
-.select {
+.searchInput {
     padding: 0.6rem 0.75rem;
     border-radius: 0.5rem;
     border: 2px solid #f3f4f6;
@@ -43,7 +43,7 @@
     transition: border-color 0.2s;
 }
 
-.select:focus {
+.searchInput:focus {
     border-color: #0b57d0;
 }
 
@@ -93,17 +93,16 @@
 }
 
 .textarea {
-    min-height: 100px;
-    padding: 0.75rem;
+    min-height: 0.55rem;
+    padding: 0.55rem;
     border-radius: 0.5rem;
     border: 2px solid #f3f4f6;
     background-color: #ffffff;
-    font-size: 0.95rem;
+    font-size: 0.85rem;
     resize: vertical;
     outline: none;
     transition: border-color 0.2s;
-    flex: 1;
-    min-height: 0;
+    flex: 0.8;
 }
 
 .textarea:focus {
@@ -111,7 +110,7 @@
 }
 
 .generateBtn {
-    margin-top: auto;
+    margin-top: 0.5rem;
     background-color: #0b57d0;
     color: white;
     padding: 0.75rem;
@@ -125,6 +124,18 @@
 
 .generateBtn:hover {
     background-color: #0842a0;
+}
+
+.generateBtn:disabled {
+    background-color: #93c5fd;
+    cursor: not-allowed;
+}
+
+.errorText {
+    margin: 0.5rem 0 0;
+    color: #b91c1c;
+    font-size: 0.9rem;
+    line-height: 1.4;
 }
 
 @media (max-width: 1024px) {
@@ -145,7 +156,7 @@
         font-size: 0.8rem;
     }
 
-    .select {
+    .searchInput {
         padding: 0.45rem 0.5rem;
         font-size: 0.9rem;
     }
@@ -177,7 +188,7 @@
     }
 
     .textarea {
-        min-height: 80px;
+        min-height: 7rem;
         padding: 0.5rem;
         font-size: 0.9rem;
     }

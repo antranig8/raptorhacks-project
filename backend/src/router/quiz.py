@@ -22,6 +22,7 @@ from ..schemas.quiz import (
     QuizAnswerResult,
     QuizByNodeRequest,
     QuizDefinition,
+    QuizGenerateRequest,
     QuizQuestion,
     QuizResponse,
     QuizSubmissionRequest,
@@ -190,6 +191,26 @@ def _ensure_quiz_quality(definition: QuizDefinition) -> QuizDefinition:
     return definition
 
 
+def _ensure_requested_language(definition: QuizDefinition, requested_language: str) -> QuizDefinition:
+    # Standalone quiz generation should respect the language chosen in the UI.
+    # If the model returns a coding question in a different language, reject it
+    # so the caller can retry instead of serving a mismatched quiz.
+    normalized_requested_language = requested_language.strip().lower()
+
+    for index, question in enumerate(definition.questions, start=1):
+        if question.type != "Coding":
+            continue
+
+        actual_language = (question.language or "").strip().lower()
+        if actual_language != normalized_requested_language:
+            raise ValueError(
+                f'AI returned coding question {index} in "{actual_language or "unknown"}" '
+                f'instead of the requested language "{normalized_requested_language}".'
+            )
+
+    return definition
+
+
 def _find_node_by_id(node: SkillTreeNode, node_id: str) -> SkillTreeNode | None:
     # Walk the saved skill tree recursively so quiz generation can target
     # the exact node the frontend clicked.
@@ -220,8 +241,22 @@ def _build_quiz_prompt(skill_tree_title: str, node: SkillTreeNode) -> str:
     )
 
 
-def _generate_quiz_definition(skill_tree_title: str, node: SkillTreeNode) -> QuizDefinition:
-    prompt = _build_quiz_prompt(skill_tree_title, node)
+def _build_freeform_quiz_prompt(language: str, prompt: str) -> str:
+    # This prompt powers the standalone quiz editor, where the user is not
+    # coming from a saved skill-tree node and instead wants a direct quiz on
+    # a typed language/topic combination.
+    return (
+        "Generate a focused programming quiz as valid JSON only.\n"
+        f"Requested language: {language}\n"
+        f"Requested topic: {prompt}\n"
+        "Return 4 questions total.\n"
+        "Keep the quiz tightly scoped to the requested language and topic.\n"
+        "If you include a coding question, prefer the requested language.\n"
+        "Make the conceptual questions about the same topic, not generic trivia."
+    )
+
+
+def _generate_quiz_definition(prompt: str) -> QuizDefinition:
     last_error: Exception | None = None
 
     for _attempt in range(3):
@@ -426,7 +461,7 @@ async def get_or_create_quiz_for_node(
     if existing_record and not request.force_regenerate:
         return _quiz_record_to_response(existing_record)
 
-    definition = _generate_quiz_definition(skill_tree_title, node)
+    definition = _generate_quiz_definition(_build_quiz_prompt(skill_tree_title, node))
     payload = {
         "user_id": str(current_user.uuid),
         "skill_tree_id": request.skill_tree_id,
@@ -454,6 +489,48 @@ async def get_or_create_quiz_for_node(
 
     if not response.data:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Quiz was not created.")
+
+    return _quiz_record_to_response(response.data[0])
+
+
+@router.post("/generate", response_model=QuizResponse, status_code=status.HTTP_200_OK)
+async def generate_quiz(
+    request: QuizGenerateRequest,
+    current_user: User = Depends(get_current_user),
+):
+    # This endpoint backs the standalone quizzes page.
+    # Unlike the node-linked flow, it does not depend on an existing skill
+    # tree record. The request itself is the full quiz-generation context.
+    definition = _generate_quiz_definition(
+        _build_freeform_quiz_prompt(request.language, request.prompt)
+    )
+    try:
+        definition = _ensure_requested_language(definition, request.language)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=str(exc)) from exc
+
+    # We still persist the generated quiz so the existing answer-validation
+    # and submission endpoints can grade it using the same stateless contract
+    # as node-linked quizzes.
+    payload = {
+        "id": str(uuid.uuid4()),
+        "user_id": str(current_user.uuid),
+        "skill_tree_id": MOCK_SKILL_TREE_ID,
+        "node_id": f"freeform-{uuid.uuid4()}",
+        "title": f"{request.language} Quiz",
+        "data": definition.model_dump(),
+    }
+
+    try:
+        response = supabase_client.table(QUIZ_TABLE).insert(payload).execute()
+    except Exception as exc:
+        raise _handle_supabase_error(exc)
+
+    if not response.data:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Quiz was not created.",
+        )
 
     return _quiz_record_to_response(response.data[0])
 

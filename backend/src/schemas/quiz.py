@@ -76,6 +76,19 @@ class QuizByNodeRequest(BaseModel):
         return value or None
 
 
+class QuizGenerateRequest(BaseModel):
+    language: str = Field(min_length=1, max_length=40)
+    prompt: str = Field(min_length=3, max_length=800)
+
+    @field_validator("language", "prompt")
+    @classmethod
+    def _strip_generate_values(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("Value cannot be blank.")
+        return value
+
+
 class QuizAnswerRequest(BaseModel):
     quiz_id: str = Field(min_length=1)
     node_id: str = Field(min_length=1)
