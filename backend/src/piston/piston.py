@@ -10,7 +10,7 @@ PISTON_API_KEY = os.getenv("PISTON_API_KEY")
 
 class PistonStage(BaseModel):
     stdout: Optional[str]
-    stderr: Optional[str]
+    stdrr: Optional[str]
     output: Optional[str]
     code: Optional[int]
     signal: Any
