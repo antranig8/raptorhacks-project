@@ -11,11 +11,13 @@ export default function Typing() {
     const [input, setInput] = useState('')
     const [isTopActive, setIsTopActive] = useState(false)
     const [isMobile, setIsMobile] = useState(false)
+    const [isTablet, setIsTablet] = useState(false)
     const [realtimeChartData, setRealtimeChartData] = useState(null)
 
     useEffect(() => {
         const checkMobile = () => {
-            setIsMobile(window.innerWidth <= 1024)
+            setIsMobile(window.innerWidth <= 700)
+            setIsTablet(window.innerWidth <= 1024)
         }
 
         checkMobile()
@@ -106,6 +108,53 @@ export default function Typing() {
         )
     }
 
+    if (isTablet) {
+        return (
+            <section className={styles.tabletContainer}>
+                <div className={styles.tabletHeaderCard}>
+                    <h2 className={styles.title}>Practice Typing</h2>
+                </div>
+                <div className={styles.tabletEditorCard}>
+                    <TypingEditor onStart={handleStart} isTablet={true} />
+                </div>
+                <div className={`${styles.tabletTextAreaCard} ${isTopActive ? styles.active : ''}`}>
+                    <TextArea
+                        target={practiceTemplate}
+                        onChange={(next, history) => {
+                            setInput(next)
+                            if (history && history.length) {
+                                const chart = buildRealtimeFromHistory(history)
+                                setRealtimeChartData(chart)
+                            }
+                        }}
+                        onActiveChange={setIsTopActive}
+                        onRequestNewTarget={() => {
+                            setPracticeTemplate(randomText(25))
+                            setRealtimeChartData(null)
+                        }}
+                        onComplete={(session) => {
+                            const { history, sessionStart } = session
+                            const chart = buildRealtimeFromHistory(history, sessionStart)
+                            if (chart) setRealtimeChartData(chart)
+                        }}
+                    />
+                </div>
+                <div className={styles.tabletAnalyticsCard}>
+                    <CustomLineChart
+                        title="Typing Performance"
+                        lines={[
+                            { name: 'EPM', color: '#3b82f6' },
+                            { name: 'WPM', color: '#10b981' }
+                        ]}
+                        showTimeControls={false}
+                        xAxisType="seconds"
+                        data={realtimeChartData}
+                    />
+                </div>
+            </section>
+        );
+    }
+
     return (
         <section className={styles.container}>
             <div className={styles.leftColumn}>
@@ -149,9 +198,7 @@ export default function Typing() {
                     />
                 </div>
             </div>
-            <div className={styles.rightColumn}>
-                <TypingEditor onStart={handleStart} />
-            </div>
+            <TypingEditor onStart={handleStart} isTablet={false} />
         </section>
     )
 }

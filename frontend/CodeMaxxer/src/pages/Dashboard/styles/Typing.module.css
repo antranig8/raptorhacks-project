@@ -35,18 +35,6 @@
     min-width: 0;
 }
 
-.rightColumn {
-    background: #ffffff;
-    border: 1px solid #e5e9f0;
-    border-radius: 14px;
-    padding: 0;
-    overflow: hidden;
-    min-height: 0;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-}
-
 .typingArea {
     flex: 2;
     background: #ffffff;
@@ -64,7 +52,7 @@
     padding: 1.5rem;
     display: flex;
     flex-direction: column;
-    min-height: 0;
+    min-height: 350px;
 }
 
 .analyticsArea {
@@ -77,6 +65,60 @@
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
+}
+
+.tabletControls {
+    background: #f8fafc;
+    border-bottom: 1px solid #e5e9f0;
+    padding: 1rem;
+}
+
+/* Tablet explicit 1-column layout classes */
+.tabletContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.tabletHeaderCard {
+    background: #ffffff;
+    border: 1px solid #e5e9f0;
+    border-radius: 14px;
+    padding: 1rem;
+}
+
+.tabletEditorCard {
+    background: #ffffff;
+    border: 1px solid #e5e9f0;
+    border-radius: 14px;
+    padding: 1rem;
+}
+
+.tabletTextAreaCard {
+    background: #ffffff;
+    border: 1px solid #e5e9f0;
+    border-radius: 14px;
+    padding: 1.5rem;
+    min-height: 350px;
+    display: flex;
+    flex-direction: column;
+}
+
+.tabletAnalyticsCard {
+    background: #ffffff;
+    border: 1px solid #e5e9f0;
+    border-radius: 14px;
+    padding: 1.5rem;
+    min-height: 300px;
+    display: flex;
+    flex-direction: column;
+}
+
+.tabletTextAreaCard> :not(h1) {
+    flex: 1;
+    min-height: 0;
 }
 
 @media (max-width: 1600px) {
@@ -106,6 +148,10 @@
 }
 
 @media (max-width: 1024px) {
+    .leftColumn {
+        flex: 1 1 100%;
+        margin-right: 0;
+    }
 
     .typingArea {
         padding: 0;

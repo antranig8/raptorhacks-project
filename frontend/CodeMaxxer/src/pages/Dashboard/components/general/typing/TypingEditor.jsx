@@ -12,7 +12,7 @@ const LANGUAGES = [
 
 const DURATIONS = [30, 60, 120];
 
-export default function TypingEditor({ onStart }) {
+export default function TypingEditor({ onStart, isTablet }) {
     const [language, setLanguage] = useState(LANGUAGES[0].id);
     const [duration, setDuration] = useState(60);
     const [topic, setTopic] = useState('');
@@ -29,10 +29,74 @@ export default function TypingEditor({ onStart }) {
         }
     };
 
+    if (isTablet) {
+        return (
+            <div className={styles.tabletEditorContainer}>
+                <div className={styles.tabletGrid}>
+                    <div className={styles.tabletCol}>
+                        <div className={styles.tabletSection}>
+                            <label className={styles.label}>Language Preset</label>
+                            <select
+                                className={styles.select}
+                                value={language}
+                                onChange={(e) => setLanguage(e.target.value)}
+                            >
+                                {LANGUAGES.map(lang => (
+                                    <option key={lang.id} value={lang.id}>{lang.label}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div className={styles.tabletSection}>
+                            <label className={styles.label}>Duration (seconds)</label>
+                            <select
+                                className={styles.select}
+                                value={duration}
+                                onChange={(e) => setDuration(Number(e.target.value))}
+                            >
+                                {DURATIONS.map(d => (
+                                    <option key={d} value={d}>{d}s</option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div className={styles.tabletCol}>
+                        <div className={styles.tabletSection}>
+                            <label className={styles.label}>AI Topic Generation</label>
+                            <textarea
+                                className={styles.textarea}
+                                placeholder="e.g. JS Async..."
+                                value={topic}
+                                onChange={(e) => setTopic(e.target.value)}
+                            />
+                        </div>
+
+                        <div className={styles.tabletSection}>
+                            <label className={styles.label}>Must-include Words</label>
+                            <textarea
+                                className={styles.textarea}
+                                placeholder="e.g. async, await..."
+                                value={customWords}
+                                onChange={(e) => setCustomWords(e.target.value)}
+                            />
+                        </div>
+                    </div>
+                </div>
+                <div className={styles.tabletBtnCenter}>
+                    <button
+                        className={styles.tabletGenerateBtn}
+                        onClick={handleStart}
+                    >
+                        Start
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className={styles.editorContainer}>
-            <h2 className={styles.title}>Typing Practice</h2>
-
             <div className={styles.section}>
                 <label className={styles.label}>Language Preset</label>
                 <select
