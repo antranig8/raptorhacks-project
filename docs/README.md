@@ -6,20 +6,23 @@ This roadmap reflects the current state of the project based on the code in the 
 
 - Generated skill trees in Supabase
 - Display the skill tree in the frontend
+- Render backend-driven node XP in the skill tree
 - Quiz generation for selected skill tree nodes
+- Standalone quiz generation from a freeform prompt
 - Quiz submission and answer validation
 - Code-based quiz questions using Piston-backed execution
 - Supabase authentication flow
 - Protected backend routes
+- XP recording in `quiz_done`
+- AI-based branch advancement for nodes that reach the XP threshold
+- Dashboard XP charts linked to the authenticated user
 
 ## In Progress
 
-- Input a learning goal and generate a skill tree with AI
-- Load saved skill trees for the current user
-- Progress tracking across the skill tree
-- Saving completion state in a way the frontend fully drives
+- Progress and analytics beyond XP
 - Resume-session behavior across saved trees and quiz work
 - Dashboard and learning flow polish
+- Refining AI-generated progression quality and pacing
 
 ## Not Done Yet
 
@@ -30,5 +33,5 @@ This roadmap reflects the current state of the project based on the code in the 
 
 ## Notes
 
-- Some features that were previously listed as future work, especially the quiz system and code-question support, are already implemented.
-- The project has the backend and data foundations for persistence, but some user-facing flows are still partial or scaffolded.
+- The project now has persistence for quizzes, skill trees, XP events, and node progression metadata.
+- Some user-facing dashboard areas are still scaffolded or use placeholder data outside the XP flow.

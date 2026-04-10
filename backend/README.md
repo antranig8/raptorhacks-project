@@ -10,17 +10,21 @@ This is the FastAPI backend for CodeMaxxer, the RaptorHacks project.
 - Groq-backed AI features
 - Skill tree and quiz generation flows
 - Code execution for coding quiz validation through Piston
+- Quiz XP analytics written to Supabase
+- AI-driven skill-tree branch advancement tied to node XP
 
 ## Current API Areas
 
 - `GET /`
 - `GET /api/v1/public/...`
-- `GET|POST /api/v1/private/...`
+- `GET|POST|PATCH|DELETE /api/v1/private/...`
 
 Current private routes include:
 
+- chat routes
 - quiz generation and submission
 - skill tree endpoints
+- skill tree updates and deletion
 - protected test/private endpoints
 
 ## Tech Notes
@@ -52,4 +56,5 @@ The backend expects environment variables for:
 ## Notes
 
 - CORS is currently configured for local frontend development hosts.
+- Quiz submission now awards XP, records it in `quiz_done`, and can unlock AI-generated child branches on the saved skill tree.
 - The backend is still in active development and the route surface may continue to change.

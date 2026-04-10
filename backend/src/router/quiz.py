@@ -251,7 +251,9 @@ def _build_advancement_children(skill_tree_goal: str, node: SkillTreeNode) -> li
     prompt = build_skill_tree_advancement_user_prompt(skill_tree_goal, node)
     last_error: Exception | None = None
 
-    for _attempt in range(3):
+    # Keep one retry for malformed AI output, but avoid stretching latency
+    # with a third full generation attempt on every bad response.
+    for _attempt in range(2):
         try:
             response_text, _ = advancement_platform.chat_messages(
                 [{"role": "user", "content": prompt}],
