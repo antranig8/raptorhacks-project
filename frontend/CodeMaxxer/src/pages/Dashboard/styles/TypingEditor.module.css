@@ -147,7 +147,7 @@
     flex: 1;
 }
 
-.tabletGrid > .tabletCol:first-child {
+.tabletGrid>.tabletCol:first-child {
     flex: 0 0 auto;
 }
 
