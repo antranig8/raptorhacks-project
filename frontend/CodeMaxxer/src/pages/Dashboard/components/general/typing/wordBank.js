@@ -22,7 +22,7 @@ function randVal() {
   return 'null'
 }
 
-export function randomText(lineCount = 10) {
+export function randomText(lineCount = 5) {
   const generators = [
     // const/let declaration
     () => {

@@ -29,7 +29,7 @@ export default function Typing() {
     const handleStart = () => {
     }
 
-    const [practiceTemplate, setPracticeTemplate] = useState(() => randomText(25))
+    const [practiceTemplate, setPracticeTemplate] = useState(() => randomText())
 
     const buildRealtimeFromHistory = (history, sessionStartParam) => {
         if (!history || history.length === 0) return null
@@ -132,7 +132,7 @@ export default function Typing() {
                         }}
                         onActiveChange={setIsTopActive}
                         onRequestNewTarget={() => {
-                            setPracticeTemplate(randomText(25))
+                            setPracticeTemplate(randomText())
                             setRealtimeChartData(null)
                         }}
                         onComplete={(session) => {
@@ -179,7 +179,7 @@ export default function Typing() {
                             }}
                             onActiveChange={setIsTopActive}
                             onRequestNewTarget={() => {
-                                setPracticeTemplate(randomText(25))
+                                setPracticeTemplate(randomText())
                                 setRealtimeChartData(null)
                             }}
                             onComplete={(session) => {
