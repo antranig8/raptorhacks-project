@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from .middleware.profiling import PyinstrumentMiddleware
 from .router import public, private
 from .auth.throttling import (
     rate_limit_authenticated,
@@ -14,6 +15,8 @@ origins = [
     "https://raptorhacks-project-lqrh.vercel.app",
     "http://127.0.0.1:5173",
 ]
+
+app.add_middleware(PyinstrumentMiddleware)
 
 app.add_middleware(
     CORSMiddleware,

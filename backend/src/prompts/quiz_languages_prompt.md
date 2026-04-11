@@ -1,9 +1,6 @@
-Quiz language reference:
-
-- Use the exact language identifiers below when setting the "language" field.
-- Treat the following list as the source of truth for supported execution languages.
-- Keep this file focused on supported language identifiers and short selection notes.
-- Update this file whenever the execution backend adds or removes supported languages.
+## Language Reference
+ 
+The `"language"` field for coding questions **must** be one of the identifiers listed in the **Supported Languages** section appended below this prompt. That list is the single source of truth. Do not use any identifier not present in that list.
 
 Supported languages:
 [
@@ -92,7 +89,3 @@ Supported languages:
   "c",
   "brainfuck"
 ]
-
-Selection guidance:
-- Choose the language that best matches the topic or the user's request.
-- Use one identifier exactly as written in the supported-languages list.

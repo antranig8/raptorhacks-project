@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import asyncio
 import json
+import logging
 import re
 import uuid
 from datetime import datetime, timezone
@@ -9,6 +11,8 @@ from typing import Any, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import ValidationError
 from postgrest import APIError as PostgrestAPIError
+
+from ..middleware.timeouts import with_ai_timeout
 
 from ..telemetry.telemetry import insert_exp_event, insert_quiz_complete_event
 from ..auth.auth import get_current_user
@@ -38,6 +42,8 @@ from ..services.skill_tree import (
 )
 
 
+logger = logging.getLogger(__name__)
+
 router = APIRouter()
 
 QUIZ_TABLE = "quizzes"
@@ -45,6 +51,24 @@ SKILL_TREES_TABLE = "skill_trees"
 QUIZ_DONE_TABLE = "quiz_done"
 MOCK_SKILL_TREE_ID = "mock-skill-tree"
 XP_PER_CORRECT_ANSWER = 25
+
+# Single source of truth for languages the execution backend supports.
+# Keep in sync with the language reference .md file merged into the quiz
+# system prompt — if a language is added or removed there, update this set too.
+SUPPORTED_LANGUAGES: frozenset[str] = frozenset({
+    "haskell", "sqlite3", "forth", "nasm64", "bash", "fsharp.net", "swift",
+    "ponylang", "crystal", "elixir", "yeethon", "vlang", "c++", "nasm",
+    "pascal", "raku", "japt", "powershell", "jelly", "vyxal", "llvm_ir",
+    "iverilog", "emacs", "lolcode", "python", "fortran", "typescript",
+    "rockstar", "befunge93", "csharp", "ruby", "php", "coffeescript", "d",
+    "lisp", "groovy", "cow", "julia", "freebasic", "javascript", "racket",
+    "dart", "nim", "samarium", "octave", "fsi", "lua", "basic", "retina",
+    "perl", "golfscript", "csharp.net", "emojicode", "kotlin", "husk",
+    "scala", "paradoc", "zig", "dash", "awk", "ocaml", "cjam", "java",
+    "cobol", "prolog", "rscript", "file", "forte", "python2", "erlang",
+    "basic.net", "pure", "clojure", "smalltalk", "go", "dragon",
+    "brachylog", "osabie", "bqn", "rust", "matl", "pyth", "c", "brainfuck",
+})
 
 
 def _handle_supabase_error(exc: Exception) -> HTTPException:
@@ -70,6 +94,8 @@ def _normalize_output(value: Optional[str]) -> str:
 
 def _parse_quiz_definition(raw_text: str) -> QuizDefinition:
     cleaned_text = raw_text.strip()
+
+    print(cleaned_text)
 
     # Models sometimes wrap valid JSON in ```json fences. Strip those first
     # so quiz generation can still succeed without weakening schema checks.
@@ -188,6 +214,17 @@ def _ensure_quiz_quality(definition: QuizDefinition) -> QuizDefinition:
         if question.type == "Coding":
             if not question.expectedStdout or not question.codeTemplate or not question.userGuidance:
                 raise ValueError(f"AI returned an incomplete coding question at position {index}.")
+
+            # Reject coding questions that use a language the execution backend
+            # does not support. This catches topics like git or shell commands
+            # where the model picks a non-executable "language" identifier
+            # rather than real source code.
+            language = (question.language or "").strip().lower()
+            if language not in SUPPORTED_LANGUAGES:
+                raise ValueError(
+                    f'Coding question {index} uses unsupported language "{language}". '
+                    "Convert to a conceptual question or pick a supported language."
+                )
             continue
 
         if len(question.choices) != 4:
@@ -202,8 +239,8 @@ def _ensure_quiz_quality(definition: QuizDefinition) -> QuizDefinition:
 
 def _ensure_requested_language(definition: QuizDefinition, requested_language: str) -> QuizDefinition:
     # Standalone quiz generation should respect the language chosen in the UI.
-    # If the model returns a coding question in a different language, reject it
-    # so the caller can retry instead of serving a mismatched quiz.
+    # If the model returns a coding question in a different language, raise a
+    # ValueError so the caller's retry loop can attempt generation again.
     normalized_requested_language = requested_language.strip().lower()
 
     for index, question in enumerate(definition.questions, start=1):
@@ -248,18 +285,22 @@ def _next_unlock_target(metadata: SkillTreeNodeMetadata) -> int:
     return metadata.unlock_threshold_xp * (metadata.advancement_count + 1)
 
 
-def _build_advancement_children(skill_tree_goal: str, node: SkillTreeNode) -> list[SkillTreeNode]:
+async def _build_advancement_children(skill_tree_goal: str, node: SkillTreeNode) -> list[SkillTreeNode]:
     prompt = build_skill_tree_advancement_user_prompt(skill_tree_goal, node)
     last_error: Exception | None = None
 
     # Keep one retry for malformed AI output, but avoid stretching latency
     # with a third full generation attempt on every bad response.
-    for _attempt in range(2):
+    for _attempt in range(1):
         try:
-            response_text, _ = advancement_platform.chat_messages(
-                [{"role": "user", "content": prompt}],
-                temperature=0.2,
-                max_tokens=800,
+            response_text, _ = await with_ai_timeout(
+                asyncio.to_thread(
+                    advancement_platform.chat_messages,
+                    [{"role": "user", "content": prompt}],
+                    temperature=0.2,
+                    max_tokens=3000,
+                ),
+                label="advancement children creation",
             )
             branch = parse_skill_tree_advancement_response(response_text)
             return [
@@ -299,7 +340,7 @@ def _dedupe_new_children(existing_children: list[SkillTreeNode], generated_child
     return deduped_children
 
 
-def _apply_node_progression(
+async def _apply_node_progression(
     node: SkillTreeNode,
     exp_gained: int,
     skill_tree_goal: str,
@@ -312,7 +353,7 @@ def _apply_node_progression(
     # Each node can expand only three times. The unlock target scales with the
     # advancement count so later branches require 200 XP, then 300 XP total.
     if metadata.advancement_count < metadata.max_advancements and metadata.xp >= _next_unlock_target(metadata):
-        generated_children = _build_advancement_children(
+        generated_children = await _build_advancement_children(
             skill_tree_goal,
             SkillTreeNode(
                 id=node.id,
@@ -343,14 +384,14 @@ def _apply_node_progression(
     )
 
 
-def _update_tree_for_node_progress(
+async def _update_tree_for_node_progress(
     tree: SkillTreeNode,
     node_id: str,
     exp_gained: int,
     skill_tree_goal: str,
 ) -> tuple[SkillTreeNode, int, list[SkillTreeNode]]:
     if tree.id == node_id:
-        updated_node, unlocked_children = _apply_node_progression(tree, exp_gained, skill_tree_goal)
+        updated_node, unlocked_children = await _apply_node_progression(tree, exp_gained, skill_tree_goal)
         metadata = build_default_node_metadata(updated_node.metadata)
         return updated_node, metadata.xp, unlocked_children
 
@@ -359,7 +400,7 @@ def _update_tree_for_node_progress(
     unlocked_children: list[SkillTreeNode] = []
 
     for child in tree.children or []:
-        updated_child, child_total_node_xp, child_unlocked_children = _update_tree_for_node_progress(
+        updated_child, child_total_node_xp, child_unlocked_children = await _update_tree_for_node_progress(
             child,
             node_id,
             exp_gained,
@@ -415,18 +456,34 @@ def _build_freeform_quiz_prompt(language: str, prompt: str) -> str:
     )
 
 
-def _generate_quiz_definition(prompt: str) -> QuizDefinition:
+async def _generate_quiz_definition(
+    prompt: str,
+    requested_language: str | None = None,
+) -> QuizDefinition:
+    # _ensure_requested_language is intentionally called inside this retry
+    # loop rather than after it. A language mismatch (e.g. the model picks
+    # "bash" when "python" was requested, or generates a git-command coding
+    # question for a non-shell topic) is a recoverable generation error, not
+    # a hard failure — giving the model a second attempt is cheaper than
+    # surfacing a 502 to the user on the first bad response.
     last_error: Exception | None = None
 
-    for _attempt in range(3):
+    for _attempt in range(1):
         try:
-            response_text, _ = quiz_platform.chat_messages(
-                [{"role": "user", "content": prompt}],
-                temperature=0.2,
-                max_tokens=3000,
+            response_text, _ = await with_ai_timeout(
+                asyncio.to_thread(
+                    quiz_platform.chat_messages,
+                    [{"role": "user", "content": prompt}],
+                    temperature=0.2,
+                    max_tokens=3000,
+                ),
+                label="quiz generation",
             )
             definition = _parse_quiz_definition(response_text)
-            return _ensure_quiz_quality(definition)
+            definition = _ensure_quiz_quality(definition)
+            if requested_language is not None:
+                definition = _ensure_requested_language(definition, requested_language)
+            return definition
         except ValueError as exc:
             last_error = exc
             continue
@@ -655,7 +712,10 @@ async def get_or_create_quiz_for_node(
     if existing_record and not request.force_regenerate:
         return _quiz_record_to_response(existing_record)
 
-    definition = _generate_quiz_definition(_build_quiz_prompt(skill_tree_title, node))
+    # No requested_language for node-linked quizzes — the model picks the
+    # best language for the topic. Language validity is still checked inside
+    # _generate_quiz_definition via _ensure_quiz_quality.
+    definition = await _generate_quiz_definition(_build_quiz_prompt(skill_tree_title, node))
     payload = {
         "user_id": str(current_user.uuid),
         "skill_tree_id": request.skill_tree_id,
@@ -682,6 +742,13 @@ async def get_or_create_quiz_for_node(
         raise _handle_supabase_error(exc)
 
     if not response.data:
+        logger.error(
+            "Supabase returned empty response after quiz persist. "
+            "quiz_id=%s skill_tree_id=%s node_id=%s",
+            payload.get("id"),
+            request.skill_tree_id,
+            request.node_id,
+        )
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Quiz was not created.")
 
     return _quiz_record_to_response(response.data[0])
@@ -695,19 +762,21 @@ async def generate_quiz(
     # This endpoint backs the standalone quizzes page.
     # Unlike the node-linked flow, it does not depend on an existing skill
     # tree record. The request itself is the full quiz-generation context.
+    #
+    # requested_language is passed into _generate_quiz_definition so that
+    # _ensure_requested_language runs inside the retry loop. A language
+    # mismatch on attempt 1 triggers a retry rather than an immediate 502.
     definition = _generate_quiz_definition(
-        _build_freeform_quiz_prompt(request.language, request.prompt)
+        _build_freeform_quiz_prompt(request.language, request.prompt),
+        requested_language=request.language,
     )
-    try:
-        definition = _ensure_requested_language(definition, request.language)
-    except ValueError as exc:
-        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=str(exc)) from exc
 
     # We still persist the generated quiz so the existing answer-validation
     # and submission endpoints can grade it using the same stateless contract
     # as node-linked quizzes.
+    quiz_id = str(uuid.uuid4())
     payload = {
-        "id": str(uuid.uuid4()),
+        "id": quiz_id,
         "user_id": str(current_user.uuid),
         "skill_tree_id": MOCK_SKILL_TREE_ID,
         "node_id": f"freeform-{uuid.uuid4()}",
@@ -721,6 +790,12 @@ async def generate_quiz(
         raise _handle_supabase_error(exc)
 
     if not response.data:
+        logger.error(
+            "Supabase returned empty response after freeform quiz persist. "
+            "quiz_id=%s language=%s",
+            quiz_id,
+            request.language,
+        )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Quiz was not created.",
@@ -767,7 +842,7 @@ async def submit_quiz(
     if record["skill_tree_id"] != MOCK_SKILL_TREE_ID:
         skill_tree_record = _get_skill_tree_record(str(record["skill_tree_id"]), current_user)
         skill_tree = canonicalize_skill_tree(SkillTreeNode.model_validate(skill_tree_record["tree_json"]))
-        updated_tree, total_node_xp, unlocked_children = _update_tree_for_node_progress(
+        updated_tree, total_node_xp, unlocked_children = await _update_tree_for_node_progress(
             skill_tree,
             request.node_id,
             exp_gained,

@@ -10,3 +10,4 @@ certifi
 httpx
 aiopyston
 pytest
+pyinstrument

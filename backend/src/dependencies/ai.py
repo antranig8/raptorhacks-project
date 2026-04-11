@@ -30,7 +30,7 @@ def _build_advancement_system_prompt() -> str:
 
 groq_api_key = os.getenv("GROQ_API_KEY")
 skill_tree_platform = GroqAI(api_key=groq_api_key, system_prompt=None)
-quiz_platform = GroqAI(api_key=groq_api_key, system_prompt=_build_quiz_system_prompt())
+quiz_platform = GroqAI(api_key=groq_api_key, model="openai/gpt-oss-20b", system_prompt=_build_quiz_system_prompt())
 ai_platform = GroqAI(api_key=groq_api_key, system_prompt=_load_system_prompt(base_path.parent / "prompts" / "skill_tree_prompt.md"))
 advancement_platform = GroqAI(api_key=groq_api_key, system_prompt=_build_advancement_system_prompt())
 
