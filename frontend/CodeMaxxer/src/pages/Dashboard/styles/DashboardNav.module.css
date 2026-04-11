@@ -1,8 +1,4 @@
 .sidebar {
-    position: absolute;
-    top: 0;
-    left: 0;
-    z-index: 50;
     height: 100vh;
     width: fit-content;
     min-width: 180px;
@@ -21,13 +17,6 @@
     min-width: 60px;
     padding: 2rem 0.5rem;
     align-items: center;
-}
-
-@media (max-width: 480px) {
-    .sidebar {
-        width: 100%;
-        min-width: 100%;
-    }
 }
 
 .logoRow {
@@ -257,9 +246,15 @@ button.navItem {
 @media (max-width: 480px) {
     .sidebar.docked {
         padding: 1rem 0rem;
+        position: absolute;
+        z-index: 50;
     }
 
     .sidebar {
         padding: 1rem 0.5rem;
+        position: absolute;
+        height: 100vh;
+        z-index: 50;
+        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
     }
 }
