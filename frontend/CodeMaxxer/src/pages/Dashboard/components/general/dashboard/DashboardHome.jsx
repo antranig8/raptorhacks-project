@@ -40,7 +40,7 @@ export default function DashboardHome() {
             <div className={styles.grid}>
                 <Quadrant1 userData={userData}/>
                 <Quadrant2 userData={userData}/>
-                <Quadrant3 userData={userData}/>
+                {/* <Quadrant3 userData={userData}/> */}
                 <Quadrant4 userData={userData}/>
             </div>
         </section>
