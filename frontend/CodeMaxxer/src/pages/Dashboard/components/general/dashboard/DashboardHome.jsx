@@ -25,7 +25,6 @@ export default function DashboardHome() {
                     },
                 })
                 const data = await res.json()
-                console.log(data)
                 setUserData(data)
             } catch (err) {
                 console.error("Fetch error:", err)
