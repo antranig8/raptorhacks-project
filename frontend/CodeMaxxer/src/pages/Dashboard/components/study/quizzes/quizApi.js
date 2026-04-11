@@ -50,7 +50,7 @@ export async function fetchQuizByNode({ skillTreeId, nodeId, nodeName = null, sk
     });
 }
 
-export async function generateQuiz({ language, prompt, allowHints = false, hardMode = false }) {
+export async function generateQuiz({ language, prompt, allowHints = false, allowExplanations = false, hardMode = false }) {
     // Standalone quiz generation uses a direct language + topic request
     // instead of a saved skill-tree node.
     return requestQuiz("/quiz/generate", {
@@ -59,7 +59,19 @@ export async function generateQuiz({ language, prompt, allowHints = false, hardM
             language,
             prompt,
             allow_hints: allowHints,
+            allow_explanations: allowExplanations,
             hard_mode: hardMode,
+        }),
+    });
+}
+
+export async function fetchQuizHint({ quizId, nodeId, questionIndex }) {
+    return requestQuiz("/quiz/hint", {
+        method: "POST",
+        body: JSON.stringify({
+            quiz_id: quizId,
+            node_id: nodeId,
+            question_index: questionIndex,
         }),
     });
 }

@@ -10,9 +10,13 @@ export default function Question({
     userGuidance = "",
     initialAnswer = null,
     validationResult = null,
+    allowHints = false,
+    hint = "",
     isValidating = false,
+    isHintLoading = false,
     isMockMode = false,
     onValidate,
+    onRequestHint,
     onResult,
     isSkippable = true,
     isFirst = false,
@@ -141,7 +145,6 @@ export default function Question({
         const statusIcon = validationResult.correct ? "\u2713" : "\u2715";
         const statusText = validationResult.correct ? "Correct" : "Incorrect";
         const detail = validationResult.error || validationResult.reasoning;
-        const hint = !validationResult.correct ? validationResult.hint : null;
 
         return (
             <div className={styles.feedback}>
@@ -152,9 +155,36 @@ export default function Question({
                 {detail && (
                     <p className={styles.reasoning}>{detail}</p>
                 )}
-                {hint && (
+            </div>
+        );
+    };
+
+    const renderHint = () => {
+        if (!allowHints || isMockMode) {
+            return null;
+        }
+
+        if (hint) {
+            return (
+                <div className={styles.hintTools}>
                     <p className={styles.hint}>Hint: {hint}</p>
-                )}
+                </div>
+            );
+        }
+
+        return (
+            <div className={styles.hintTools}>
+                <button
+                    className={styles.hintButton}
+                    onClick={onRequestHint}
+                    disabled={isSubmitted || isHintLoading}
+                    type="button"
+                    aria-label="Get hint"
+                    title="Get hint"
+                >
+                    <span aria-hidden="true">{"\u{1F4A1}"}</span>
+                    {isHintLoading ? "Loading hint..." : "Hint"}
+                </button>
             </div>
         );
     };
@@ -200,6 +230,7 @@ export default function Question({
             </h3>
 
             <div className={styles.choicesList}>
+                {renderHint()}
                 {type === "Coding" ? renderCoding() : choices.map(renderChoice)}
                 {type !== "Coding" && renderFeedback()}
             </div>

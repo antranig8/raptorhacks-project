@@ -325,7 +325,7 @@ class QuizRouterTests(TestCase):
         self.assertTrue(body["correct"])
         self.assertIsNone(body["error"])
 
-    def test_submit_answer_returns_hint_only_after_wrong_answer_when_enabled(self):
+    def test_hint_endpoint_returns_hint_when_enabled_without_answering(self):
         self.fake_supabase.quizzes.append(
             {
                 "id": "quiz-hints",
@@ -359,16 +359,15 @@ class QuizRouterTests(TestCase):
 
         with patch.object(quiz_router, "supabase_client", self.fake_supabase):
             client = TestClient(app)
-            wrong_response = client.post(
-                "/api/v1/private/quiz/submit-answer",
+            hint_response = client.post(
+                "/api/v1/private/quiz/hint",
                 json={
                     "quiz_id": "quiz-hints",
                     "node_id": "functions",
                     "question_index": 0,
-                    "answer": "B",
                 },
             )
-            correct_response = client.post(
+            answer_response = client.post(
                 "/api/v1/private/quiz/submit-answer",
                 json={
                     "quiz_id": "quiz-hints",
@@ -378,12 +377,11 @@ class QuizRouterTests(TestCase):
                 },
             )
 
-        self.assertEqual(wrong_response.status_code, 200)
-        self.assertFalse(wrong_response.json()["correct"])
-        self.assertEqual(wrong_response.json()["hint"], "Think about reusable named blocks of logic.")
-        self.assertEqual(correct_response.status_code, 200)
-        self.assertTrue(correct_response.json()["correct"])
-        self.assertIsNone(correct_response.json()["hint"])
+        self.assertEqual(hint_response.status_code, 200)
+        self.assertEqual(hint_response.json()["hint"], "Think about reusable named blocks of logic.")
+        self.assertEqual(answer_response.status_code, 200)
+        self.assertTrue(answer_response.json()["correct"])
+        self.assertIsNone(answer_response.json()["hint"])
 
     def test_submit_answer_does_not_return_hint_when_not_enabled(self):
         self.fake_supabase.quizzes.append(
@@ -430,6 +428,99 @@ class QuizRouterTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertFalse(response.json()["correct"])
+        self.assertIsNone(response.json()["hint"])
+
+    def test_hint_endpoint_rejects_when_not_enabled(self):
+        self.fake_supabase.quizzes.append(
+            {
+                "id": "quiz-hints-disabled",
+                "user_id": str(self.user.uuid),
+                "skill_tree_id": "tree-1",
+                "node_id": "functions",
+                "title": "Functions Quiz",
+                "data": {
+                    "questions": [
+                        {
+                            "type": "Single",
+                            "prompt": "What does a function do?",
+                            "isSkippable": True,
+                            "hint": "Think about reusable named blocks of logic.",
+                            "choices": [
+                                {"id": "A", "label": "Encapsulates reusable logic", "isCorrect": True, "reasoning": "Functions group reusable logic."},
+                                {"id": "B", "label": "Deletes variables", "isCorrect": False, "reasoning": "Functions do not delete variables."},
+                                {"id": "C", "label": "Makes HTML", "isCorrect": False, "reasoning": "Functions are not HTML-specific."},
+                                {"id": "D", "label": "Starts a server", "isCorrect": False, "reasoning": "Functions do not inherently start servers."},
+                            ],
+                            "expectedStdout": None,
+                            "language": None,
+                            "codeTemplate": None,
+                            "userGuidance": None,
+                        }
+                    ],
+                },
+            }
+        )
+
+        with patch.object(quiz_router, "supabase_client", self.fake_supabase):
+            client = TestClient(app)
+            response = client.post(
+                "/api/v1/private/quiz/hint",
+                json={
+                    "quiz_id": "quiz-hints-disabled",
+                    "node_id": "functions",
+                    "question_index": 0,
+                },
+            )
+
+        self.assertEqual(response.status_code, 403)
+
+    def test_submit_answer_returns_explanation_only_when_enabled(self):
+        self.fake_supabase.quizzes.append(
+            {
+                "id": "quiz-explanations",
+                "user_id": str(self.user.uuid),
+                "skill_tree_id": "tree-1",
+                "node_id": "functions",
+                "title": "Functions Quiz",
+                "data": {
+                    "allowExplanations": True,
+                    "questions": [
+                        {
+                            "type": "Single",
+                            "prompt": "What does a function do?",
+                            "isSkippable": True,
+                            "hint": "Think about reusable named blocks of logic.",
+                            "choices": [
+                                {"id": "A", "label": "Encapsulates reusable logic", "isCorrect": True, "reasoning": "Functions group reusable logic."},
+                                {"id": "B", "label": "Deletes variables", "isCorrect": False, "reasoning": "Functions do not delete variables."},
+                                {"id": "C", "label": "Makes HTML", "isCorrect": False, "reasoning": "Functions are not HTML-specific."},
+                                {"id": "D", "label": "Starts a server", "isCorrect": False, "reasoning": "Functions do not inherently start servers."},
+                            ],
+                            "expectedStdout": None,
+                            "language": None,
+                            "codeTemplate": None,
+                            "userGuidance": None,
+                        }
+                    ],
+                },
+            }
+        )
+
+        with patch.object(quiz_router, "supabase_client", self.fake_supabase):
+            client = TestClient(app)
+            response = client.post(
+                "/api/v1/private/quiz/submit-answer",
+                json={
+                    "quiz_id": "quiz-explanations",
+                    "node_id": "functions",
+                    "question_index": 0,
+                    "answer": "B",
+                },
+            )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.json()["correct"])
+        self.assertEqual(response.json()["reasoning"], "Functions do not delete variables.")
         self.assertIsNone(response.json()["hint"])
 
     def test_generate_creates_freeform_quiz_from_language_and_prompt(self):
@@ -594,7 +685,7 @@ class QuizRouterTests(TestCase):
         self.assertIn('requested language "rust"', response.json()["detail"])
         self.assertEqual(len(self.fake_supabase.quizzes), 0)
 
-    def test_generate_hard_mode_disables_hints_even_when_requested(self):
+    def test_generate_hard_mode_disables_help_configs_even_when_requested(self):
         fake_ai = FakeQuizPlatform(
             """
             {
@@ -673,12 +764,14 @@ class QuizRouterTests(TestCase):
                     "language": "rust",
                     "prompt": "ownership basics",
                     "allow_hints": True,
+                    "allow_explanations": True,
                     "hard_mode": True,
                 },
             )
 
         self.assertEqual(response.status_code, 200)
         self.assertFalse(self.fake_supabase.quizzes[0]["data"]["allowHints"])
+        self.assertFalse(self.fake_supabase.quizzes[0]["data"]["allowExplanations"])
 
     def test_submit_unlocks_advanced_branch_and_records_exp(self):
         self.fake_supabase.quizzes.append(

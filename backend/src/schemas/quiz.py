@@ -31,6 +31,7 @@ class QuizQuestion(BaseModel):
 
 class QuizDefinition(BaseModel):
     allowHints: bool = False
+    allowExplanations: bool = False
     questions: list[QuizQuestion] = Field(min_length=1, max_length=20)
 
 
@@ -53,6 +54,7 @@ class QuizResponse(BaseModel):
     skill_tree_id: str
     node_id: str
     title: str
+    allow_hints: bool = False
     questions: list[ClientQuizQuestion]
 
 
@@ -84,6 +86,7 @@ class QuizGenerateRequest(BaseModel):
     language: str = Field(min_length=1, max_length=40)
     prompt: str = Field(min_length=3, max_length=800)
     allow_hints: bool = False
+    allow_explanations: bool = False
     hard_mode: bool = False
 
     @field_validator("language", "prompt")
@@ -116,6 +119,25 @@ class QuizAnswerResult(BaseModel):
     reasoning: Optional[str] = None
     error: Optional[str] = None
     hint: Optional[str] = None
+
+
+class QuizHintRequest(BaseModel):
+    quiz_id: str = Field(min_length=1)
+    node_id: str = Field(min_length=1)
+    question_index: int = Field(ge=0)
+
+    @field_validator("quiz_id", "node_id")
+    @classmethod
+    def _strip_hint_identity_values(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("Value cannot be blank.")
+        return value
+
+
+class QuizHintResult(BaseModel):
+    question_index: int
+    hint: str
 
 
 class QuizSubmissionRequest(BaseModel):

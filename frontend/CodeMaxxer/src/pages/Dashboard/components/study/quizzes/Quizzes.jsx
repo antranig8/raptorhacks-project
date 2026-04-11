@@ -5,7 +5,7 @@ import styles from "@dashboard/styles/Quizzes.module.css";
 import ProgressSummary from "./ProgressSummary";
 import Question from "./Question";
 import QuizEditor from "./QuizEditor";
-import { fetchQuizByNode, generateQuiz, submitQuiz, submitQuizAnswer } from "./quizApi";
+import { fetchQuizByNode, fetchQuizHint, generateQuiz, submitQuiz, submitQuizAnswer } from "./quizApi";
 import { evaluateMockAnswer } from "./mockQuizData";
 import questionData from "./questions.json";
 
@@ -30,12 +30,14 @@ export default function Quizzes() {
     const [currentIdx, setCurrentIdx] = useState(0);
     const [results, setResults] = useState({});
     const [answers, setAnswers] = useState({});
+    const [hints, setHints] = useState({});
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [submissionMessage, setSubmissionMessage] = useState("");
     const [submissionDetails, setSubmissionDetails] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [validatingIndex, setValidatingIndex] = useState(null);
+    const [hintLoadingIndex, setHintLoadingIndex] = useState(null);
     const [isQuizMode, setIsQuizMode] = useState(hasNodeLinkedContext);
     const [isQuizComplete, setIsQuizComplete] = useState(false);
 
@@ -56,10 +58,12 @@ export default function Quizzes() {
         setQuiz(null);
         setResults({});
         setAnswers({});
+        setHints({});
         setCurrentIdx(0);
         setSubmissionMessage("");
         setSubmissionDetails(null);
         setValidatingIndex(null);
+        setHintLoadingIndex(null);
         setIsQuizComplete(false);
 
         if (!hasNodeLinkedContext) {
@@ -131,6 +135,7 @@ export default function Quizzes() {
         setCurrentIdx(0);
         setResults({});
         setAnswers({});
+        setHints({});
         setSubmissionMessage("");
         setSubmissionDetails(null);
         setIsQuizComplete(false);
@@ -190,6 +195,31 @@ export default function Quizzes() {
             setError(requestError.message || "Failed to validate answer.");
         } finally {
             setValidatingIndex(null);
+        }
+    };
+
+    const handleRequestHint = async () => {
+        if (!quiz || quiz.isMock || !quiz.allow_hints || hints[currentIdx]) {
+            return;
+        }
+
+        setError("");
+        setHintLoadingIndex(currentIdx);
+
+        try {
+            const result = await fetchQuizHint({
+                quizId: quiz.quiz_id,
+                nodeId: quiz.node_id,
+                questionIndex: currentIdx,
+            });
+            setHints((prev) => ({
+                ...prev,
+                [currentIdx]: result.hint,
+            }));
+        } catch (requestError) {
+            setError(requestError.message || "Failed to load hint.");
+        } finally {
+            setHintLoadingIndex(null);
         }
     };
 
@@ -295,6 +325,7 @@ export default function Quizzes() {
                                             setCurrentIdx(0);
                                             setResults({});
                                             setAnswers({});
+                                            setHints({});
                                             setSubmissionMessage("");
                                             setSubmissionDetails(null);
                                         } catch (requestError) {
@@ -376,11 +407,15 @@ export default function Quizzes() {
                                     number={currentIdx + 1}
                                     initialAnswer={answers[currentIdx] ?? null}
                                     validationResult={isMockMode ? null : (results[currentIdx] || null)}
+                                    allowHints={Boolean(quiz?.allow_hints)}
+                                    hint={hints[currentIdx] || ""}
+                                    isHintLoading={hintLoadingIndex === currentIdx}
                                     isValidating={validatingIndex === currentIdx}
                                     isMockMode={isMockMode}
                                     isFirst={currentIdx === 0}
                                     isLast={currentIdx === total - 1}
                                     onValidate={handleValidateAnswer}
+                                    onRequestHint={handleRequestHint}
                                     onResult={handleMockResult}
                                     onNext={() => setCurrentIdx((prev) => prev + 1)}
                                     onBack={() => setCurrentIdx((prev) => prev - 1)}

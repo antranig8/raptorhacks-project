@@ -34,7 +34,7 @@ Still in progress:
 - Frontend: React + Vite
 - Backend: FastAPI + Uvicorn
 - Auth and storage: Supabase
-- AI: Groq
+- AI: Groq - Qwen
 - Code execution: Piston
 - Deployment: Vercel
 

@@ -29,6 +29,8 @@ from ..schemas.quiz import (
     QuizByNodeRequest,
     QuizDefinition,
     QuizGenerateRequest,
+    QuizHintRequest,
+    QuizHintResult,
     QuizQuestion,
     QuizResponse,
     QuizSubmissionRequest,
@@ -552,6 +554,7 @@ def _quiz_record_to_response(record: dict[str, Any]) -> QuizResponse:
         skill_tree_id=str(record["skill_tree_id"]),
         node_id=record["node_id"],
         title=record.get("title") or f'{record["node_id"]} Quiz',
+        allow_hints=definition.allowHints,
         questions=[_sanitize_question(question) for question in definition.questions],
     )
 
@@ -633,9 +636,22 @@ def _persist_skill_tree_progress(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Skill tree not found.")
 
 
-def _get_answer_context(request: QuizAnswerRequest, current_user: User) -> tuple[QuizQuestion, bool]:
+def _get_answer_context(request: QuizAnswerRequest, current_user: User) -> tuple[QuizQuestion, bool, bool]:
     # Validate that the submitted node_id still matches the stored quiz before
     # we grade anything, so node-linked quizzes cannot be mixed up.
+    record = _get_quiz_record(request.quiz_id, current_user)
+
+    if record["node_id"] != request.node_id:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Quiz does not match node_id.")
+
+    definition = QuizDefinition.model_validate(record["data"])
+    try:
+        return definition.questions[request.question_index], definition.allowHints, definition.allowExplanations
+    except IndexError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Question index is out of range.") from exc
+
+
+def _get_hint_context(request: QuizHintRequest, current_user: User) -> tuple[QuizQuestion, bool]:
     record = _get_quiz_record(request.quiz_id, current_user)
 
     if record["node_id"] != request.node_id:
@@ -651,7 +667,7 @@ def _get_answer_context(request: QuizAnswerRequest, current_user: User) -> tuple
 async def _evaluate_answer(request: QuizAnswerRequest, current_user: User) -> QuizAnswerResult:
     # This is the single grading path for both per-question checks and final
     # submission. It keeps grading logic consistent across the API.
-    question, allow_hints = _get_answer_context(request, current_user)
+    question, _allow_hints, allow_explanations = _get_answer_context(request, current_user)
 
     if question.type == "Coding":
         # Coding questions are validated by executing the submitted code inside
@@ -677,9 +693,8 @@ async def _evaluate_answer(request: QuizAnswerRequest, current_user: User) -> Qu
         return QuizAnswerResult(
             question_index=request.question_index,
             correct=is_correct,
-            reasoning=None if is_correct else "Output did not match the expected result.",
+            reasoning="Output did not match the expected result." if allow_explanations and not is_correct else None,
             error=None if is_correct else f'Expected "{expected_output}" but got "{actual_output}".',
-            hint=_hint_for_wrong_answer(question, allow_hints) if not is_correct else None,
         )
 
     # Multiple-choice questions grade against the stored answer key from the
@@ -690,7 +705,7 @@ async def _evaluate_answer(request: QuizAnswerRequest, current_user: User) -> Qu
 
     is_correct = normalized_answers == correct_answers
     reasoning = None
-    if not is_correct:
+    if allow_explanations and not is_correct:
         matched_choices = [choice.reasoning for choice in question.choices if choice.id in normalized_answers]
         reasoning = matched_choices[0] if matched_choices else "That answer does not match the saved quiz."
 
@@ -698,7 +713,6 @@ async def _evaluate_answer(request: QuizAnswerRequest, current_user: User) -> Qu
         question_index=request.question_index,
         correct=is_correct,
         reasoning=reasoning,
-        hint=_hint_for_wrong_answer(question, allow_hints) if not is_correct else None,
     )
 
 
@@ -809,6 +823,7 @@ async def generate_quiz(
         requested_language=request.language,
     )
     definition.allowHints = request.allow_hints and not request.hard_mode
+    definition.allowExplanations = request.allow_explanations and not request.hard_mode
 
     # We still persist the generated quiz so the existing answer-validation
     # and submission endpoints can grade it using the same stateless contract
@@ -851,6 +866,19 @@ async def submit_quiz_answer(
     # Lightweight endpoint for per-question validation so the frontend can
     # check answers as the user moves through the quiz.
     return await _evaluate_answer(request, current_user)
+
+
+@router.post("/hint", response_model=QuizHintResult, status_code=status.HTTP_200_OK)
+async def get_quiz_hint(
+    request: QuizHintRequest,
+    current_user: User = Depends(get_current_user),
+):
+    question, allow_hints = _get_hint_context(request, current_user)
+    hint = _hint_for_wrong_answer(question, allow_hints)
+    if hint is None:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Hints are not enabled for this quiz.")
+
+    return QuizHintResult(question_index=request.question_index, hint=hint)
 
 
 @router.post("/submit", response_model=QuizSubmissionResult, status_code=status.HTTP_200_OK)

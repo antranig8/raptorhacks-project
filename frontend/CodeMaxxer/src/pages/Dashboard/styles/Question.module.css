@@ -99,6 +99,34 @@
     line-height: 1.5;
 }
 
+.hintTools {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+}
+
+.hintButton {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    border: 1px solid #f59e0b;
+    border-radius: 8px;
+    background: #fffbeb;
+    color: #92400e;
+    font-weight: 600;
+    font-size: 0.95rem;
+    padding: 0.45rem 0.75rem;
+    cursor: pointer;
+}
+
+.hintButton:disabled {
+    border-color: #e5e7eb;
+    background: #f9fafb;
+    color: #9ca3af;
+    cursor: not-allowed;
+}
+
 /* Response variants */
 .choice.correct {
     background-color: #dcfce7;

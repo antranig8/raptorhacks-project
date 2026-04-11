@@ -33,7 +33,7 @@ Current private routes include:
 - Server: Uvicorn
 - Validation: Pydantic
 - Auth and storage: Supabase
-- AI provider: Groq
+- AI provider: Groq - Qwen
 - HTTP client: `httpx`
 - JWT verification: `PyJWT`
 - Code execution: `aiopyston`
