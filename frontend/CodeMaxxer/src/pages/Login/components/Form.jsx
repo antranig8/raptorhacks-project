@@ -9,6 +9,8 @@ const BASE_URL = window.location.origin;
 export default function Form() {
     const [showPassword, setShowPassword] = useState(false)
     const [isSignUp, setIsSignUp] = useState(false)
+    const [isForgotPassword, setIsForgotPassword] = useState(false)
+    const [resetSent, setResetSent] = useState(false)
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [error, setError] = useState(null)
@@ -46,6 +48,24 @@ export default function Form() {
         }
     }
 
+    async function handleResetPassword(e) {
+        e.preventDefault()
+        setError(null)
+        setLoading(true)
+
+        try {
+            const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                redirectTo: `${BASE_URL}/login/callback`
+            })
+            if (error) throw error
+            setResetSent(true)
+        } catch (err) {
+            setError(err.message)
+        } finally {
+            setLoading(false)
+        }
+    }
+
     async function loginThrough(provider) {
         await supabase.auth.signInWithOAuth({
             provider,
@@ -53,6 +73,66 @@ export default function Form() {
                 redirectTo: `${BASE_URL}/login/callback`,
             }
         })
+    }
+
+    if (isForgotPassword) {
+        return (
+            <div className={styles.formContainer}>
+                <form className={styles.form} onSubmit={handleResetPassword}>
+                    {error && <div className={styles.errorMessage}>{error}</div>}
+                    {resetSent ? (
+                        <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
+                            <p style={{ color: '#16a34a', fontWeight: '500', marginBottom: '1rem' }}>
+                                Password reset link sent to your email!
+                            </p>
+                            <button
+                                type="button"
+                                className={styles.loginButton}
+                                style={{ margin: '0 auto', display: 'block' }}
+                                onClick={() => {
+                                    setIsForgotPassword(false)
+                                    setResetSent(false)
+                                    setError(null)
+                                }}
+                            >
+                                Back to Log In
+                            </button>
+                        </div>
+                    ) : (
+                        <>
+                            <div className={styles.inputGroup}>
+                                <label htmlFor="email">Email</label>
+                                <input
+                                    type="email"
+                                    id="email"
+                                    placeholder="Enter your email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    required
+                                />
+                            </div>
+
+                            <button type="submit" className={styles.loginButton} disabled={loading} style={{ margin: '1rem auto' }}>
+                                {loading ? 'Processing...' : 'Send Reset Link'}
+                            </button>
+
+                            <div className={styles.toggleRow}>
+                                <button
+                                    type="button"
+                                    className={styles.toggleButton}
+                                    onClick={() => {
+                                        setIsForgotPassword(false)
+                                        setError(null)
+                                    }}
+                                >
+                                    Back to Log In
+                                </button>
+                            </div>
+                        </>
+                    )}
+                </form>
+            </div>
+        )
     }
 
     return (
@@ -98,7 +178,17 @@ export default function Form() {
                             <input type="checkbox" />
                             <span>Remember me</span>
                         </label>
-                        <a href="#" className={styles.forgotPassword}>Forgot Your Password?</a>
+                        <a 
+                            href="#" 
+                            className={styles.forgotPassword}
+                            onClick={(e) => {
+                                e.preventDefault()
+                                setIsForgotPassword(true)
+                                setError(null)
+                            }}
+                        >
+                            Forgot Your Password?
+                        </a>
                     </div>
                 )}
 
