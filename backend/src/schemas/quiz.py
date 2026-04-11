@@ -21,6 +21,7 @@ class QuizQuestion(BaseModel):
     type: QuestionType
     prompt: str = Field(min_length=1, max_length=600)
     isSkippable: bool = True
+    hint: Optional[str] = Field(default=None, max_length=300)
     choices: list[QuizChoice] = Field(default_factory=list)
     expectedStdout: Optional[str]= Field(default=None, max_length=2000)
     language: Optional[str] = Field(default=None, max_length=40)
@@ -29,6 +30,7 @@ class QuizQuestion(BaseModel):
 
 
 class QuizDefinition(BaseModel):
+    allowHints: bool = False
     questions: list[QuizQuestion] = Field(min_length=1, max_length=20)
 
 
@@ -81,6 +83,8 @@ class QuizByNodeRequest(BaseModel):
 class QuizGenerateRequest(BaseModel):
     language: str = Field(min_length=1, max_length=40)
     prompt: str = Field(min_length=3, max_length=800)
+    allow_hints: bool = False
+    hard_mode: bool = False
 
     @field_validator("language", "prompt")
     @classmethod
@@ -111,6 +115,7 @@ class QuizAnswerResult(BaseModel):
     correct: bool
     reasoning: Optional[str] = None
     error: Optional[str] = None
+    hint: Optional[str] = None
 
 
 class QuizSubmissionRequest(BaseModel):

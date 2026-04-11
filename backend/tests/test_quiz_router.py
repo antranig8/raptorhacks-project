@@ -160,6 +160,7 @@ class QuizRouterTests(TestCase):
                   "type": "Single",
                   "prompt": "What does a function do?",
                   "isSkippable": true,
+                  "hint": "Think about why functions are named blocks.",
                   "choices": [
                     {"id": "A", "label": "Encapsulates reusable logic", "isCorrect": true, "reasoning": "Correct."},
                     {"id": "B", "label": "Deletes variables", "isCorrect": false, "reasoning": "Incorrect."},
@@ -232,6 +233,7 @@ class QuizRouterTests(TestCase):
         self.assertTrue(body["quiz_id"])
         self.assertEqual(body["questions"][0]["choices"][0], {"id": "A", "label": "Encapsulates reusable logic"})
         self.assertNotIn("isCorrect", body["questions"][0]["choices"][0])
+        self.assertNotIn("hint", body["questions"][0])
         self.assertEqual(len(self.fake_supabase.quizzes), 1)
         self.assertEqual(self.fake_supabase.quizzes[0]["node_id"], "functions")
         self.assertEqual(fake_ai.calls, 1)
@@ -322,6 +324,113 @@ class QuizRouterTests(TestCase):
         body = response.json()
         self.assertTrue(body["correct"])
         self.assertIsNone(body["error"])
+
+    def test_submit_answer_returns_hint_only_after_wrong_answer_when_enabled(self):
+        self.fake_supabase.quizzes.append(
+            {
+                "id": "quiz-hints",
+                "user_id": str(self.user.uuid),
+                "skill_tree_id": "tree-1",
+                "node_id": "functions",
+                "title": "Functions Quiz",
+                "data": {
+                    "allowHints": True,
+                    "questions": [
+                        {
+                            "type": "Single",
+                            "prompt": "What does a function do?",
+                            "isSkippable": True,
+                            "hint": "Think about reusable named blocks of logic.",
+                            "choices": [
+                                {"id": "A", "label": "Encapsulates reusable logic", "isCorrect": True, "reasoning": "Functions group reusable logic."},
+                                {"id": "B", "label": "Deletes variables", "isCorrect": False, "reasoning": "Functions do not delete variables."},
+                                {"id": "C", "label": "Makes HTML", "isCorrect": False, "reasoning": "Functions are not HTML-specific."},
+                                {"id": "D", "label": "Starts a server", "isCorrect": False, "reasoning": "Functions do not inherently start servers."},
+                            ],
+                            "expectedStdout": None,
+                            "language": None,
+                            "codeTemplate": None,
+                            "userGuidance": None,
+                        }
+                    ],
+                },
+            }
+        )
+
+        with patch.object(quiz_router, "supabase_client", self.fake_supabase):
+            client = TestClient(app)
+            wrong_response = client.post(
+                "/api/v1/private/quiz/submit-answer",
+                json={
+                    "quiz_id": "quiz-hints",
+                    "node_id": "functions",
+                    "question_index": 0,
+                    "answer": "B",
+                },
+            )
+            correct_response = client.post(
+                "/api/v1/private/quiz/submit-answer",
+                json={
+                    "quiz_id": "quiz-hints",
+                    "node_id": "functions",
+                    "question_index": 0,
+                    "answer": "A",
+                },
+            )
+
+        self.assertEqual(wrong_response.status_code, 200)
+        self.assertFalse(wrong_response.json()["correct"])
+        self.assertEqual(wrong_response.json()["hint"], "Think about reusable named blocks of logic.")
+        self.assertEqual(correct_response.status_code, 200)
+        self.assertTrue(correct_response.json()["correct"])
+        self.assertIsNone(correct_response.json()["hint"])
+
+    def test_submit_answer_does_not_return_hint_when_not_enabled(self):
+        self.fake_supabase.quizzes.append(
+            {
+                "id": "quiz-hints-disabled",
+                "user_id": str(self.user.uuid),
+                "skill_tree_id": "tree-1",
+                "node_id": "functions",
+                "title": "Functions Quiz",
+                "data": {
+                    "questions": [
+                        {
+                            "type": "Single",
+                            "prompt": "What does a function do?",
+                            "isSkippable": True,
+                            "hint": "Think about reusable named blocks of logic.",
+                            "choices": [
+                                {"id": "A", "label": "Encapsulates reusable logic", "isCorrect": True, "reasoning": "Functions group reusable logic."},
+                                {"id": "B", "label": "Deletes variables", "isCorrect": False, "reasoning": "Functions do not delete variables."},
+                                {"id": "C", "label": "Makes HTML", "isCorrect": False, "reasoning": "Functions are not HTML-specific."},
+                                {"id": "D", "label": "Starts a server", "isCorrect": False, "reasoning": "Functions do not inherently start servers."},
+                            ],
+                            "expectedStdout": None,
+                            "language": None,
+                            "codeTemplate": None,
+                            "userGuidance": None,
+                        }
+                    ],
+                },
+            }
+        )
+
+        with patch.object(quiz_router, "supabase_client", self.fake_supabase):
+            client = TestClient(app)
+            response = client.post(
+                "/api/v1/private/quiz/submit-answer",
+                json={
+                    "quiz_id": "quiz-hints-disabled",
+                    "node_id": "functions",
+                    "question_index": 0,
+                    "answer": "B",
+                },
+            )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.json()["correct"])
+        self.assertIsNone(response.json()["hint"])
 
     def test_generate_creates_freeform_quiz_from_language_and_prompt(self):
         fake_ai = FakeQuizPlatform(
@@ -485,10 +594,96 @@ class QuizRouterTests(TestCase):
         self.assertIn('requested language "rust"', response.json()["detail"])
         self.assertEqual(len(self.fake_supabase.quizzes), 0)
 
+    def test_generate_hard_mode_disables_hints_even_when_requested(self):
+        fake_ai = FakeQuizPlatform(
+            """
+            {
+              "questions": [
+                {
+                  "type": "Single",
+                  "prompt": "What does Rust emphasize?",
+                  "isSkippable": true,
+                  "hint": "Think about compile-time memory guarantees.",
+                  "choices": [
+                    {"id": "A", "label": "Safety", "isCorrect": true, "reasoning": "Rust emphasizes memory safety."},
+                    {"id": "B", "label": "Inheritance", "isCorrect": false, "reasoning": "Rust does not center inheritance."},
+                    {"id": "C", "label": "Macros only", "isCorrect": false, "reasoning": "Rust has more than macros."},
+                    {"id": "D", "label": "Reflection", "isCorrect": false, "reasoning": "Rust does not center reflection."}
+                  ],
+                  "expectedStdout": null,
+                  "language": null,
+                  "codeTemplate": null,
+                  "userGuidance": null
+                },
+                {
+                  "type": "Multiple",
+                  "prompt": "Pick Rust ownership ideas.",
+                  "isSkippable": true,
+                  "hint": "Look for concepts tied to ownership transfer and borrowing.",
+                  "choices": [
+                    {"id": "A", "label": "Moves", "isCorrect": true, "reasoning": "Moves transfer ownership."},
+                    {"id": "B", "label": "Borrowing", "isCorrect": true, "reasoning": "Borrowing references data."},
+                    {"id": "C", "label": "GC only", "isCorrect": false, "reasoning": "Rust avoids mandatory GC."},
+                    {"id": "D", "label": "Manual headers", "isCorrect": false, "reasoning": "Headers are not ownership."}
+                  ],
+                  "expectedStdout": null,
+                  "language": null,
+                  "codeTemplate": null,
+                  "userGuidance": null
+                },
+                {
+                  "type": "SelectAll",
+                  "prompt": "Select valid Rust concepts.",
+                  "isSkippable": true,
+                  "hint": "Choose language features Rust actually uses.",
+                  "choices": [
+                    {"id": "A", "label": "Traits", "isCorrect": true, "reasoning": "Traits define shared behavior."},
+                    {"id": "B", "label": "Enums", "isCorrect": true, "reasoning": "Enums model variants."},
+                    {"id": "C", "label": "Classes", "isCorrect": false, "reasoning": "Rust has structs, not classes."},
+                    {"id": "D", "label": "Lifetimes", "isCorrect": true, "reasoning": "Lifetimes track references."}
+                  ],
+                  "expectedStdout": null,
+                  "language": null,
+                  "codeTemplate": null,
+                  "userGuidance": null
+                },
+                {
+                  "type": "Coding",
+                  "prompt": "Return the sum.",
+                  "isSkippable": false,
+                  "hint": "Use the two numeric variables in the print expression.",
+                  "choices": [],
+                  "expectedStdout": "3",
+                  "language": "rust",
+                  "codeTemplate": "fn main() { let x = 1; let y = 2; println!(\\\"{}\\\", %s); }",
+                  "userGuidance": "Write one expression that adds x and y."
+                }
+              ]
+            }
+            """
+        )
+
+        with patch.object(quiz_router, "supabase_client", self.fake_supabase), patch.object(
+            quiz_router, "quiz_platform", fake_ai
+        ):
+            client = TestClient(app)
+            response = client.post(
+                "/api/v1/private/quiz/generate",
+                json={
+                    "language": "rust",
+                    "prompt": "ownership basics",
+                    "allow_hints": True,
+                    "hard_mode": True,
+                },
+            )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(self.fake_supabase.quizzes[0]["data"]["allowHints"])
+
     def test_submit_unlocks_advanced_branch_and_records_exp(self):
         self.fake_supabase.quizzes.append(
             {
-                "id": "quiz-3",
+                "id": "00000000-0000-0000-0000-000000000003",
                 "user_id": str(self.user.uuid),
                 "skill_tree_id": "tree-1",
                 "node_id": "functions",
@@ -557,18 +752,20 @@ class QuizRouterTests(TestCase):
 
         with patch.object(quiz_router, "supabase_client", self.fake_supabase), patch.object(
             quiz_router, "advancement_platform", fake_advancement
+        ), patch.object(quiz_router, "insert_exp_event"), patch.object(
+            quiz_router, "insert_quiz_complete_event"
         ):
             client = TestClient(app)
             response = client.post(
                 "/api/v1/private/quiz/submit",
                 json={
-                    "quiz_id": "quiz-3",
+                    "quiz_id": "00000000-0000-0000-0000-000000000003",
                     "node_id": "functions",
                     "answers": [
-                        {"quiz_id": "quiz-3", "node_id": "functions", "question_index": 0, "answer": "A"},
-                        {"quiz_id": "quiz-3", "node_id": "functions", "question_index": 1, "answer": "A"},
-                        {"quiz_id": "quiz-3", "node_id": "functions", "question_index": 2, "answer": "A"},
-                        {"quiz_id": "quiz-3", "node_id": "functions", "question_index": 3, "answer": "A"},
+                        {"quiz_id": "00000000-0000-0000-0000-000000000003", "node_id": "functions", "question_index": 0, "answer": "A"},
+                        {"quiz_id": "00000000-0000-0000-0000-000000000003", "node_id": "functions", "question_index": 1, "answer": "A"},
+                        {"quiz_id": "00000000-0000-0000-0000-000000000003", "node_id": "functions", "question_index": 2, "answer": "A"},
+                        {"quiz_id": "00000000-0000-0000-0000-000000000003", "node_id": "functions", "question_index": 3, "answer": "A"},
                     ],
                 },
             )
@@ -597,7 +794,7 @@ class QuizRouterTests(TestCase):
         }
         self.fake_supabase.quizzes.append(
             {
-                "id": "quiz-4",
+                "id": "00000000-0000-0000-0000-000000000004",
                 "user_id": str(self.user.uuid),
                 "skill_tree_id": "tree-1",
                 "node_id": "functions",
@@ -623,15 +820,17 @@ class QuizRouterTests(TestCase):
 
         with patch.object(quiz_router, "supabase_client", self.fake_supabase), patch.object(
             quiz_router, "advancement_platform", fake_advancement
+        ), patch.object(quiz_router, "insert_exp_event"), patch.object(
+            quiz_router, "insert_quiz_complete_event"
         ):
             client = TestClient(app)
             response = client.post(
                 "/api/v1/private/quiz/submit",
                 json={
-                    "quiz_id": "quiz-4",
+                    "quiz_id": "00000000-0000-0000-0000-000000000004",
                     "node_id": "functions",
                     "answers": [
-                        {"quiz_id": "quiz-4", "node_id": "functions", "question_index": 0, "answer": "A"},
+                        {"quiz_id": "00000000-0000-0000-0000-000000000004", "node_id": "functions", "question_index": 0, "answer": "A"},
                     ],
                 },
             )

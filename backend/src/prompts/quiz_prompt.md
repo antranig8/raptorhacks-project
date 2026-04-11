@@ -1,14 +1,15 @@
 Return one minified JSON object. No markdown, no fences, no explanation before or after.
 
 Schema:
-{"questions":[{"type":"Single|Multiple|SelectAll|Coding","prompt":"string","isSkippable":true,"choices":[{"id":"A","label":"string","isCorrect":true,"reasoning":"string"}],"expectedStdout":null,"language":null,"codeTemplate":null,"userGuidance":null}]}
+{"questions":[{"type":"Single|Multiple|SelectAll|Coding","prompt":"string","isSkippable":true,"hint":"string","choices":[{"id":"A","label":"string","isCorrect":true,"reasoning":"string"}],"expectedStdout":null,"language":null,"codeTemplate":null,"userGuidance":null}]}
 
 GLOBAL RULES
 - Top-level key: "questions" only.
-- Every question has exactly: type, prompt, isSkippable, choices, expectedStdout, language, codeTemplate, userGuidance.
+- Every question has exactly: type, prompt, isSkippable, hint, choices, expectedStdout, language, codeTemplate, userGuidance.
 - type: "Single" | "Multiple" | "SelectAll" | "Coding".
 - Booleans: true/false, not strings.
 - Exactly 4 questions. At least 3 conceptual. At most 1 Coding.
+- hint: one short sentence under 20 words. It nudges toward the relevant concept without revealing the answer.
 
 CONCEPTUAL QUESTIONS (Single/Multiple/SelectAll)
 - choices: non-empty array of {id,label,isCorrect,reasoning}.

@@ -101,7 +101,7 @@ export default function Quizzes() {
         };
     }, [hasNodeLinkedContext, skillTreeId, nodeId]);
 
-    const handleGenerateQuiz = async ({ language, prompt }) => {
+    const handleGenerateQuiz = async ({ language, prompt, configs = [] }) => {
         // The standalone editor now calls the backend so freeform quizzes use
         // the same generation and grading contract as node-linked quizzes.
         setIsQuizMode(true);
@@ -111,7 +111,14 @@ export default function Quizzes() {
         setSubmissionDetails(null);
 
         try {
-            const nextQuiz = await generateQuiz({ language, prompt });
+            const hardMode = configs.includes("hard");
+            const nextQuiz = await generateQuiz({
+                language,
+                prompt,
+                allowHints: configs.includes("hints") && !hardMode,
+                allowExplanations: configs.includes("explanations") && !hardMode,
+                hardMode,
+            });
             setQuiz(nextQuiz);
         } catch (requestError) {
             setError(requestError.message || "Failed to generate quiz.");

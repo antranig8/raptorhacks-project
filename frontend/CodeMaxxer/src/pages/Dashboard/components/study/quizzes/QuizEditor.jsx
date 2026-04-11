@@ -100,7 +100,7 @@ const CONFIG_OPTIONS = [
 export default function QuizEditor({ onGenerate, isGenerating = false, error = "" }) {
     const [language, setLanguage] = useState('python');
     const [amount, setAmount] = useState(10);
-    const [configs, setConfigs] = useState(['explanations']);
+    const [configs, setConfigs] = useState([]);
     const [prompt, setPrompt] = useState('');
     const [localError, setLocalError] = useState('');
 

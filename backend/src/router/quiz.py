@@ -166,6 +166,18 @@ def _normalize_choice_id(index: int, raw_id: Any) -> str:
     return ["A", "B", "C", "D"][index] if index < 4 else f"Choice{index + 1}"
 
 
+def _fallback_hint(question_type: str) -> str:
+    if question_type == "Coding":
+        return "Check the expected output and focus on the smallest code change that produces it."
+    return "Review the rule behind the question and eliminate choices that do not match it."
+
+
+def _hint_for_wrong_answer(question: QuizQuestion, allow_hints: bool) -> str | None:
+    if not allow_hints:
+        return None
+    return question.hint or _fallback_hint(question.type)
+
+
 def _normalize_quiz_payload(payload: Any) -> dict[str, Any]:
     # Coerce near-miss model output into the exact quiz schema the app expects.
     if isinstance(payload, dict) and isinstance(payload.get("questions"), list):
@@ -203,6 +215,7 @@ def _normalize_quiz_payload(payload: Any) -> dict[str, Any]:
             "type": question_type,
             "prompt": str(raw_question.get("prompt") or "").strip()[:600],
             "isSkippable": bool(raw_question.get("isSkippable", True)),
+            "hint": str(raw_question.get("hint") or _fallback_hint(question_type)).strip()[:300],
             "choices": [] if question_type == "Coding" else normalized_choices,
             "expectedStdout": None,
             "language": None,
@@ -620,7 +633,7 @@ def _persist_skill_tree_progress(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Skill tree not found.")
 
 
-def _get_question_for_answer(request: QuizAnswerRequest, current_user: User) -> QuizQuestion:
+def _get_answer_context(request: QuizAnswerRequest, current_user: User) -> tuple[QuizQuestion, bool]:
     # Validate that the submitted node_id still matches the stored quiz before
     # we grade anything, so node-linked quizzes cannot be mixed up.
     record = _get_quiz_record(request.quiz_id, current_user)
@@ -630,7 +643,7 @@ def _get_question_for_answer(request: QuizAnswerRequest, current_user: User) -> 
 
     definition = QuizDefinition.model_validate(record["data"])
     try:
-        return definition.questions[request.question_index]
+        return definition.questions[request.question_index], definition.allowHints
     except IndexError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Question index is out of range.") from exc
 
@@ -638,7 +651,7 @@ def _get_question_for_answer(request: QuizAnswerRequest, current_user: User) -> 
 async def _evaluate_answer(request: QuizAnswerRequest, current_user: User) -> QuizAnswerResult:
     # This is the single grading path for both per-question checks and final
     # submission. It keeps grading logic consistent across the API.
-    question = _get_question_for_answer(request, current_user)
+    question, allow_hints = _get_answer_context(request, current_user)
 
     if question.type == "Coding":
         # Coding questions are validated by executing the submitted code inside
@@ -666,6 +679,7 @@ async def _evaluate_answer(request: QuizAnswerRequest, current_user: User) -> Qu
             correct=is_correct,
             reasoning=None if is_correct else "Output did not match the expected result.",
             error=None if is_correct else f'Expected "{expected_output}" but got "{actual_output}".',
+            hint=_hint_for_wrong_answer(question, allow_hints) if not is_correct else None,
         )
 
     # Multiple-choice questions grade against the stored answer key from the
@@ -684,6 +698,7 @@ async def _evaluate_answer(request: QuizAnswerRequest, current_user: User) -> Qu
         question_index=request.question_index,
         correct=is_correct,
         reasoning=reasoning,
+        hint=_hint_for_wrong_answer(question, allow_hints) if not is_correct else None,
     )
 
 
@@ -793,6 +808,7 @@ async def generate_quiz(
         _build_freeform_quiz_prompt(request.language, request.prompt),
         requested_language=request.language,
     )
+    definition.allowHints = request.allow_hints and not request.hard_mode
 
     # We still persist the generated quiz so the existing answer-validation
     # and submission endpoints can grade it using the same stateless contract

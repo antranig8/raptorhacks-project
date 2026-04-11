@@ -50,7 +50,7 @@ export async function fetchQuizByNode({ skillTreeId, nodeId, nodeName = null, sk
     });
 }
 
-export async function generateQuiz({ language, prompt }) {
+export async function generateQuiz({ language, prompt, allowHints = false, hardMode = false }) {
     // Standalone quiz generation uses a direct language + topic request
     // instead of a saved skill-tree node.
     return requestQuiz("/quiz/generate", {
@@ -58,6 +58,8 @@ export async function generateQuiz({ language, prompt }) {
         body: JSON.stringify({
             language,
             prompt,
+            allow_hints: allowHints,
+            hard_mode: hardMode,
         }),
     });
 }

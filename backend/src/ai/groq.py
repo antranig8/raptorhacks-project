@@ -19,8 +19,8 @@ class GroqAI(AIPlatform):
     def __init__(self, api_key: str, system_prompt:str = None, model:str = "qwen/qwen3-32b"):
         self.client = Groq(api_key=api_key)
         self.system_prompt = system_prompt
-        # llama-3.1-8b-instant is the first model used
-        # llama-3.3-70b-versatile is also available for usage
+        # qwen is the first model used
+        # qwen3-32b is also available for usage
         self.model = model
 
     # chat that sends a prompt and returns a text response

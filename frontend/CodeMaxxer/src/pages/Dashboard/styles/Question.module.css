@@ -89,6 +89,16 @@
     opacity: 0.9;
 }
 
+.hint {
+    margin: 0.75rem 0 0;
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    background: #fff7ed;
+    color: #7c2d12;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
 /* Response variants */
 .choice.correct {
     background-color: #dcfce7;

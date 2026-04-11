@@ -141,6 +141,7 @@ export default function Question({
         const statusIcon = validationResult.correct ? "\u2713" : "\u2715";
         const statusText = validationResult.correct ? "Correct" : "Incorrect";
         const detail = validationResult.error || validationResult.reasoning;
+        const hint = !validationResult.correct ? validationResult.hint : null;
 
         return (
             <div className={styles.feedback}>
@@ -150,6 +151,9 @@ export default function Question({
                 </div>
                 {detail && (
                     <p className={styles.reasoning}>{detail}</p>
+                )}
+                {hint && (
+                    <p className={styles.hint}>Hint: {hint}</p>
                 )}
             </div>
         );
