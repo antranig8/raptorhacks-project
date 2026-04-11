@@ -6,3 +6,4 @@ frontend/.DS_Store
 __pycache__/
 .env
 .vscode/settings.json
+frontend/CodeMaxxer/bun.lock

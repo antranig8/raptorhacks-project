@@ -116,7 +116,7 @@ export default function Question({
                 onClick={() => handleSelect(choice.id)}
             >
                 <div className={styles.choiceHeader}>
-                    <span className={styles.choiceId}>{choice.id}.</span>
+                    <span className={styles.choiceId}>{isMultiChoice ?  "•" : choice.id}</span>
                     <span className={styles.choiceLabel}>{choice.label}</span>
                 </div>
 
