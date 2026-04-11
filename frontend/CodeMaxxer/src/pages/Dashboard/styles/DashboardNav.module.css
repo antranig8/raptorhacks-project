@@ -1,4 +1,8 @@
 .sidebar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 50;
     height: 100vh;
     width: fit-content;
     min-width: 180px;
@@ -17,6 +21,13 @@
     min-width: 60px;
     padding: 2rem 0.5rem;
     align-items: center;
+}
+
+@media (max-width: 480px) {
+    .sidebar {
+        width: 100%;
+        min-width: 100%;
+    }
 }
 
 .logoRow {
