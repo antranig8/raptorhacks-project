@@ -96,9 +96,9 @@ export default function Form() {
                     <div className={styles.optionsRow}>
                         <label className={styles.rememberMe}>
                             <input type="checkbox" />
-                            <span>Remember<br />me</span>
+                            <span>Remember me</span>
                         </label>
-                        <a href="#" className={styles.forgotPassword}>Forgot Your<br />Password?</a>
+                        <a href="#" className={styles.forgotPassword}>Forgot Your Password?</a>
                     </div>
                 )}
 

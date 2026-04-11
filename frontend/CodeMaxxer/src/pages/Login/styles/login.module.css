@@ -133,6 +133,7 @@
     font-size: inherit;
     font-weight: 400;
     cursor: pointer;
+    white-space: nowrap;
 }
 
 .rememberMe input[type="checkbox"] {
@@ -172,6 +173,7 @@
     font-weight: 500;
     font-size: inherit;
     transition: all 0.2s;
+    white-space: nowrap;
 }
 
 .forgotPassword:hover {
@@ -396,7 +398,7 @@
     }
 
     .loginButton {
-        font-size: 0.9rem;
+        font-size: 0.8rem;
         padding: 0.7rem 1rem;
     }
 
@@ -417,7 +419,7 @@
     }
 }
 
-@media screen and (max-width: 400px) {
+@media screen and (max-width: 480px) {
     .container {
         padding: 1rem;
         gap: 0.5rem;
