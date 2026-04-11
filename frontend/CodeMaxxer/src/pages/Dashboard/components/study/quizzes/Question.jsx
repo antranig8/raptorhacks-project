@@ -97,6 +97,10 @@ export default function Question({
         const showResult = isSubmitted && isSelected;
 
         let containerClass = styles.choice;
+        if (isSubmitted && !isMockMode) {
+            containerClass += ` ${styles.disabled}`;
+        }
+
         if (isSelected && !showResult) {
             containerClass += ` ${styles.selected}`;
         }
@@ -255,7 +259,7 @@ export default function Question({
                             }
                             type="button"
                         >
-                            {isValidating ? "Checking..." : "Check Answer"}
+                            {isValidating ? "Checking..." : "Check"}
                         </button>
                     )}
                     {isLast ? (

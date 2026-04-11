@@ -54,3 +54,19 @@
     min-width: 0;
     font-weight: 400;
 }
+
+
+@media (max-width: 480px) {
+    .title {
+        font-size: 0.7rem;
+    }
+
+    .controlButton {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+    }
+
+    .zoomButton {
+        display: none;
+    }
+}

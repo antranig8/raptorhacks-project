@@ -1,6 +1,6 @@
 # Backend
 
-This is the FastAPI backend for CodeMaxxer, the RaptorHacks project.
+This is the FastAPI backend for CodeMaxxing, the RaptorHacks project.
 
 ## What It Handles
 

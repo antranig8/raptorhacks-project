@@ -19,7 +19,7 @@ export default function SkillTreeHeader({ onZoomIn, onZoomOut, onReset, onUndo, 
                     </svg>
                 </button>
                 <div className={styles.divider}></div>
-                <button className={styles.controlButton} onClick={onZoomIn} title="Zoom In">
+                <button className={`${styles.controlButton} ${styles.zoomButton}`} onClick={onZoomIn} title="Zoom In">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <circle cx="11" cy="11" r="8"></circle>
                         <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
@@ -27,7 +27,7 @@ export default function SkillTreeHeader({ onZoomIn, onZoomOut, onReset, onUndo, 
                         <line x1="8" y1="11" x2="14" y2="11"></line>
                     </svg>
                 </button>
-                <button className={styles.controlButton} onClick={onZoomOut} title="Zoom Out">
+                <button className={`${styles.controlButton} ${styles.zoomButton}`} onClick={onZoomOut} title="Zoom Out">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <circle cx="11" cy="11" r="8"></circle>
                         <line x1="21" y1="21" x2="16.65" y2="16.65"></line>

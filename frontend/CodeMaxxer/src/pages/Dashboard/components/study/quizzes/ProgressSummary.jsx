@@ -23,16 +23,18 @@ export default function ProgressSummary({ title = "Quiz Progress", answered = 0,
                 })}
             </div>
 
-            <span className={styles.fraction}>{answered} / {total}</span>
+            <div className={styles.statsGroup}>
+                <span className={styles.fraction}>{answered} / {total}</span>
 
-            <div className={styles.badgeContainer}>
-                <div className={styles.wrongBadge}>
-                    <span className={styles.icon}>&#10005;</span>
-                    <span className={styles.value}>{wrong}</span>
-                </div>
-                <div className={styles.correctBadge}>
-                    <span className={styles.icon}>&#10003;</span>
-                    <span className={styles.value}>{correct}</span>
+                <div className={styles.badgeContainer}>
+                    <div className={styles.wrongBadge}>
+                        <span className={styles.icon}>&#10005;</span>
+                        <span className={styles.value}>{wrong}</span>
+                    </div>
+                    <div className={styles.correctBadge}>
+                        <span className={styles.icon}>&#10003;</span>
+                        <span className={styles.value}>{correct}</span>
+                    </div>
                 </div>
             </div>
         </section>

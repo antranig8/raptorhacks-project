@@ -1,6 +1,6 @@
-# CodeMaxxer
+# CodeMaxxing
 
-CodeMaxxer is the RaptorHacks project: a coding-focused learning platform with a React frontend, a FastAPI backend, Supabase authentication and storage, Groq-powered AI features, and Piston-backed code execution.
+CodeMaxxing is the RaptorHacks project: a coding-focused learning platform with a React frontend, a FastAPI backend, Supabase authentication and storage, Groq-powered AI features, and Piston-backed code execution.
 
 ## Current State
 
@@ -42,7 +42,7 @@ Still in progress:
 
 ```text
 raptorhacks-project/
-  frontend/CodeMaxxer/
+  frontend/CodeMaxxing/
   backend/
   docs/
 ```
