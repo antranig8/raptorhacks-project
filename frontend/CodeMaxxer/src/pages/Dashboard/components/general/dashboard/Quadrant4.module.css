@@ -89,15 +89,6 @@
     margin-top: 0.5rem;
 }
 
-.timeSelector {
-    display: inline-flex;
-    gap: 0.5rem;
-    background: #f1f5f9;
-    padding: 0.25rem 0.5rem;
-    border-radius: 8px;
-    border: 1px solid #e2e8f0;
-}
-
 .timeBtn {
     background: transparent;
     border: none;

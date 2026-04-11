@@ -15,6 +15,7 @@
     font-size: 1.25rem;
     color: #1e293b;
     font-weight: 600;
+    white-space: nowrap;
 }
 
 .controls {

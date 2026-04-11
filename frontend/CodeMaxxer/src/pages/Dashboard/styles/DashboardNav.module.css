@@ -246,9 +246,15 @@ button.navItem {
 @media (max-width: 480px) {
     .sidebar.docked {
         padding: 1rem 0rem;
+        position: absolute;
+        z-index: 50;
     }
 
     .sidebar {
         padding: 1rem 0.5rem;
+        position: absolute;
+        height: 100vh;
+        z-index: 50;
+        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
     }
 }
