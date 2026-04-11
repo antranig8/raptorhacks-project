@@ -1,7 +1,7 @@
 .progressSummary {
     display: flex;
     align-items: center;
-    gap: 1.5rem;
+    gap: 1rem;
     padding: 0.5rem;
     width: 100%;
     flex-wrap: wrap;
@@ -13,6 +13,7 @@
     font-size: 0.96rem;
     font-weight: 700;
     color: #1f2937;
+    text-align: center;
 }
 
 .segmentsContainer {
@@ -93,6 +94,34 @@
     font-size: inherit;
 }
 
+.timedBarContainer {
+    width: 100%;
+    height: 8px;
+    background: #eff6ff;
+    border-radius: 999px;
+    overflow: hidden;
+    margin-top: 0.5rem;
+    border: 1px solid #bfdbfe;
+}
+
+.timedBarFill {
+    height: 100%;
+    transition: width 1s linear, background-color 0.3s ease;
+    transform-origin: left;
+}
+
+.timedBarFill.green {
+    background: #4ade80;
+}
+
+.timedBarFill.orange {
+    background: #fb923c;
+}
+
+.timedBarFill.red {
+    background: #f87171;
+}
+
 @media (max-width: 1024px) {
     .progressSummary {
         gap: 0.5rem;
@@ -116,12 +145,14 @@
 
 @media (max-width: 480px) {
     .progressSummary {
-        gap: 0.5rem;
+        gap: 0.3rem;
         padding: 0;
     }
 
     .statsGroup {
         gap: 0.5rem;
+        width: 100%;
+        justify-content: center;
     }
 
     .badgeContainer {
@@ -136,5 +167,9 @@
 
     .fraction {
         font-size: 0.9rem;
+    }
+
+    .segment {
+        min-width: 20px;
     }
 }

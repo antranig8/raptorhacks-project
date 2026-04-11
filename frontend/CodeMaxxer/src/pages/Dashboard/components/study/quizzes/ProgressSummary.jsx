@@ -1,11 +1,50 @@
+import { useState, useEffect } from "react";
 import styles from "@dashboard/styles/ProgressSummary.module.css";
 
-export default function ProgressSummary({ title = "Quiz Progress", answered = 0, correct = 0, wrong = 0, total = 0, results = [] }) {
+function TimedProgressBar({ isTimed, onTimeUp }) {
+    const totalTime = 60; // 1 minute hardcoded per prompt for demo
+    const [timeLeft, setTimeLeft] = useState(totalTime);
+
+    useEffect(() => {
+        if (!isTimed) return;
+
+        if (timeLeft <= 0) {
+            if (onTimeUp) onTimeUp();
+            return;
+        }
+
+        const timer = setInterval(() => {
+            setTimeLeft((prev) => prev - 1);
+        }, 1000);
+
+        return () => clearInterval(timer);
+    }, [isTimed, timeLeft, onTimeUp]);
+
+    if (!isTimed) return null;
+
+    const percentage = (timeLeft / totalTime) * 100;
+
+    let colorClass = styles.red;
+    if (percentage >= 70) colorClass = styles.green;
+    else if (percentage >= 40) colorClass = styles.orange;
+
+    return (
+        <div className={styles.timedBarContainer}>
+            <div
+                className={`${styles.timedBarFill} ${colorClass}`}
+                style={{ width: `${percentage}%` }}
+            />
+        </div>
+    );
+}
+
+export default function ProgressSummary({ title = "Quiz Progress", answered = 0, correct = 0, wrong = 0, total = 0, results = [], isTimed = false, onTimeUp }) {
     const segments = Array.from({ length: total }, (_, i) => i);
 
     return (
         <section className={styles.progressSummary}>
             <h2 className={styles.quizTitle}>{title}</h2>
+            <TimedProgressBar isTimed={isTimed} onTimeUp={onTimeUp} />
             <div className={styles.segmentsContainer}>
                 {segments.map((index) => {
                     const result = results[index];

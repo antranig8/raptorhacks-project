@@ -116,6 +116,7 @@ export default function Quizzes() {
 
         try {
             const hardMode = configs.includes("hard");
+            const isTimed = configs.includes("timing");
             const nextQuiz = await generateQuiz({
                 language,
                 prompt,
@@ -123,7 +124,7 @@ export default function Quizzes() {
                 allowExplanations: configs.includes("explanations") && !hardMode,
                 hardMode,
             });
-            setQuiz(nextQuiz);
+            setQuiz({ ...nextQuiz, isTimed });
         } catch (requestError) {
             setError(requestError.message || "Failed to generate quiz.");
             setIsQuizMode(false);
@@ -393,6 +394,8 @@ export default function Quizzes() {
                                         value.correct ? "correct" : "wrong",
                                     ]),
                                 )}
+                                isTimed={Boolean(quiz?.isTimed)}
+                                onTimeUp={handleSubmitQuiz}
                             />
                             {error && (
                                 <p className={styles.placeholderText}>{error}</p>

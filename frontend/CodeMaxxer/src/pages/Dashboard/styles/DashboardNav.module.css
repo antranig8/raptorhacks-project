@@ -11,6 +11,10 @@
     gap: 1.8rem;
     overflow-y: auto;
     transition: min-width 0.3s ease, padding 0.3s ease;
+    
+    position: absolute;
+    z-index: 50;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
 }
 
 .sidebar.docked {
@@ -241,20 +245,4 @@ button.navItem {
 .logoutIcon {
     font-size: 0.8rem;
     display: inline-flex;
-}
-
-@media (max-width: 480px) {
-    .sidebar.docked {
-        padding: 1rem 0rem;
-        position: absolute;
-        z-index: 50;
-    }
-
-    .sidebar {
-        padding: 1rem 0.5rem;
-        position: absolute;
-        height: 100vh;
-        z-index: 50;
-        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
-    }
 }

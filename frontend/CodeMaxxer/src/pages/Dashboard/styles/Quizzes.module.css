@@ -144,3 +144,10 @@
         padding: 1.5rem;
     }
 }
+
+@media (max-width: 480px) {
+    .container,
+    .rightCol {
+        padding: 0;
+    }
+}
