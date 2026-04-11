@@ -202,8 +202,7 @@ export default function Plan() {
                     <p className={styles.eyebrow}>Plan</p>
                     <h1 className={styles.title}>Build Your Plan</h1>
                     <p className={styles.subtitle}>
-                        This is a guided intake flow, not a general AI chat. Give the app enough context
-                        to turn your goal into a clean, useful skill tree.
+                        Give the app enough content to turn your goal into a clean and useful skilltree.
                     </p>
                 </div>
                 <div className={styles.heroCard}>
