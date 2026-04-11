@@ -203,7 +203,7 @@ export default function Typing() {
                     />
                 </div>
             </div>
-            <TypingEditor onStart={handleStart} isTablet={false} />
+            {/* <TypingEditor onStart={handleStart} isTablet={false} /> */}
         </section>
     )
 }
