@@ -58,8 +58,8 @@
     }
 }
 
-/* On screens below 1600px, show only one column based on the mode class applied to .fullCol */
-@media (max-width: 1600px) {
+/* On narrow screens, show only one column based on the mode class applied to .fullCol */
+@media (max-width: 1024px) {
     .fullCol.editorMode>.leftCol {
         display: block;
     }
@@ -124,8 +124,8 @@
     cursor: not-allowed;
 }
 
-/* For wider screens, display as two columns instead of a single stretched column */
-@media (min-width: 1600px) {
+/* For desktop screens, display as two columns so the editor remains reachable. */
+@media (min-width: 1025px) {
     .fullCol {
         display: flex;
         gap: 1.25rem;
