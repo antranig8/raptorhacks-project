@@ -146,21 +146,6 @@ export default function QuizEditor({ onGenerate, isGenerating = false, error = "
             </div>
 
             <div className={styles.section}>
-                <label className={styles.label}>Number of Questions</label>
-                <div className={styles.amountGrid}>
-                    {QUESTION_AMOUNTS.map(num => (
-                        <div
-                            key={num}
-                            className={`${styles.amountOption} ${amount === num ? styles.active : ''}`}
-                            onClick={() => setAmount(num)}
-                        >
-                            {num}
-                        </div>
-                    ))}
-                </div>
-            </div>
-
-            <div className={styles.section}>
                 <label className={styles.label}>Configurations</label>
                 <div className={styles.configGrid}>
                     {CONFIG_OPTIONS.map(opt => (
