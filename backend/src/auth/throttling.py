@@ -7,7 +7,7 @@ from fastapi import Depends, HTTPException, Request, status
 from .auth import get_current_user, get_optional_current_user
 from .user import User
 
-AUTH_RATE_LIMIT = 120
+AUTH_RATE_LIMIT = 30
 AUTH_TIME_WINDOW_SECONDS = 60
 
 GLOBAL_RATE_LIMIT = 3
