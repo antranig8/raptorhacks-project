@@ -1,16 +1,44 @@
-# React + Vite
+# CodeMaxxer Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This is the React + Vite frontend for CodeMaxxer.
 
-Currently, two official plugins are available:
+Current app areas:
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Landing page and login flow
+- Supabase email/password, password reset, and OAuth sign-in
+- Protected dashboard routes
+- Guided plan creation and saved-plan management
+- D3 skill tree rendering with backend-driven XP values
+- Node-linked quizzes and standalone generated quizzes
+- Quiz hints, explanations, hard mode, per-question validation, and final submission
+- Dashboard XP charts backed by the backend user-stats API
+- Typing practice with live WPM/EPM charting
 
-## React Compiler
+## Run Locally
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+```bash
+npm install
+npm run dev
+```
 
-## Expanding the ESLint configuration
+Other scripts:
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- `npm run build`
+- `npm run lint`
+- `npm run preview`
+
+## Environment Variables
+
+The frontend expects:
+
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_PUB_KEY`
+- `VITE_API_URL`
+
+`VITE_API_URL` can point either to the backend root, such as `http://127.0.0.1:8000`, or to `/api/v1/private`; quiz and skill-tree API helpers normalize both forms.
+
+## Notes
+
+- The app uses Vite aliases from `vite.config.js`, including `@`, `@dashboard`, `@d_general`, `@d_study`, and `@utils`.
+- `vercel.json` rewrites all routes to `index.html` for client-side routing.
+- Mock quiz and skill-tree data still exists for fallback/local UI behavior, but the main authenticated flows use the backend.

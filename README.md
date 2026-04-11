@@ -1,6 +1,6 @@
-# CodeMaxxing
+# CodeMaxxer
 
-CodeMaxxing is the RaptorHacks project: a coding-focused learning platform with a React frontend, a FastAPI backend, Supabase authentication and storage, Groq-powered AI features, and Piston-backed code execution.
+CodeMaxxer is the RaptorHacks project: a coding-focused learning platform with a React frontend, a FastAPI backend, Supabase authentication and storage, Groq-powered AI features, and Piston-backed code execution.
 
 ## Current State
 
@@ -10,22 +10,26 @@ Implemented:
 - Supabase authentication with OAuth callback handling
 - Protected dashboard routes
 - Skill tree generation with AI
+- Guided plan creation with saved-plan loading, activation, and deletion
 - Saved skill trees loaded from the backend
 - Skill tree rendering in the frontend with backend-driven XP values
 - Node-linked quiz generation
 - Standalone quiz generation from a language + topic prompt
+- Quiz hint and explanation options, with hard mode disabling help
 - Quiz answer validation and submission
 - Code-based quiz questions using Piston-backed execution
 - Groq-backed chat and AI route support
 - Quiz XP recording through Supabase analytics tables
+- User stats API backed by Supabase event rows
 - Node progression metadata stored in the skill tree
 - AI-generated branch advancement when node XP reaches unlock thresholds
 - Frontend dashboard XP charts linked to the authenticated user
+- Typing practice with live WPM/EPM charting
 
 Still in progress:
 
-- Dashboard analytics beyond XP
-- Standalone coding page beyond placeholder scaffolding
+- Dashboard analytics beyond XP and quiz-completion summaries
+- Standalone coding/test page beyond placeholder scaffolding
 - Study-plan and topic-explanation style features
 - Production hardening and deployment polish
 
@@ -42,7 +46,7 @@ Still in progress:
 
 ```text
 raptorhacks-project/
-  frontend/CodeMaxxing/
+  frontend/CodeMaxxer/
   backend/
   docs/
 ```
@@ -54,6 +58,7 @@ raptorhacks-project/
 
 ## Notes
 
-- The frontend is still planned for Vercel deployment.
+- The frontend includes Vercel SPA rewrite config and expects `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUB_KEY`, and `VITE_API_URL`.
+- The backend expects `SUPABASE_URL`, `SUPABASE_KEY`, `GROQ_API_KEY`, and `PISTON_API_KEY`.
 - The backend and product flows are still evolving.
 - This repo reflects active development, not a polished production release.
