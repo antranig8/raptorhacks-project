@@ -19,9 +19,9 @@ function Navbar() {
       </div>
 
       <div className={styles.centerGroup}>
-        <button className={styles.navButton}>Home</button>
+        {/* <button className={styles.navButton}>Home</button>
         <button className={styles.navButton}>Our Purpose</button>
-        <button className={styles.navButton}>The Team</button>
+        <button className={styles.navButton}>The Team</button> */}
       </div>
 
       <div className={styles.rightGroup}>
