@@ -497,7 +497,7 @@ async def _generate_quiz_definition(
                     quiz_platform.chat_messages,
                     [{"role": "user", "content": prompt}],
                     temperature=0.2,
-                    max_tokens=6000,
+                    max_tokens=3000,
                 ),
                 label="quiz generation",
             )
