@@ -16,8 +16,14 @@ export default function Quizzes() {
     const [searchParams] = useSearchParams();
     const skillTreeId = searchParams.get("skillTreeId");
     const nodeId = searchParams.get("nodeId");
-    const nodeName = location.state?.nodeName || nodeId || "Selected Node";
-    const skillTreeName = location.state?.skillTreeName || "Skill Tree";
+    const nodeName = useMemo(
+        () => location.state?.nodeName || nodeId || "Selected Node",
+        [location.state?.nodeName, nodeId],
+    );
+    const skillTreeName = useMemo(
+        () => location.state?.skillTreeName || "Skill Tree",
+        [location.state?.skillTreeName],
+    );
     const hasNodeLinkedContext = Boolean(skillTreeId && nodeId);
 
     const [quiz, setQuiz] = useState(null);
@@ -93,7 +99,7 @@ export default function Quizzes() {
         return () => {
             isCancelled = true;
         };
-    }, [hasNodeLinkedContext, skillTreeId, nodeId, nodeName, skillTreeName]);
+    }, [hasNodeLinkedContext, skillTreeId, nodeId]);
 
     const handleGenerateQuiz = async ({ language, prompt }) => {
         // The standalone editor now calls the backend so freeform quizzes use
