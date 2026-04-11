@@ -31,7 +31,7 @@ body,
   background: #fcfdff;
   font-family: 'Mona Sans', Helvetica, Arial, sans-serif;
   color: #121212;
-  overflow: hidden;
+  overflow: auto;
 }
 
 * {
