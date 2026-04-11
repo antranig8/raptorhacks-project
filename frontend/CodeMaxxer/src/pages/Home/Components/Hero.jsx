@@ -41,12 +41,6 @@ function Hero() {
                     >
                         Learn flexibly, faster, better.
                     </p>
-                    <button
-                        className={`${styles.ctaButton} ${contentVisible ? styles.fallInVisible : styles.fallInHidden}`}
-                        style={{ transitionDelay: '320ms' }}
-                    >
-                        Show me how <span className={styles.ctaArrow}>↓</span>
-                    </button>
                 </div>
             </div>
         </section>
