@@ -3,7 +3,8 @@
     border: 1px solid #e5e9f0;
     border-radius: 14px;
     padding: 1.5rem;
-    height: 100%;
+    min-height: 100%;
+    height: auto;
     display: flex;
     flex-direction: column;
     overflow-y: auto;
@@ -21,7 +22,6 @@
     grid-template-rows: auto auto;
     gap: 1rem;
     height: auto;
-    min-height: 100%;
     flex: 1;
 }
 

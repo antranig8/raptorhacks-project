@@ -4,12 +4,11 @@ import styles from './Quadrant1.module.css'
 
 export default function Quadrant1({ userData }) {
 
-    if (!userData) return <div>Loading...</div>;
-
-    const [ answers, setAnswers ] = useState([0.5, 0.5])
+    const [answers, setAnswers] = useState([0.5, 0.5])
 
     useEffect(() => {
-        const quizEvents = userData.quiz_complete.events;
+        if (!userData) return;
+        const quizEvents = userData.quiz_complete?.events || [];
 
         const { totalRight, totalQuestions } = quizEvents.reduce(
             (acc, e) => {
@@ -21,9 +20,13 @@ export default function Quadrant1({ userData }) {
         );
 
 
-        setAnswers([totalRight, (totalQuestions-totalRight)])
+        setAnswers([totalRight, (totalQuestions - totalRight)])
 
     }, [userData])
+
+    const isLoading = !userData;
+    const displayAnswers = isLoading ? [65, 35] : answers;
+    const displayColors = isLoading ? ["#cbd5e1", "#64748b"] : ["#22c55e", "#ef4444"];
 
     return (
         <div className={styles.root}>
@@ -33,14 +36,14 @@ export default function Quadrant1({ userData }) {
                     <div className={styles.chartContainer}>
                         <VictoryPie
                             data={[
-                                { x: "Correct", y: answers[0] },
-                                { x: "Wrong", y: answers[1] }
+                                { x: "Correct", y: displayAnswers[0] },
+                                { x: "Wrong", y: displayAnswers[1] }
                             ]}
-                            colorScale={["#22c55e", "#ef4444"]}
+                            colorScale={displayColors}
                             height={180}
                             padding={20}
                             labelRadius={40}
-                            labels={({ datum }) => `${datum.y}`}
+                            labels={({ datum }) => isLoading ? "" : `${datum.y}`}
                             style={{
                                 labels: {
                                     fontSize: 12,
@@ -52,8 +55,8 @@ export default function Quadrant1({ userData }) {
                         />
                     </div>
                     <div className={styles.legendWrapper}>
-                        <div className={styles.legendItem}><span className={styles.dot} style={{ background: '#22c55e' }}></span> Correct</div>
-                        <div className={styles.legendItem}><span className={styles.dot} style={{ background: '#ef4444' }}></span> Wrong</div>
+                        <div className={styles.legendItem}><span className={styles.dot} style={{ background: displayColors[0] }}></span> Correct</div>
+                        <div className={styles.legendItem}><span className={styles.dot} style={{ background: displayColors[1] }}></span> Wrong</div>
                     </div>
                 </div>
             </div>
