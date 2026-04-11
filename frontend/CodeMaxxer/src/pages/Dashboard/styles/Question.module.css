@@ -328,6 +328,12 @@
         font-size: 0.5rem;
     }
 
+    .status,
+    .reasoning,
+    .codingTextarea {
+        font-size: 0.7rem;
+    }
+
     .footer {
         margin-top: 0.5rem;
         padding-top: 0.5rem;
