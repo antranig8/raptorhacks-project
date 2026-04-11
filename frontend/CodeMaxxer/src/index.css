@@ -7,14 +7,6 @@
   font-display: swap;
 }
 
-@font-face {
-  font-family: 'Mona Sans';
-  src: url('/fonts/MonaSans-Bold.ttf') format('truetype');
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-
 html {
   --global-font-scale: 1.5;
   font-size: calc(100% * var(--global-font-scale));
@@ -30,14 +22,16 @@ body::-webkit-scrollbar {
   background: transparent !important;
 }
 
-html, body, #root {
+html,
+body,
+#root {
   margin: 0;
   padding: 0;
   height: 100%;
   background: #fcfdff;
   font-family: 'Mona Sans', Helvetica, Arial, sans-serif;
   color: #121212;
-  overflow: auto;
+  overflow: hidden;
 }
 
 * {
