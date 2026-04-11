@@ -160,48 +160,46 @@ export default function Typing() {
 
     return (
         <section className={styles.container}>
-            <div className={styles.leftColumn}>
-                <div className={`${styles.typingArea} ${isTopActive ? styles.active : ''}`}>
-                    <div className={styles.header}>
-                        <h2 className={styles.title}>Practice Typing</h2>
-                    </div>
-                    <div className={styles.typingAreaContent}>
-                        <TextArea
-                            target={practiceTemplate}
-                            onChange={(next, history) => {
-                                setInput(next)
-                                const now = Date.now()
-                                if (history && history.length > 0 && now - lastChartUpdate.current > 1000) {
-                                    const chart = buildRealtimeFromHistory(history)
-                                    setRealtimeChartData(chart)
-                                    lastChartUpdate.current = now
-                                }
-                            }}
-                            onActiveChange={setIsTopActive}
-                            onRequestNewTarget={() => {
-                                setPracticeTemplate(randomText())
-                                setRealtimeChartData(null)
-                            }}
-                            onComplete={(session) => {
-                                const { history, sessionStart } = session
-                                const chart = buildRealtimeFromHistory(history, sessionStart)
-                                if (chart) setRealtimeChartData(chart)
-                            }}
-                        />
-                    </div>
+            <div className={`${styles.typingArea} ${isTopActive ? styles.active : ''}`}>
+                <div className={styles.header}>
+                    <h2 className={styles.title}>Practice Typing</h2>
                 </div>
-                <div className={styles.analyticsArea}>
-                    <CustomLineChart
-                        title="Typing Performance"
-                        lines={[
-                            { name: 'EPM', color: '#3b82f6' },
-                            { name: 'WPM', color: '#10b981' }
-                        ]}
-                        showTimeControls={false}
-                        xAxisType="seconds"
-                        data={realtimeChartData}
+                <div className={styles.typingAreaContent}>
+                    <TextArea
+                        target={practiceTemplate}
+                        onChange={(next, history) => {
+                            setInput(next)
+                            const now = Date.now()
+                            if (history && history.length > 0 && now - lastChartUpdate.current > 1000) {
+                                const chart = buildRealtimeFromHistory(history)
+                                setRealtimeChartData(chart)
+                                lastChartUpdate.current = now
+                            }
+                        }}
+                        onActiveChange={setIsTopActive}
+                        onRequestNewTarget={() => {
+                            setPracticeTemplate(randomText())
+                            setRealtimeChartData(null)
+                        }}
+                        onComplete={(session) => {
+                            const { history, sessionStart } = session
+                            const chart = buildRealtimeFromHistory(history, sessionStart)
+                            if (chart) setRealtimeChartData(chart)
+                        }}
                     />
                 </div>
+            </div>
+            <div className={styles.analyticsArea}>
+                <CustomLineChart
+                    title="Typing Performance"
+                    lines={[
+                        { name: 'EPM', color: '#3b82f6' },
+                        { name: 'WPM', color: '#10b981' }
+                    ]}
+                    showTimeControls={false}
+                    xAxisType="seconds"
+                    data={realtimeChartData}
+                />
             </div>
             {/* <TypingEditor onStart={handleStart} isTablet={false} /> */}
         </section>

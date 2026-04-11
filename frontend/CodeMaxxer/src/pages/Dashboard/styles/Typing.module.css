@@ -1,11 +1,12 @@
 .container {
     display: flex;
-    flex-direction: row;
-    height: auto;
+    flex-direction: column;
+    height: 100%;
     width: 100%;
     min-height: max-content;
     gap: 1.5rem;
     box-sizing: border-box;
+    overflow-y: auto;
 }
 
 .header {
@@ -27,7 +28,6 @@
 }
 
 .leftColumn {
-    /* flex: 0 0 calc(70%); */
     display: flex;
     flex-direction: column;
     gap: 1.5rem;

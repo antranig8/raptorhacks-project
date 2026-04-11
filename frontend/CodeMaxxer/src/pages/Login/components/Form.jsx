@@ -178,8 +178,8 @@ export default function Form() {
                             <input type="checkbox" />
                             <span>Remember me</span>
                         </label>
-                        <a 
-                            href="#" 
+                        <a
+                            href="#"
                             className={styles.forgotPassword}
                             onClick={(e) => {
                                 e.preventDefault()
