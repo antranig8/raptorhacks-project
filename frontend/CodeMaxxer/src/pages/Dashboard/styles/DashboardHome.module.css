@@ -25,6 +25,11 @@
     flex: 1;
 }
 
+.fullWidthItem {
+    grid-column: 1 / -1;
+    min-width: 0;
+}
+
 /* Scope headings and paragraphs to the container to avoid global element selectors */
 .container h1 {
     margin: 0 0 0.75rem;

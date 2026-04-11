@@ -1,7 +1,6 @@
 import styles from '@dashboard/styles/DashboardHome.module.css'
 import Quadrant1 from './Quadrant1'
 import Quadrant2 from './Quadrant2'
-import Quadrant3 from './Quadrant3'
 import Quadrant4 from './Quadrant4'
 import { useEffect, useState, useRef } from 'react'
 import supabase from '@utils/supabase'
@@ -38,10 +37,11 @@ export default function DashboardHome() {
     return (
         <section className={styles.container}>
             <div className={styles.grid}>
-                <Quadrant1 userData={userData}/>
-                <Quadrant2 userData={userData}/>
-                {/* <Quadrant3 userData={userData}/> */}
-                <Quadrant4 userData={userData}/>
+                <Quadrant1 userData={userData} />
+                <Quadrant4 userData={userData} />
+                <div className={styles.fullWidthItem}>
+                    <Quadrant2 userData={userData} />
+                </div>
             </div>
         </section>
     )
