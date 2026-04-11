@@ -25,8 +25,9 @@ export default function Quadrant1({ userData }) {
     }, [userData])
 
     const isLoading = !userData;
-    const displayAnswers = isLoading ? [65, 35] : answers;
-    const displayColors = isLoading ? ["#cbd5e1", "#64748b"] : ["#22c55e", "#ef4444"];
+    const isPlaceholder = isLoading || (answers[0] === 0 && answers[1] === 0);
+    const displayAnswers = isPlaceholder ? [65, 35] : answers;
+    const displayColors = isPlaceholder ? ["#cbd5e1", "#64748b"] : ["#22c55e", "#ef4444"];
 
     return (
         <div className={styles.root}>
@@ -43,7 +44,7 @@ export default function Quadrant1({ userData }) {
                             height={180}
                             padding={20}
                             labelRadius={40}
-                            labels={({ datum }) => isLoading ? "" : `${datum.y}`}
+                            labels={({ datum }) => isPlaceholder ? "" : `${datum.y}`}
                             style={{
                                 labels: {
                                     fontSize: 12,
