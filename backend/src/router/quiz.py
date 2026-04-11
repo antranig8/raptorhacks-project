@@ -320,7 +320,7 @@ async def _build_advancement_children(skill_tree_goal: str, node: SkillTreeNode)
                     advancement_platform.chat_messages,
                     [{"role": "user", "content": prompt}],
                     temperature=0.2,
-                    max_tokens=6000,
+                    max_tokens=3000,
                 ),
                 label="advancement children creation",
             )
@@ -497,7 +497,7 @@ async def _generate_quiz_definition(
                     quiz_platform.chat_messages,
                     [{"role": "user", "content": prompt}],
                     temperature=0.2,
-                    max_tokens=3000,
+                    max_tokens=6000,
                 ),
                 label="quiz generation",
             )
@@ -789,7 +789,7 @@ async def generate_quiz(
     # requested_language is passed into _generate_quiz_definition so that
     # _ensure_requested_language runs inside the retry loop. A language
     # mismatch on attempt 1 triggers a retry rather than an immediate 502.
-    definition = _generate_quiz_definition(
+    definition = await _generate_quiz_definition(
         _build_freeform_quiz_prompt(request.language, request.prompt),
         requested_language=request.language,
     )
