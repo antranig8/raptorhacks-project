@@ -46,7 +46,7 @@
     min-height: max-content;
     height: auto;
     box-sizing: border-box;
-    overflow: visible;
+    overflow: auto;
 }
 
 .typingAreaContent {

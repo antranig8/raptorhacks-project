@@ -1,39 +1,62 @@
-const WORDS = [
-    'ability', 'about', 'above', 'accept', 'according', 'account', 'across', 'action', 'activity', 'actually',
-    'address', 'administration', 'admit', 'adult', 'affect', 'after', 'again', 'against', 'age', 'agency',
-    'agent', 'ago', 'agree', 'agreement', 'ahead', 'allow', 'almost', 'alone', 'along', 'already',
-    'also', 'although', 'always', 'American', 'among', 'amount', 'analysis', 'and', 'animal', 'another',
-    'answer', 'any', 'anyone', 'anything', 'appear', 'apply', 'approach', 'area', 'argue', 'around',
-    'arrive', 'art', 'article', 'artist', 'as', 'ask', 'assume', 'at', 'attack', 'attention',
-    'author', 'authority', 'available', 'avoid', 'away', 'baby', 'back', 'bad', 'bag', 'ball',
-    'bank', 'bar', 'base', 'be', 'beat', 'beautiful', 'because', 'become', 'bed', 'before',
-    'begin', 'behavior', 'behind', 'believe', 'benefit', 'best', 'better', 'between', 'beyond', 'big',
-    'bill', 'billion', 'bit', 'black', 'blood', 'blue', 'board', 'body', 'book', 'born',
-    'both', 'box', 'boy', 'break', 'bring', 'brother', 'budget', 'build', 'building', 'business',
-    'but', 'buy', 'by', 'call', 'camera', 'campaign', 'can', 'cancer', 'candidate', 'capable',
-    'capital', 'car', 'card', 'care', 'career', 'carry', 'case', 'catch', 'cause', 'cell',
-    'center', 'central', 'century', 'certain', 'certainly', 'chair', 'challenge', 'chance', 'change', 'character',
-    'charge', 'check', 'child', 'choice', 'choose', 'church', 'citizen', 'city', 'civil', 'claim',
-    'class', 'clear', 'clearly', 'close', 'coach', 'cold', 'collection', 'college', 'color', 'come'
-]
+const JS_KEYWORDS = ['const', 'let', 'var', 'function', 'return', 'if', 'else', 'for', 'while', 'class', 'import', 'export', 'default', 'async', 'await', 'new', 'typeof', 'null', 'undefined', 'true', 'false']
+const JS_NOUNS = ['user', 'data', 'result', 'count', 'index', 'item', 'list', 'value', 'name', 'config', 'token', 'key', 'error', 'response', 'payload', 'node', 'state', 'cache', 'queue', 'event', 'flag', 'size', 'limit', 'id', 'map', 'set', 'task', 'handler']
+const JS_VERBS = ['get', 'set', 'fetch', 'update', 'parse', 'filter', 'reduce', 'find', 'sort', 'push', 'load', 'save', 'delete', 'create', 'init', 'reset', 'handle', 'process', 'validate', 'merge', 'clone', 'bind', 'emit', 'resolve']
 
-export function randomText(wordCount = 25) {
-    const out = []
-    for (let i = 0; i < wordCount; i++) {
-        const w = WORDS[Math.floor(Math.random() * WORDS.length)]
-        out.push(w)
-    }
-    // Capitalize first word and add a period at end sometimes
-    if (out.length > 0) {
-        out[0] = out[0][0].toUpperCase() + out[0].slice(1)
-        if (Math.random() > 0.6) {
-            out[out.length - 1] = out[out.length - 1] + '.'
-        }
-    }
-    return out.join(' ')
+function pick(arr) {
+  return arr[Math.floor(Math.random() * arr.length)]
+}
+
+function camel(a, b) {
+  return a + b[0].toUpperCase() + b.slice(1)
+}
+
+function randVar() {
+  return Math.random() > 0.5 ? pick(JS_NOUNS) : camel(pick(JS_VERBS), pick(JS_NOUNS))
+}
+
+function randVal() {
+  const r = Math.random()
+  if (r < 0.25) return String(Math.floor(Math.random() * 1000))
+  if (r < 0.5)  return `'${pick(JS_NOUNS)}'`
+  if (r < 0.75) return Math.random() > 0.5 ? 'true' : 'false'
+  return 'null'
+}
+
+export function randomText(lineCount = 10) {
+  const generators = [
+    // const/let declaration
+    () => {
+      const decl = Math.random() > 0.5 ? 'const' : 'let'
+      return `${decl} ${randVar()} = ${randVal()};`
+    },
+    // function call
+    () => `${randVar()}.${pick(JS_VERBS)}(${randVal()});`,
+    // arrow function
+    () => {
+      const param = pick(JS_NOUNS)
+      return `const ${camel(pick(JS_VERBS), pick(JS_NOUNS))} = (${param}) => ${param}.${pick(JS_VERBS)}();`
+    },
+    // if statement
+    () => `if (${randVar()} === ${randVal()}) { ${randVar()} = ${randVal()}; }`,
+    // for...of loop
+    () => `for (const ${pick(JS_NOUNS)} of ${randVar()}s) { ${randVar()}.${pick(JS_VERBS)}(); }`,
+    // return statement
+    () => `return ${randVar()};`,
+    // console.log
+    () => `console.log(${randVar()});`,
+    // await call
+    () => `const ${randVar()} = await ${camel(pick(JS_VERBS), pick(JS_NOUNS))}(${randVal()});`,
+    // comment
+    () => `// ${pick(JS_VERBS)} the ${pick(JS_NOUNS)} before ${pick(JS_VERBS)}ing`,
+  ]
+
+  const lines = []
+  for (let i = 0; i < lineCount; i++) {
+    lines.push(pick(generators)())
+  }
+  return lines.join('\n')
 }
 
 export default {
-    WORDS,
-    randomText,
+  randomText,
 }
