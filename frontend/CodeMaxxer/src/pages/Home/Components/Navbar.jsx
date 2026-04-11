@@ -35,9 +35,9 @@ function Navbar() {
       </button>
 
       <div className={`${styles.mobileMenu} ${isOpen ? styles.menuVisible : styles.menuHidden}`}>
-        <button className={styles.navButton} onClick={() => setIsOpen(false)}>Home</button>
+        {/* <button className={styles.navButton} onClick={() => setIsOpen(false)}>Home</button>
         <button className={styles.navButton} onClick={() => setIsOpen(false)}>Our Purpose</button>
-        <button className={styles.navButton} onClick={() => setIsOpen(false)}>The Team</button>
+        <button className={styles.navButton} onClick={() => setIsOpen(false)}>The Team</button> */}
         <button className={styles.ctaButton} onClick={() => { setIsOpen(false); navigate('/login'); }}>
           Get Started <span className={styles.ctaArrow}>→</span>
         </button>
