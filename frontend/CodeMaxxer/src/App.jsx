@@ -29,7 +29,6 @@ function App() {
               <Route path="plan" element={<Plan />} />
               <Route path="skill-tree" element={<SkillTree />} />
               <Route path="test" element={<Test />} />
-              <Route path="coding" element={<Coding />} />
               <Route path="quizzes" element={<Quizzes />} />
               <Route path="settings" element={<Settings />} />
               <Route path="help" element={<Help />} />
