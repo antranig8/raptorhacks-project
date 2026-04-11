@@ -2,7 +2,7 @@
  
 You are generating quiz data for an application that already has a fixed frontend/backend contract.
  
-Return exactly one JSON object and nothing else.
+Return exactly one MINIFIED JSON object and nothing else.
 Do not include markdown.
 Do not include code fences.
 Do not include explanations before or after the JSON.

@@ -92,8 +92,30 @@ def _normalize_output(value: Optional[str]) -> str:
     return value.replace("\r\n", "\n").replace("\r", "\n").strip()
 
 
+def _sanitize_raw_ai_response(raw_text: str) -> str:
+    # Strip <think>...</think> blocks that reasoning models emit before the
+    # JSON payload. Must run before any JSON extraction logic since think
+    # blocks often contain braces that confuse find("{") / rfind("}").
+    cleaned = re.sub(r"<think>.*?</think>", "", raw_text, flags=re.DOTALL | re.IGNORECASE).strip()
+
+    # Strip markdown code fences: ```json ... ``` or ``` ... ```
+    fence_match = re.search(r"```(?:json)?\s*(.*?)```", cleaned, re.DOTALL | re.IGNORECASE)
+    if fence_match:
+        return fence_match.group(1).strip()
+
+    # If the model added prose before or after the JSON object, extract the
+    # outermost { ... } block. Do this AFTER stripping think blocks so stray
+    # braces inside the reasoning don't produce a false match.
+    if not cleaned.startswith("{"):
+        start = cleaned.find("{")
+        end = cleaned.rfind("}")
+        if start != -1 and end != -1 and end > start:
+            return cleaned[start:end + 1]
+
+    return cleaned
+
 def _parse_quiz_definition(raw_text: str) -> QuizDefinition:
-    cleaned_text = raw_text.strip()
+    cleaned_text = _sanitize_raw_ai_response(raw_text.strip())
 
     print(cleaned_text)
 
@@ -479,6 +501,7 @@ async def _generate_quiz_definition(
                 ),
                 label="quiz generation",
             )
+
             definition = _parse_quiz_definition(response_text)
             definition = _ensure_quiz_quality(definition)
             if requested_language is not None:
