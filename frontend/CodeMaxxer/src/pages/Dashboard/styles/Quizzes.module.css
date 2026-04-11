@@ -102,6 +102,28 @@
     font-size: 0.95rem;
 }
 
+.placeholderButton {
+    margin-top: 1rem;
+    background-color: #0b57d0;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 999px;
+    border: none;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.placeholderButton:hover {
+    background-color: #0842a0;
+}
+
+.placeholderButton:disabled {
+    background-color: #93c5fd;
+    cursor: not-allowed;
+}
+
 /* For wider screens, display as two columns instead of a single stretched column */
 @media (min-width: 1600px) {
     .fullCol {
