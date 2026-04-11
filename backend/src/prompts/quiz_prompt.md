@@ -19,7 +19,10 @@ CONCEPTUAL QUESTIONS (Single/Multiple/SelectAll)
 
 CODING QUESTIONS
 - choices: []. expectedStdout/language/codeTemplate/userGuidance: all non-null strings.
-- language: exact identifier from the Supported Languages list below. No aliases, no invented names.
+- language: exact identifier from the supported list below. No aliases, no invented names.
 - codeTemplate: runnable code with exactly one "%s" placeholder (not inside a comment or string). Boilerplate included. One focused task. Completed code must print exactly expectedStdout.
 - userGuidance: state (1) what kind of code to write, (2) which variables are available, (3) what it should produce, (4) constraints. Never write "Finish the code" or similar.
 - Do not write a Coding question if the topic is git, shell commands, package managers, GUIs, or anything without deterministic sandboxable stdout. Use a conceptual question instead.
+
+SUPPORTED LANGUAGES (use exact identifier):
+python, javascript, typescript, java, c, c++, csharp, csharp.net, go, rust, kotlin, swift, ruby, php, scala, dart, lua, perl, r, haskell, elixir, erlang, clojure, ocaml, fsharp.net, fsi, racket, lisp, prolog, groovy, coffeescript, julia, nim, zig, bash, dash, powershell, awk, sqlite3, pascal, fortran, cobol, basic, basic.net, freebasic, forth, nasm, nasm64, llvm_ir, python2, rscript, octave, smalltalk, crystal, vlang, d, pure, raku, iverilog, brainfuck
