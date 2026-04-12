@@ -192,7 +192,10 @@ export const initSkillWeb = (svgRef, data, width, height, zoom, onNodeClick) => 
             updateSelectionState();
             // Bubble the clicked node back to React so routing and API calls
             // stay in the normal component layer instead of inside D3 state.
-            onNodeClick?.(d.data);
+            onNodeClick?.(d.data, {
+                clientX: event.sourceEvent?.clientX ?? event.clientX,
+                clientY: event.sourceEvent?.clientY ?? event.clientY,
+            });
         })
         .on("dblclick", (event, d) => {
             event.stopPropagation();
