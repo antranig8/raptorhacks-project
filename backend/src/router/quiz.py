@@ -86,6 +86,23 @@ def _handle_supabase_error(exc: Exception) -> HTTPException:
     )
 
 
+def _is_duplicate_quiz_for_node_error(exc: Exception) -> bool:
+    if not isinstance(exc, PostgrestAPIError):
+        return False
+
+    error_text = " ".join(
+        str(value or "")
+        for value in (
+            getattr(exc, "message", ""),
+            getattr(exc, "details", ""),
+            getattr(exc, "hint", ""),
+            getattr(exc, "code", ""),
+        )
+    ).lower()
+
+    return "duplicate key" in error_text and "quizzes_user_node_unique_idx" in error_text
+
+
 def _normalize_output(value: Optional[str]) -> str:
     # Normalize stdout before comparison so harmless formatting differences
     # do not fail otherwise-correct coding answers.
@@ -601,6 +618,23 @@ def _get_quiz_record(quiz_id: str, current_user: User) -> dict[str, Any]:
     return response.data[0]
 
 
+def _get_quiz_record_for_node(skill_tree_id: str, node_id: str, current_user: User) -> dict[str, Any] | None:
+    try:
+        response = (
+            supabase_client.table(QUIZ_TABLE)
+            .select("id, skill_tree_id, node_id, title, data")
+            .eq("user_id", str(current_user.uuid))
+            .eq("skill_tree_id", skill_tree_id)
+            .eq("node_id", node_id)
+            .limit(1)
+            .execute()
+        )
+    except Exception as exc:
+        raise _handle_supabase_error(exc)
+
+    return response.data[0] if response.data else None
+
+
 def _record_quiz_completion(quiz_id: str, exp_gained: int, current_user: User) -> None:
     payload = {
         "user": str(current_user.uuid),
@@ -744,20 +778,7 @@ async def get_or_create_quiz_for_node(
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Node not found in skill tree.")
         skill_tree_title = skill_tree_record.get("title") or skill_tree_record.get("goal") or node.name
 
-    try:
-        existing_response = (
-            supabase_client.table(QUIZ_TABLE)
-            .select("id, skill_tree_id, node_id, title, data")
-            .eq("user_id", str(current_user.uuid))
-            .eq("skill_tree_id", request.skill_tree_id)
-            .eq("node_id", request.node_id)
-            .limit(1)
-            .execute()
-        )
-    except Exception as exc:
-        raise _handle_supabase_error(exc)
-
-    existing_record = existing_response.data[0] if existing_response.data else None
+    existing_record = _get_quiz_record_for_node(request.skill_tree_id, request.node_id, current_user)
 
     # Enforce the "one quiz per node" behavior by reusing the existing quiz
     # unless the frontend explicitly requests regeneration.
@@ -791,6 +812,10 @@ async def get_or_create_quiz_for_node(
             payload["id"] = str(uuid.uuid4())
             response = supabase_client.table(QUIZ_TABLE).insert(payload).execute()
     except Exception as exc:
+        if not existing_record and _is_duplicate_quiz_for_node_error(exc):
+            duplicate_record = _get_quiz_record_for_node(request.skill_tree_id, request.node_id, current_user)
+            if duplicate_record:
+                return _quiz_record_to_response(duplicate_record)
         raise _handle_supabase_error(exc)
 
     if not response.data:

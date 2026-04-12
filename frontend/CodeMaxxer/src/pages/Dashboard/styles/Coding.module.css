@@ -1,8 +1,34 @@
 .container {
     background: #ffffff;
     border: 1px solid #e5e9f0;
-    border-radius: 14px;
+    border-radius: 8px;
     padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 100%;
+}
+
+.eyebrow {
+    margin: 0 0 0.4rem;
+    color: #2563eb;
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.title {
+    margin: 0;
+    color: #10233f;
+    font-size: 2rem;
+}
+
+.message {
+    max-width: 560px;
+    margin: 0.75rem 0 0;
+    color: #52637a;
+    line-height: 1.6;
 }
 
 @media (max-width: 1024px) {

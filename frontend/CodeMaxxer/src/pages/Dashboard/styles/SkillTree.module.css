@@ -16,6 +16,84 @@
     height: 100%;
 }
 
+.nodePopover {
+    position: absolute;
+    z-index: 3;
+    width: min(240px, calc(100% - 32px));
+    transform: translateX(-50%);
+    display: grid;
+    gap: 0.45rem;
+    pointer-events: auto;
+}
+
+.nodePopover::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: -7px;
+    width: 14px;
+    height: 14px;
+    background: #ffffff;
+    border-left: 1px solid #dbe4f0;
+    border-top: 1px solid #dbe4f0;
+    transform: translateX(-50%) rotate(45deg);
+}
+
+.nodeInfoBox {
+    position: relative;
+    z-index: 1;
+    padding: 0.65rem 0.75rem;
+    border: 1px solid #dbe4f0;
+    border-radius: 8px;
+    background: #ffffff;
+    box-shadow: 0 18px 36px rgba(15, 23, 42, 0.18);
+}
+
+.nodeEyebrow {
+    margin: 0 0 0.25rem;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #2563eb;
+}
+
+.nodeTitle {
+    margin: 0;
+    color: #10233f;
+    font-size: 0.95rem;
+    line-height: 1.25;
+}
+
+.nodeDescription {
+    margin: 0.35rem 0 0;
+    color: #52637a;
+    font-size: 0.8rem;
+    line-height: 1.35;
+}
+
+.nodeQuizButton {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    border: none;
+    border-radius: 8px;
+    padding: 0.55rem 0.75rem;
+    font: inherit;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #ffffff;
+    background: #1d4ed8;
+    cursor: pointer;
+    box-shadow: 0 14px 28px rgba(37, 99, 235, 0.22);
+}
+
+.nodeQuizButton:hover,
+.nodeQuizButton:focus {
+    outline: none;
+    background: #153eaa;
+}
+
 .canvasAreaPlaceholder svg {
     filter: blur(10px) saturate(0.8);
     opacity: 0.35;
@@ -89,5 +167,15 @@
 @media (max-width: 1024px) {
     .container {
         padding: 1rem;
+    }
+}
+
+@media (max-width: 520px) {
+    .nodePopover {
+        transform: translateX(-50%);
+    }
+
+    .nodeInfoBox {
+        padding: 0.6rem 0.7rem;
     }
 }

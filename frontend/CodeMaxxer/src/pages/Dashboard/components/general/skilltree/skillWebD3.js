@@ -3,6 +3,8 @@ import { calculateLevelData } from './levelUtils';
 
 export const initSkillWeb = (svgRef, data, width, height, zoom, onNodeClick) => {
     const getNodeKey = (node) => node.data.id ?? node.data.name;
+    const nodePaddingX = 56;
+    const nodePaddingY = 42;
 
     const svg = d3.select(svgRef.current)
         .attr("viewBox", [0, 0, width, height])
@@ -73,6 +75,49 @@ export const initSkillWeb = (svgRef, data, width, height, zoom, onNodeClick) => 
 
     // Run the simulation for a few ticks to stabilize
     for (let i = 0; i < 180; ++i) simulation.tick();
+
+    function resolveRectangularOverlaps(layoutNodes, iterations = 120) {
+        for (let iteration = 0; iteration < iterations; iteration++) {
+            let moved = false;
+
+            for (let i = 0; i < layoutNodes.length; i++) {
+                for (let j = i + 1; j < layoutNodes.length; j++) {
+                    const a = layoutNodes[i];
+                    const b = layoutNodes[j];
+                    const dx = b.x - a.x;
+                    const dy = b.y - a.y;
+                    const minX = (a.dims.w + b.dims.w) / 2 + nodePaddingX;
+                    const minY = (a.dims.h + b.dims.h) / 2 + nodePaddingY;
+                    const overlapX = minX - Math.abs(dx);
+                    const overlapY = minY - Math.abs(dy);
+
+                    if (overlapX <= 0 || overlapY <= 0) continue;
+
+                    moved = true;
+                    const aIsFixed = a.depth === 0;
+                    const bIsFixed = b.depth === 0;
+                    const aMove = aIsFixed ? 0 : (bIsFixed ? 1 : 0.5);
+                    const bMove = bIsFixed ? 0 : (aIsFixed ? 1 : 0.5);
+
+                    if (overlapX < overlapY) {
+                        const sign = dx >= 0 ? 1 : -1;
+                        const shift = overlapX + 8;
+                        a.x -= sign * shift * aMove;
+                        b.x += sign * shift * bMove;
+                    } else {
+                        const sign = dy >= 0 ? 1 : -1;
+                        const shift = overlapY + 8;
+                        a.y -= sign * shift * aMove;
+                        b.y += sign * shift * bMove;
+                    }
+                }
+            }
+
+            if (!moved) break;
+        }
+    }
+
+    resolveRectangularOverlaps(root.descendants());
 
     let history = [];
     let historyIndex = -1;
@@ -192,7 +237,10 @@ export const initSkillWeb = (svgRef, data, width, height, zoom, onNodeClick) => 
             updateSelectionState();
             // Bubble the clicked node back to React so routing and API calls
             // stay in the normal component layer instead of inside D3 state.
-            onNodeClick?.(d.data);
+            onNodeClick?.(d.data, {
+                clientX: event.sourceEvent?.clientX ?? event.clientX,
+                clientY: event.sourceEvent?.clientY ?? event.clientY,
+            });
         })
         .on("dblclick", (event, d) => {
             event.stopPropagation();
