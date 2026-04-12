@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import styles from '@dashboard/styles/QuizEditor.module.css';
 
 const LANGUAGES = [
@@ -103,6 +103,14 @@ export default function QuizEditor({ onGenerate, isGenerating = false, error = "
     const [configs, setConfigs] = useState([]);
     const [prompt, setPrompt] = useState('');
     const [localError, setLocalError] = useState('');
+    const [isLanguageOpen, setIsLanguageOpen] = useState(false);
+
+    const filteredLanguages = useMemo(() => {
+        const query = language.trim().toLowerCase();
+        return query
+            ? LANGUAGES.filter((lang) => lang.includes(query))
+            : LANGUAGES;
+    }, [language]);
 
     const toggleConfig = (id) => {
         setConfigs(prev =>
@@ -122,27 +130,58 @@ export default function QuizEditor({ onGenerate, isGenerating = false, error = "
         }
     };
 
+    const handleSelectLanguage = (nextLanguage) => {
+        setLanguage(nextLanguage);
+        setIsLanguageOpen(false);
+    };
+
     return (
         <div className={styles.editorContainer}>
             <h2 className={styles.title}>Create Quiz</h2>
 
             <div className={styles.section}>
                 <label className={styles.label}>Programming Language</label>
-                <input
-                    className={styles.searchInput}
-                    type="text"
-                    list="quiz-language-options"
-                    value={language}
-                    onChange={(e) => setLanguage(e.target.value)}
-                    placeholder="Search or enter a language, e.g. python or rust"
-                    autoComplete="off"
-                    spellCheck={false}
-                />
-                <datalist id="quiz-language-options">
-                    {LANGUAGES.map((lang) => (
-                        <option key={lang} value={lang} />
-                    ))}
-                </datalist>
+                <div
+                    className={styles.dropdownShell}
+                    onBlur={(event) => {
+                        if (!event.currentTarget.contains(event.relatedTarget)) {
+                            setIsLanguageOpen(false);
+                        }
+                    }}
+                >
+                    <input
+                        className={styles.searchInput}
+                        type="text"
+                        value={language}
+                        onChange={(e) => {
+                            setLanguage(e.target.value);
+                            setIsLanguageOpen(true);
+                        }}
+                        onFocus={() => setIsLanguageOpen(true)}
+                        placeholder="Search or enter a language, e.g. python or rust"
+                        autoComplete="off"
+                        spellCheck={false}
+                    />
+                    {isLanguageOpen && (
+                        <div className={styles.dropdownMenu}>
+                            {filteredLanguages.length > 0 ? (
+                                filteredLanguages.map((lang) => (
+                                    <button
+                                        key={lang}
+                                        className={styles.dropdownOption}
+                                        type="button"
+                                        onMouseDown={(event) => event.preventDefault()}
+                                        onClick={() => handleSelectLanguage(lang)}
+                                    >
+                                        {lang}
+                                    </button>
+                                ))
+                            ) : (
+                                <p className={styles.dropdownEmpty}>No matching languages</p>
+                            )}
+                        </div>
+                    )}
+                </div>
             </div>
 
             <div className={styles.section}>

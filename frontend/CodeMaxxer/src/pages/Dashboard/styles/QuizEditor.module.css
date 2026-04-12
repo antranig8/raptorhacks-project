@@ -34,6 +34,7 @@
 }
 
 .searchInput {
+    width: 100%;
     padding: 0.6rem 0.75rem;
     border-radius: 0.5rem;
     border: 2px solid #f3f4f6;
@@ -45,6 +46,52 @@
 
 .searchInput:focus {
     border-color: #0b57d0;
+}
+
+.dropdownShell {
+    position: relative;
+}
+
+.dropdownMenu {
+    position: absolute;
+    top: calc(100% + 0.35rem);
+    left: 0;
+    right: 0;
+    z-index: 20;
+    max-height: 14rem;
+    overflow-y: auto;
+    padding: 0.35rem;
+    border: 2px solid #e5e7eb;
+    border-radius: 0.5rem;
+    background: #ffffff;
+    box-shadow: 0 12px 24px rgba(17, 24, 39, 0.12);
+}
+
+.dropdownOption {
+    width: 100%;
+    padding: 0.55rem 0.6rem;
+    border: 0;
+    border-radius: 0.4rem;
+    background: transparent;
+    color: #111827;
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.9rem;
+    text-align: left;
+}
+
+.dropdownOption:hover,
+.dropdownOption:focus {
+    outline: none;
+    background: #eff6ff;
+    color: #0b57d0;
+}
+
+.dropdownEmpty {
+    margin: 0;
+    padding: 0.55rem 0.6rem;
+    color: #6b7280;
+    font-size: 0.9rem;
 }
 
 .typeGrid,
