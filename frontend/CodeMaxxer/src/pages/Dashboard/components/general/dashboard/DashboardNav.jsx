@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { FaHome, FaSeedling, FaGraduationCap, FaCog, FaQuestionCircle, FaKeyboard, FaClipboardList, FaAddressBook, FaUser, FaSignOutAlt, FaMapSigns } from 'react-icons/fa'
+import { FaAtom, FaGraduationCap, FaHome, FaSeedling, FaKeyboard, FaClipboardList, FaSignOutAlt, FaMapSigns } from 'react-icons/fa'
 import { CgDockLeft, CgDockRight } from 'react-icons/cg'
 import Logo from '@/components/Logo/Logo'
 import styles from '@dashboard/styles/DashboardNav.module.css'
@@ -29,6 +29,13 @@ const navSections = [
         items: [
             { label: 'Typing', route: '/dashboard/typing', icon: <FaKeyboard /> },
             { label: 'Quizzes', route: '/dashboard/quizzes', icon: <FaClipboardList /> },
+        ],
+    },
+    {
+        title: 'Labs',
+        items: [
+            { label: 'Visual Python', route: '/dashboard/visual-python', icon: <FaAtom /> },
+            { label: 'Coding', route: '/dashboard/coding', icon: <FaGraduationCap /> },
         ],
     },
     {

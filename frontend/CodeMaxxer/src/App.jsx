@@ -10,6 +10,8 @@ import Test from '@dashboard/components/Test.jsx'
 import Settings from '@d_support/settings/Settings.jsx'
 import Help from '@d_support/help/Help.jsx'
 import Typing from '@d_general/typing/Typing.jsx'
+import VisualPythonLab from '@d_general/visualpython/VisualPythonLab.jsx'
+import Coding from '@d_study/coding/Coding.jsx'
 import Quizzes from '@d_study/quizzes/Quizzes.jsx'
 import ProtectedRoute from '@/components/ProtectedRoute.jsx'
 import styles from '@/App.module.css'
@@ -30,9 +32,11 @@ function App() {
               <Route path="skill-tree" element={<SkillTree />} />
               <Route path="test" element={<Test />} />
               <Route path="quizzes" element={<Quizzes />} />
+              <Route path="coding" element={<Coding />} />
               <Route path="settings" element={<Settings />} />
               <Route path="help" element={<Help />} />
               <Route path="typing" element={<Typing />} />
+              <Route path="visual-python" element={<VisualPythonLab />} />
             </Route>
           </Route>
         </Routes>

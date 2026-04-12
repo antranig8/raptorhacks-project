@@ -1,0 +1,313 @@
+.container {
+    height: 100%;
+    padding: 0.65rem;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    background: #ffffff;
+    border: 1px solid #e5e9f0;
+    border-radius: 8px;
+}
+
+.header {
+    margin-bottom: 0.5rem;
+    flex: 0 0 auto;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.eyebrow {
+    margin: 0 0 0.2rem;
+    color: #2563eb;
+    font-size: 0.66rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.title {
+    margin: 0;
+    color: #10233f;
+    font-size: 1.05rem;
+}
+
+.subtitle {
+    margin: 0.25rem 0 0;
+    color: #52637a;
+    line-height: 1.35;
+    font-size: 0.78rem;
+}
+
+.labsMenuWrap {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-end;
+}
+
+.labsButton,
+.labOption {
+    border: 1px solid #cfd9e8;
+    border-radius: 8px;
+    padding: 0.45rem 0.75rem;
+    color: #1d4ed8;
+    background: #f8fbff;
+    font: inherit;
+    font-size: 0.82rem;
+    font-weight: 800;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.labsButton:hover,
+.labsButton:focus,
+.labOption:hover,
+.labOption:focus {
+    outline: none;
+    border-color: #2563eb;
+    background: #e9f1ff;
+}
+
+.labsMenu {
+    position: absolute;
+    top: 0;
+    right: calc(100% + 0.45rem);
+    display: flex;
+    flex-direction: row-reverse;
+    gap: 0.35rem;
+}
+
+.labOption {
+    color: #334155;
+    background: #ffffff;
+    font-size: 0.76rem;
+}
+
+.labOptionActive {
+    color: #ffffff;
+    border-color: #1d4ed8;
+    background: #1d4ed8;
+}
+
+.labOption:disabled {
+    color: #94a3b8;
+    background: #f1f5f9;
+    cursor: not-allowed;
+}
+
+.labGrid {
+    display: grid;
+    grid-template-columns: minmax(320px, 0.9fr) minmax(420px, 1.4fr);
+    grid-template-rows: minmax(420px, 1fr) minmax(0, 0.34fr);
+    grid-template-areas:
+        "editor visual"
+        "explain visual";
+    gap: 0.65rem;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.editorPanel,
+.visualPanel,
+.explainPanel {
+    border: 1px solid #dbe4f0;
+    border-radius: 8px;
+    background: #f8fbff;
+}
+
+.editorPanel {
+    grid-area: editor;
+    padding: 0.65rem 0.8rem 0.55rem;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.visualPanel {
+    grid-area: visual;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.explainPanel {
+    grid-area: explain;
+    padding: 0.65rem;
+    min-height: 0;
+    overflow: auto;
+}
+
+.explainPanel h3,
+.panelHeader h3 {
+    margin: 0;
+    color: #10233f;
+    font-size: 0.86rem;
+}
+
+.explainPanel p {
+    margin: 0.4rem 0 0;
+    color: #52637a;
+    line-height: 1.35;
+    font-size: 0.78rem;
+}
+
+.panelHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.7rem;
+    margin-bottom: 0.35rem;
+}
+
+.codeEditor {
+    width: 100%;
+    height: 170px;
+    min-height: 170px;
+    resize: none;
+    border: 1px solid #cfd9e8;
+    border-radius: 8px;
+    padding: 0.55rem;
+    background: #101827;
+    color: #f8fbff;
+    font-family: "Mona Sans", Consolas, monospace;
+    font-size: 0.78rem;
+    line-height: 1.35;
+}
+
+.codeEditor:focus {
+    outline: 2px solid rgba(37, 99, 235, 0.28);
+    border-color: #2563eb;
+}
+
+.primaryButton,
+.secondaryButton {
+    border: none;
+    border-radius: 8px;
+    font: inherit;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.primaryButton {
+    width: 100%;
+    margin-top: 0.75rem;
+    padding: 0.45rem 0.7rem;
+    color: #ffffff;
+    background: #1d4ed8;
+}
+
+.secondaryButton {
+    padding: 0.3rem 0.5rem;
+    font-size: 0.76rem;
+    color: #1d4ed8;
+    background: #e9f1ff;
+}
+
+.primaryButton:disabled,
+.secondaryButton:disabled {
+    opacity: 0.62;
+    cursor: not-allowed;
+}
+
+.controls {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.35rem 0.45rem;
+    margin-top: auto;
+    padding-top: 0.55rem;
+}
+
+.control {
+    display: grid;
+    gap: 0.22rem;
+    color: #334155;
+    font-size: 0.72rem;
+    font-weight: 700;
+}
+
+.control input {
+    width: 100%;
+    border: 1px solid #cfd9e8;
+    border-radius: 8px;
+    padding: 0.36rem 0.45rem;
+    color: #10233f;
+    background: #ffffff;
+    font: inherit;
+}
+
+.control input:focus {
+    outline: 2px solid rgba(37, 99, 235, 0.22);
+    border-color: #2563eb;
+}
+
+.sketchHost {
+    width: 100%;
+    flex: 1;
+    min-height: 0;
+}
+
+.sketchHost canvas {
+    display: block;
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.statusRow {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.45rem 0.65rem;
+    border-top: 1px solid #dbe4f0;
+    color: #334155;
+    font-size: 0.72rem;
+    font-weight: 700;
+}
+
+.error {
+    color: #b91c1c !important;
+    font-weight: 700;
+}
+
+@media (max-width: 1100px) {
+    .container {
+        overflow: auto;
+    }
+
+    .labGrid {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto minmax(320px, 1fr) auto;
+        grid-template-areas:
+            "editor"
+            "visual"
+            "explain";
+        overflow: visible;
+    }
+
+    .visualPanel {
+        min-height: 360px;
+    }
+
+    .explainPanel {
+        max-height: none;
+    }
+}
+
+@media (max-width: 620px) {
+    .container {
+        padding: 0.6rem;
+        border-radius: 0;
+    }
+
+    .controls {
+        grid-template-columns: 1fr;
+    }
+
+    .statusRow {
+        flex-direction: column;
+    }
+}
