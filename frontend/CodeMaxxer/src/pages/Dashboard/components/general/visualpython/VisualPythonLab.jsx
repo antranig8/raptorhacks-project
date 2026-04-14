@@ -213,56 +213,60 @@ export default function VisualPythonLab() {
             </div>
 
             <div className={styles.labGrid}>
-                <div className={styles.editorPanel}>
-                    <div className={styles.panelHeader}>
-                        <h3>Python Update Code</h3>
-                        <button className={styles.secondaryButton} type="button" onClick={handleExplain} disabled={isExplaining}>
-                            {isExplaining ? "Explaining..." : "Explain"}
+                <div className={styles.leftCol}>
+                    <div className={styles.editorPanel}>
+                        <div className={styles.panelHeader}>
+                            <h3>Python Update Code</h3>
+                            <button className={styles.secondaryButton} type="button" onClick={handleExplain} disabled={isExplaining}>
+                                {isExplaining ? "Explaining..." : "Explain"}
+                            </button>
+                        </div>
+                        <textarea
+                            className={styles.codeEditor}
+                            value={updateCode}
+                            spellCheck="false"
+                            onChange={(event) => setUpdateCode(event.target.value)}
+                        />
+                        <button className={styles.primaryButton} type="button" onClick={runSimulation} disabled={isRunning}>
+                            {isRunning ? "Running..." : "Run Simulation"}
                         </button>
-                    </div>
-                    <textarea
-                        className={styles.codeEditor}
-                        value={updateCode}
-                        spellCheck="false"
-                        onChange={(event) => setUpdateCode(event.target.value)}
-                    />
-                    <button className={styles.primaryButton} type="button" onClick={runSimulation} disabled={isRunning}>
-                        {isRunning ? "Running..." : "Run Simulation"}
-                    </button>
 
-                    <div className={styles.controls}>
-                        {setupFields.map((field) => (
-                            <label className={styles.control} key={field.key}>
-                                <span>{field.label}</span>
-                                <input
-                                    type="number"
-                                    min={field.min}
-                                    max={field.max}
-                                    step={field.step}
-                                    value={setup[field.key]}
-                                    onChange={(event) => updateSetupValue(field.key, event.target.value)}
-                                />
-                            </label>
-                        ))}
+                        <div className={styles.controls}>
+                            {setupFields.map((field) => (
+                                <label className={styles.control} key={field.key}>
+                                    <span>{field.label}</span>
+                                    <input
+                                        type="number"
+                                        min={field.min}
+                                        max={field.max}
+                                        step={field.step}
+                                        value={setup[field.key]}
+                                        onChange={(event) => updateSetupValue(field.key, event.target.value)}
+                                    />
+                                </label>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className={styles.explainPanel}>
+                        <h3>What The Code Is Doing</h3>
+                        <p>{explanation || "Click Explain to get a physics-focused breakdown of your update code."}</p>
+                        {error && <p className={styles.error}>{error}</p>}
                     </div>
                 </div>
 
-                <div className={styles.visualPanel}>
-                    <div ref={sketchHostRef} className={styles.sketchHost} />
-                    <div className={styles.statusRow}>
-                        <span>{message || "Ready to run."}</span>
-                        {activeFrame && (
-                            <span>
-                                t={activeFrame.t} x={activeFrame.x} y={activeFrame.y} vy={activeFrame.vy}
-                            </span>
-                        )}
+                <div className={styles.rightCol}>
+                    <div className={styles.visualPanel}>
+                        <div ref={sketchHostRef} className={styles.sketchHost} />
+                        <div className={styles.statusRow}>
+                            <span>{message || "Ready to run."}</span>
+                            {activeFrame && (
+                                <span>
+                                    t={activeFrame.t} x={activeFrame.x} y={activeFrame.y} vy={activeFrame.vy}
+                                </span>
+                            )}
+                        </div>
                     </div>
-                </div>
-
-                <div className={styles.explainPanel}>
-                    <h3>What The Code Is Doing</h3>
-                    <p>{explanation || "Click Explain to get a physics-focused breakdown of your update code."}</p>
-                    {error && <p className={styles.error}>{error}</p>}
                 </div>
             </div>
         </section>
