@@ -1,7 +1,8 @@
 .container {
     height: 100%;
     padding: 0.65rem;
-    overflow: hidden;
+    overflow-y: auto;
+    overflow-x: hidden;
     display: flex;
     flex-direction: column;
     background: #ffffff;
@@ -100,14 +101,15 @@
 .labGrid {
     display: grid;
     grid-template-columns: minmax(320px, 0.9fr) minmax(420px, 1.4fr);
-    grid-template-rows: minmax(420px, 1fr) minmax(0, 0.34fr);
+    grid-template-rows: auto auto;
     grid-template-areas:
         "editor visual"
         "explain visual";
     gap: 0.65rem;
-    flex: 1;
-    min-height: 0;
-    overflow: hidden;
+    /* allow the grid to size itself based on children */
+    flex: 0 0 auto;
+    height: auto;
+    overflow: visible;
 }
 
 .editorPanel,
@@ -121,10 +123,10 @@
 .editorPanel {
     grid-area: editor;
     padding: 0.65rem 0.8rem 0.55rem;
-    min-height: 0;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    overflow: visible;
+    align-self: start;
 }
 
 .visualPanel {
@@ -218,7 +220,6 @@
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.35rem 0.45rem;
-    margin-top: auto;
     padding-top: 0.55rem;
 }
 
@@ -275,7 +276,8 @@
 
 @media (max-width: 1100px) {
     .container {
-        overflow: auto;
+        overflow-y: auto;
+        overflow-x: hidden;
     }
 
     .labGrid {
