@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import styles from "@dashboard/styles/VisualPythonLab.module.css";
+import styles from "@dashboardStyles/pages/VisualPythonLab.module.css";
 import { explainVisualPythonCode, simulateProjectile } from "./visualPythonApi";
 
 const DEFAULT_UPDATE_CODE = `vy = vy - gravity * dt

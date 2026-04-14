@@ -1,5 +1,5 @@
 import { useState } from "react";
-import styles from "@dashboard/styles/Question.module.css";
+import styles from "@dashboardStyles/study/Question.module.css";
 
 export default function Question({
     number = 1,
@@ -116,7 +116,7 @@ export default function Question({
                 onClick={() => handleSelect(choice.id)}
             >
                 <div className={styles.choiceHeader}>
-                    <span className={styles.choiceId}>{isMultiChoice ?  "•" : choice.id}</span>
+                    <span className={styles.choiceId}>{isMultiChoice ? "•" : choice.id}</span>
                     <span className={styles.choiceLabel}>{choice.label}</span>
                 </div>
 

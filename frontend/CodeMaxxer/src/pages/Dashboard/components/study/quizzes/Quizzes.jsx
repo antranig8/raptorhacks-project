@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useSearchParams } from "react-router-dom";
 
-import styles from "@dashboard/styles/Quizzes.module.css";
+import styles from "@dashboardStyles/study/Quizzes.module.css";
 import ProgressSummary from "./ProgressSummary";
 import Question from "./Question";
 import QuizEditor from "./QuizEditor";

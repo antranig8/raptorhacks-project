@@ -1,4 +1,4 @@
-import styles from '@dashboard/styles/DashboardHome.module.css'
+import styles from '@dashboardStyles/pages/DashboardHome.module.css'
 import Quadrant1 from './Quadrant1'
 import Quadrant2 from './Quadrant2'
 import Quadrant4 from './Quadrant4'

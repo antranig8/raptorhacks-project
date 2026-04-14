@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import * as d3 from "d3";
 import { useNavigate } from "react-router-dom";
-import styles from "@dashboard/styles/SkillTree.module.css";
+import styles from "@dashboardStyles/skilltree/SkillTree.module.css";
 import { initSkillWeb } from "./skillWebD3";
 import { emptyPlanData, fetchDataForUser } from "./skillTreeData";
 import SkillTreeHeader from "./SkillTreeHeader";

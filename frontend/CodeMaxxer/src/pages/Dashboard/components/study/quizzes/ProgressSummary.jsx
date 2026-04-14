@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import styles from "@dashboard/styles/ProgressSummary.module.css";
+import styles from "@dashboardStyles/study/ProgressSummary.module.css";
 
 function TimedProgressBar({ isTimed, onTimeUp }) {
     const totalTime = 60; // 1 minute hardcoded per prompt for demo

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import styles from '@dashboard/styles/QuizEditor.module.css';
+import styles from '@dashboardStyles/study/QuizEditor.module.css';
 
 const LANGUAGES = [
     'haskell',

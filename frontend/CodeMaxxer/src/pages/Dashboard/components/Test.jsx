@@ -1,4 +1,4 @@
-import styles from '@dashboard/styles/Coding.module.css'
+import styles from '@dashboardStyles/study/Coding.module.css'
 import { useEffect, useState, useRef } from 'react'
 import supabase from '@utils/supabase'
 
@@ -65,7 +65,7 @@ export default function Test() {
     return (
         <section className={styles.container}>
             <h1>Test</h1>
-            <button onClick={()=>createQuiz()}>Create quiz</button>
+            <button onClick={() => createQuiz()}>Create quiz</button>
             <pre>{JSON.stringify(resp, null, 2)}</pre>
         </section>
     )
