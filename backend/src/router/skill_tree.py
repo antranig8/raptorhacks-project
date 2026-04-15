@@ -192,9 +192,18 @@ async def create_skill_tree(
         "goal": resolved_goal,
         "title": request.name,
         "tree_json": tree.model_dump(),
+        "is_active": True,
     }
 
     try:
+        # A newly created tree becomes the user's current roadmap immediately.
+        (
+            supabase_client.table(SKILL_TREES_TABLE)
+            .update({"is_active": False})
+            .eq("user_id", str(current_user.uuid))
+            .execute()
+        )
+
         response = (
             supabase_client.table(SKILL_TREES_TABLE)
             .insert(payload)

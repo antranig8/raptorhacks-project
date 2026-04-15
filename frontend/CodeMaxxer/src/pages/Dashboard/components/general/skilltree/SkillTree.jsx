@@ -88,29 +88,114 @@ const buildQuizPath = (node) => (
     `/dashboard/quizzes?skillTreeId=${encodeURIComponent(node.skillTreeId)}&nodeId=${encodeURIComponent(node.id)}`
 );
 
+const DEFAULT_POPOVER_WIDTH = 240;
+const DEFAULT_POPOVER_HEIGHT = 190;
+const POPOVER_MARGIN = 16;
+
 export default function SkillTree() {
     const navigate = useNavigate();
     const svgRef = useRef(null);
     const canvasAreaRef = useRef(null);
+    const popoverRef = useRef(null);
+    const popoverDragRef = useRef(null);
     const zoomRef = useRef(null);
     const apiRef = useRef(null);
     const [isPlaceholder, setIsPlaceholder] = useState(false);
     const [activeNode, setActiveNode] = useState(null);
 
+    const clampPopoverPosition = useCallback((position) => {
+        const canvas = canvasAreaRef.current;
+        if (!canvas) {
+            return {
+                x: POPOVER_MARGIN,
+                y: POPOVER_MARGIN,
+            };
+        }
+
+        const bounds = canvas.getBoundingClientRect();
+        const popoverBounds = popoverRef.current?.getBoundingClientRect();
+        const popoverWidth = Math.min(
+            popoverBounds?.width || DEFAULT_POPOVER_WIDTH,
+            Math.max(DEFAULT_POPOVER_WIDTH, bounds.width - (POPOVER_MARGIN * 2)),
+        );
+        const popoverHeight = popoverBounds?.height || DEFAULT_POPOVER_HEIGHT;
+        const maxX = Math.max(POPOVER_MARGIN, bounds.width - popoverWidth - POPOVER_MARGIN);
+        const maxY = Math.max(POPOVER_MARGIN, bounds.height - popoverHeight - POPOVER_MARGIN);
+
+        return {
+            x: Math.min(Math.max(position.x, POPOVER_MARGIN), maxX),
+            y: Math.min(Math.max(position.y, POPOVER_MARGIN), maxY),
+        };
+    }, []);
+
     const placeNodePopover = useCallback((pointer) => {
         const canvas = canvasAreaRef.current;
         if (!canvas || !pointer) {
-            return { x: 24, y: 24 };
+            return { x: POPOVER_MARGIN, y: POPOVER_MARGIN };
         }
 
         const bounds = canvas.getBoundingClientRect();
         const rawX = pointer.clientX - bounds.left;
         const rawY = pointer.clientY - bounds.top;
-        const halfWidth = Math.min(120, Math.max(100, (bounds.width - 32) / 2));
-        const x = Math.min(Math.max(rawX, halfWidth + 16), Math.max(halfWidth + 16, bounds.width - halfWidth - 16));
-        const y = Math.min(Math.max(rawY + 18, 18), Math.max(18, bounds.height - 105));
+        const preferredRight = rawX + POPOVER_MARGIN;
+        const preferredLeft = rawX - DEFAULT_POPOVER_WIDTH - POPOVER_MARGIN;
+        const preferredBottom = rawY + POPOVER_MARGIN;
+        const preferredTop = rawY - DEFAULT_POPOVER_HEIGHT - POPOVER_MARGIN;
+        const x = preferredRight + DEFAULT_POPOVER_WIDTH <= bounds.width - POPOVER_MARGIN
+            ? preferredRight
+            : preferredLeft;
+        const y = preferredBottom + DEFAULT_POPOVER_HEIGHT <= bounds.height - POPOVER_MARGIN
+            ? preferredBottom
+            : preferredTop;
 
-        return { x, y };
+        return clampPopoverPosition({ x, y });
+    }, [clampPopoverPosition]);
+
+    const handlePopoverPointerDown = useCallback((event) => {
+        if (event.target.closest("button") || !activeNode?.popoverPosition) {
+            return;
+        }
+
+        const canvas = canvasAreaRef.current;
+        if (!canvas) return;
+
+        const bounds = canvas.getBoundingClientRect();
+        popoverDragRef.current = {
+            pointerId: event.pointerId,
+            offsetX: event.clientX - bounds.left - activeNode.popoverPosition.x,
+            offsetY: event.clientY - bounds.top - activeNode.popoverPosition.y,
+        };
+        event.currentTarget.setPointerCapture(event.pointerId);
+    }, [activeNode?.popoverPosition]);
+
+    const handlePopoverPointerMove = useCallback((event) => {
+        const dragState = popoverDragRef.current;
+        const canvas = canvasAreaRef.current;
+        if (!dragState || !canvas || dragState.pointerId !== event.pointerId) {
+            return;
+        }
+
+        const bounds = canvas.getBoundingClientRect();
+        const nextPosition = clampPopoverPosition({
+            x: event.clientX - bounds.left - dragState.offsetX,
+            y: event.clientY - bounds.top - dragState.offsetY,
+        });
+
+        setActiveNode((prev) => (
+            prev
+                ? {
+                    ...prev,
+                    popoverPosition: nextPosition,
+                }
+                : prev
+        ));
+    }, [clampPopoverPosition]);
+
+    const handlePopoverPointerUp = useCallback((event) => {
+        if (popoverDragRef.current?.pointerId === event.pointerId) {
+            popoverDragRef.current = null;
+            event.currentTarget.releasePointerCapture(event.pointerId);
+        }
     }, []);
 
     const handleStartQuiz = () => {
@@ -272,12 +357,17 @@ export default function SkillTree() {
                 )}
                 {activeNode && !isPlaceholder && (
                     <div
+                        ref={popoverRef}
                         className={styles.nodePopover}
                         style={{
                             left: `${activeNode.popoverPosition.x}px`,
                             top: `${activeNode.popoverPosition.y}px`,
                         }}
                         onClick={(event) => event.stopPropagation()}
+                        onPointerDown={handlePopoverPointerDown}
+                        onPointerMove={handlePopoverPointerMove}
+                        onPointerUp={handlePopoverPointerUp}
+                        onPointerCancel={handlePopoverPointerUp}
                     >
                         <div className={styles.nodeInfoBox}>
                             <p className={styles.nodeEyebrow}>{activeNode.difficulty || "skill node"}</p>

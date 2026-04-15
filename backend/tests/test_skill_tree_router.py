@@ -62,7 +62,7 @@ class FakeSupabaseTable:
                 "title": self._payload["title"],
                 "tree_json": self._payload["tree_json"],
                 "completed_node_ids": self._payload.get("completed_node_ids", []),
-                "is_active": False,
+                "is_active": self._payload.get("is_active", False),
                 "created_at": "2026-04-07T12:00:00Z",
                 "updated_at": "2026-04-07T12:00:00Z",
             }
@@ -177,7 +177,7 @@ class SkillTreeRouterTests(TestCase):
         self.assertEqual(body["name"], "Python Roadmap")
         self.assertEqual(body["goal"], "Learn Python")
         self.assertEqual(body["completed_node_ids"], [])
-        self.assertFalse(body["is_active"])
+        self.assertTrue(body["is_active"])
         self.assertEqual(body["tree"]["name"], "Learn Python")
         self.assertIsNotNone(body["tree"]["id"])
         self.assertEqual(len(body["tree"]["children"]), 3)
@@ -287,6 +287,65 @@ class SkillTreeRouterTests(TestCase):
         self.assertEqual(len(fake_ai.messages), 2)
         self.assertEqual(fake_ai.messages[0][-1]["content"], "I want to get better at C for systems programming.")
         self.assertEqual(fake_ai.messages[1][-1]["content"], "Improve C programming for systems programming")
+
+    def test_create_tree_marks_new_tree_active_and_clears_previous_active_tree(self):
+        self.fake_supabase.skill_trees.append(
+            {
+                "id": "tree-1",
+                "user_id": str(self.user.uuid),
+                "goal": "Learn Python",
+                "title": "Python Roadmap",
+                "tree_json": {"id": "python", "name": "Learn Python", "children": []},
+                "completed_node_ids": [],
+                "is_active": True,
+                "created_at": "2026-04-07T12:00:00Z",
+                "updated_at": "2026-04-07T12:00:00Z",
+            }
+        )
+        fake_ai = FakeAIPlatform(
+            json.dumps(
+                {
+                    "goal": "Learn FastAPI",
+                    "skills": [
+                        {
+                            "name": "HTTP",
+                            "subskills": [
+                                {"name": "Methods", "difficulty": "beginner"},
+                                {"name": "Status Codes", "difficulty": "beginner"},
+                            ],
+                        },
+                        {
+                            "name": "FastAPI",
+                            "subskills": [
+                                {"name": "Routes", "difficulty": "beginner"},
+                                {"name": "Dependencies", "difficulty": "intermediate"},
+                            ],
+                        },
+                        {
+                            "name": "Deployment",
+                            "subskills": [
+                                {"name": "ASGI", "difficulty": "intermediate"},
+                                {"name": "Env Vars", "difficulty": "beginner"},
+                            ],
+                        },
+                    ],
+                }
+            )
+        )
+
+        with patch.object(skill_tree_router, "supabase_client", self.fake_supabase), patch.object(
+            skill_tree_router, "get_ai_platform", return_value=fake_ai
+        ):
+            client = TestClient(app)
+            response = client.post(
+                "/api/v1/private/skill-trees",
+                json={"name": "API Roadmap", "goal": "Learn FastAPI"},
+            )
+
+        self.assertEqual(response.status_code, 201)
+        self.assertFalse(self.fake_supabase.skill_trees[0]["is_active"])
+        self.assertTrue(self.fake_supabase.skill_trees[1]["is_active"])
+        self.assertTrue(response.json()["is_active"])
 
     def test_update_tree_marks_only_one_tree_active(self):
         self.fake_supabase.skill_trees.extend(
