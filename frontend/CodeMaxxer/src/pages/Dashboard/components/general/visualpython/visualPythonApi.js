@@ -44,6 +44,15 @@ export function simulateProjectile({ setup, updateCode }) {
     });
 }
 
+export function renderCanvas({ code }) {
+    return requestVisualPython("/visual-python/canvas", {
+        method: "POST",
+        body: JSON.stringify({
+            code,
+        }),
+    });
+}
+
 export function explainVisualPythonCode({ lab = "projectile", updateCode }) {
     return requestVisualPython("/visual-python/explain", {
         method: "POST",

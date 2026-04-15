@@ -3,6 +3,7 @@ from __future__ import annotations
 import ast
 import math
 import re
+from dataclasses import dataclass
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -10,9 +11,14 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from ..auth.throttling import rate_limit_chat
 from ..dependencies.ai import get_ai_platform
 from ..schemas.visual_python import (
+    CanvasObject,
+    CanvasRenderRequest,
+    CanvasRenderResponse,
+    CanvasStep,
     ProjectileFrame,
     ProjectileSimulationRequest,
     ProjectileSimulationResponse,
+    ProjectileStep,
     VisualPythonExplainRequest,
     VisualPythonExplainResponse,
 )
@@ -42,6 +48,38 @@ ALLOWED_FUNCTIONS = {
     "sqrt": math.sqrt,
     "radians": math.radians,
 }
+
+
+@dataclass(frozen=True)
+class CompiledAssignment:
+    target: str
+    expression: ast.AST
+    line: int
+    code: str
+    description: str
+
+
+ACTION_DESCRIPTIONS = {
+    "x": "Move horizontally",
+    "y": "Move vertically",
+    "vx": "Update horizontal velocity",
+    "vy": "Update vertical velocity",
+    "t": "Advance time",
+    "dt": "Change time step",
+    "gravity": "Change gravity",
+    "speed": "Change launch speed",
+    "angle": "Change launch angle",
+}
+
+CANVAS_COMMAND_ARITY = {
+    "point": 2,
+    "line": 4,
+    "circle": 3,
+    "rect": 4,
+}
+
+CANVAS_MAX_VARIABLES = 80
+CANVAS_MAX_ABS_VALUE = 1_000_000
 
 
 def _clean_ai_explanation(raw_text: str) -> str:
@@ -101,13 +139,17 @@ def _evaluate_expression(node: ast.AST, variables: dict[str, float]) -> float:
     raise ValueError("Only simple math expressions are allowed.")
 
 
-def _compile_update_code(update_code: str) -> list[tuple[str, ast.AST]]:
+def _describe_assignment(target: str) -> str:
+    return ACTION_DESCRIPTIONS.get(target, f"Update {target}")
+
+
+def _compile_update_code(update_code: str) -> list[CompiledAssignment]:
     try:
         tree = ast.parse(update_code, mode="exec")
     except SyntaxError as exc:
         raise ValueError(f"Python syntax error on line {exc.lineno}.") from exc
 
-    assignments: list[tuple[str, ast.AST]] = []
+    assignments: list[CompiledAssignment] = []
     for statement in tree.body:
         if not isinstance(statement, ast.Assign) or len(statement.targets) != 1:
             raise ValueError("Only assignment lines like y = y + vy * dt are allowed.")
@@ -116,7 +158,16 @@ def _compile_update_code(update_code: str) -> list[tuple[str, ast.AST]]:
         if not isinstance(target, ast.Name) or target.id not in ALLOWED_VARIABLES:
             raise ValueError("Assignments can only update x, y, vx, vy, t, dt, gravity, speed, or angle.")
 
-        assignments.append((target.id, statement.value))
+        source_code = ast.get_source_segment(update_code, statement) or f"{target.id} = ..."
+        assignments.append(
+            CompiledAssignment(
+                target=target.id,
+                expression=statement.value,
+                line=statement.lineno,
+                code=source_code.strip(),
+                description=_describe_assignment(target.id),
+            )
+        )
 
     return assignments
 
@@ -125,10 +176,142 @@ def _round_frame_value(value: float) -> float:
     return round(value, 4)
 
 
+def _validate_canvas_value(value: float) -> float:
+    if not math.isfinite(value) or abs(value) > CANVAS_MAX_ABS_VALUE:
+        raise ValueError("Canvas values must stay between -1,000,000 and 1,000,000.")
+    return value
+
+
+def _validate_canvas_variable_name(name: str) -> None:
+    if name in CANVAS_COMMAND_ARITY or name in ALLOWED_FUNCTIONS:
+        raise ValueError(f'Variable "{name}" uses a reserved name.')
+    if name.startswith("_"):
+        raise ValueError("Variable names cannot start with an underscore.")
+
+
+def _describe_canvas_assignment(target: str, before: float | None, after: float) -> str:
+    rounded_after = _round_frame_value(after)
+    if before is None:
+        return f"Create variable {target} with value {rounded_after}"
+    return f"Update variable {target} to {rounded_after}"
+
+
+def _describe_canvas_command(command: str, args: list[float]) -> str:
+    if command == "point":
+        return f"Plot a point at ({_round_frame_value(args[0])}, {_round_frame_value(args[1])})"
+    if command == "line":
+        return (
+            f"Draw a line from ({_round_frame_value(args[0])}, {_round_frame_value(args[1])}) "
+            f"to ({_round_frame_value(args[2])}, {_round_frame_value(args[3])})"
+        )
+    if command == "circle":
+        return (
+            f"Draw a circle centered at ({_round_frame_value(args[0])}, {_round_frame_value(args[1])}) "
+            f"with radius {_round_frame_value(args[2])}"
+        )
+    if command == "rect":
+        return (
+            f"Draw a rectangle at ({_round_frame_value(args[0])}, {_round_frame_value(args[1])}) "
+            f"with width {_round_frame_value(args[2])} and height {_round_frame_value(args[3])}"
+        )
+    return f"Run {command}"
+
+
+def _build_canvas_object(command: str, args: list[float]) -> CanvasObject:
+    rounded_args = [_round_frame_value(arg) for arg in args]
+    if command == "point":
+        return CanvasObject(type="point", x=rounded_args[0], y=rounded_args[1])
+    if command == "line":
+        return CanvasObject(
+            type="line",
+            x1=rounded_args[0],
+            y1=rounded_args[1],
+            x2=rounded_args[2],
+            y2=rounded_args[3],
+        )
+    if command == "circle":
+        return CanvasObject(type="circle", x=rounded_args[0], y=rounded_args[1], radius=rounded_args[2])
+    if command == "rect":
+        return CanvasObject(
+            type="rect",
+            x=rounded_args[0],
+            y=rounded_args[1],
+            width=rounded_args[2],
+            height=rounded_args[3],
+        )
+    raise ValueError(f'Command "{command}" is not available in this lab.')
+
+
+def _render_canvas_code(request: CanvasRenderRequest) -> tuple[list[CanvasObject], list[CanvasStep], dict[str, float]]:
+    try:
+        tree = ast.parse(request.code, mode="exec")
+    except SyntaxError as exc:
+        raise ValueError(f"Python syntax error on line {exc.lineno}.") from exc
+
+    objects: list[CanvasObject] = []
+    steps: list[CanvasStep] = []
+    variables: dict[str, float] = {}
+    for statement in tree.body:
+        source_code = ast.get_source_segment(request.code, statement) or ""
+
+        if isinstance(statement, ast.Assign):
+            if len(statement.targets) != 1 or not isinstance(statement.targets[0], ast.Name):
+                raise ValueError("Canvas assignments must look like x = 5.")
+
+            target = statement.targets[0].id
+            _validate_canvas_variable_name(target)
+            if target not in variables and len(variables) >= CANVAS_MAX_VARIABLES:
+                raise ValueError("Python Canvas supports up to 80 variables.")
+
+            before_value = variables.get(target)
+            after_value = _validate_canvas_value(_evaluate_expression(statement.value, variables))
+            variables[target] = after_value
+            steps.append(
+                CanvasStep(
+                    line=statement.lineno,
+                    code=source_code.strip() or f"{target} = ...",
+                    command="assign",
+                    target=target,
+                    before=None if before_value is None else _round_frame_value(before_value),
+                    after=_round_frame_value(after_value),
+                    description=_describe_canvas_assignment(target, before_value, after_value),
+                )
+            )
+            continue
+
+        if not isinstance(statement, ast.Expr) or not isinstance(statement.value, ast.Call):
+            raise ValueError("Only variable assignments and drawing calls like point(5, 3) are allowed in Python Canvas.")
+
+        call = statement.value
+        if not isinstance(call.func, ast.Name) or call.func.id not in CANVAS_COMMAND_ARITY:
+            raise ValueError('Only point(), line(), circle(), and rect() are available in Python Canvas.')
+        if call.keywords:
+            raise ValueError("Keyword arguments are not allowed in Python Canvas.")
+
+        command = call.func.id
+        expected_arg_count = CANVAS_COMMAND_ARITY[command]
+        if len(call.args) != expected_arg_count:
+            raise ValueError(f"{command}() expects {expected_arg_count} numeric arguments.")
+
+        args = [_validate_canvas_value(_evaluate_expression(arg, variables)) for arg in call.args]
+        objects.append(_build_canvas_object(command, args))
+        steps.append(
+            CanvasStep(
+                line=statement.lineno,
+                code=source_code.strip(),
+                command=command,
+                description=_describe_canvas_command(command, args),
+            )
+        )
+
+    rounded_variables = {name: _round_frame_value(value) for name, value in variables.items()}
+    return objects, steps, rounded_variables
+
+
 def _run_projectile_simulation(request: ProjectileSimulationRequest) -> list[ProjectileFrame]:
     setup = request.setup
     assignments = _compile_update_code(request.update_code)
-    updates_time = any(target == "t" for target, _expression in assignments)
+    updates_time = any(assignment.target == "t" for assignment in assignments)
     angle_radians = math.radians(setup.angle)
     variables: dict[str, float] = {
         "x": 0.0,
@@ -153,8 +336,20 @@ def _run_projectile_simulation(request: ProjectileSimulationRequest) -> list[Pro
     ]
 
     for step in range(setup.max_steps):
-        for target, expression in assignments:
-            variables[target] = _evaluate_expression(expression, variables)
+        frame_steps: list[ProjectileStep] = []
+        for assignment in assignments:
+            before_value = variables[assignment.target]
+            variables[assignment.target] = _evaluate_expression(assignment.expression, variables)
+            frame_steps.append(
+                ProjectileStep(
+                    line=assignment.line,
+                    code=assignment.code,
+                    target=assignment.target,
+                    before=_round_frame_value(before_value),
+                    after=_round_frame_value(variables[assignment.target]),
+                    description=assignment.description,
+                )
+            )
 
         if not updates_time:
             variables["t"] += setup.dt
@@ -166,6 +361,7 @@ def _run_projectile_simulation(request: ProjectileSimulationRequest) -> list[Pro
                 y=_round_frame_value(variables["y"]),
                 vx=_round_frame_value(variables["vx"]),
                 vy=_round_frame_value(variables["vy"]),
+                steps=frame_steps,
             )
         )
 
@@ -173,6 +369,23 @@ def _run_projectile_simulation(request: ProjectileSimulationRequest) -> list[Pro
             break
 
     return frames
+
+
+@router.post("/canvas", response_model=CanvasRenderResponse, status_code=status.HTTP_200_OK)
+async def render_canvas(request: CanvasRenderRequest):
+    try:
+        objects, steps, variables = _render_canvas_code(request)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)) from exc
+    except OverflowError as exc:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="The canvas values grew too large.") from exc
+
+    return CanvasRenderResponse(
+        objects=objects,
+        steps=steps,
+        variables=variables,
+        message=f"Canvas rendered {len(objects)} objects.",
+    )
 
 
 @router.post("/projectile", response_model=ProjectileSimulationResponse, status_code=status.HTTP_200_OK)
@@ -202,8 +415,8 @@ async def explain_visual_python_code(request: VisualPythonExplainRequest):
         {
             "role": "system",
             "content": (
-                "You explain short Python physics update code to beginner physics students. "
-                "Keep the answer under 90 words. Explain what each assignment changes in the simulation. "
+                "You explain short Python visual programming code to beginner students. "
+                "Keep the answer under 90 words. Explain what each assignment or drawing call changes visually. "
                 "Use plain English only. Do not include chain-of-thought, code blocks, corrected code, or replacement lines."
             ),
         },
