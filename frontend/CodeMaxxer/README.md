@@ -9,10 +9,12 @@ Current app areas:
 - Protected dashboard routes
 - Guided plan creation and saved-plan management
 - D3 skill tree rendering with backend-driven XP values
+- AI-generated Learn lesson modal for individual skill-tree nodes
 - Node-linked quizzes and standalone generated quizzes
 - Quiz hints, explanations, hard mode, per-question validation, and final submission
 - Dashboard XP charts backed by the backend user-stats API
 - Typing practice with live WPM/EPM charting
+- Visual Python labs for projectile motion and canvas-style plotting
 
 ## Run Locally
 
@@ -42,3 +44,4 @@ The frontend expects:
 - The app uses Vite aliases from `vite.config.js`, including `@`, `@dashboard`, `@d_general`, `@d_study`, and `@utils`.
 - `vercel.json` rewrites all routes to `index.html` for client-side routing.
 - Mock quiz and skill-tree data still exists for fallback/local UI behavior, but the main authenticated flows use the backend.
+- Learn lessons and node-linked quizzes are requested from selected skill-tree nodes and can be regenerated from the UI.

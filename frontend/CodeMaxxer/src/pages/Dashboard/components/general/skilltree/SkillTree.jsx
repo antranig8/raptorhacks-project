@@ -3,7 +3,7 @@ import * as d3 from "d3";
 import { useNavigate } from "react-router-dom";
 import styles from "@dashboard/styles/SkillTree.module.css";
 import { initSkillWeb } from "./skillWebD3";
-import { emptyPlanData, fetchDataForUser } from "./skillTreeData";
+import { emptyPlanData, fetchDataForUser, fetchLearnLesson } from "./skillTreeData";
 import SkillTreeHeader from "./SkillTreeHeader";
 
 const getNodePurpose = (node) => {
@@ -84,13 +84,15 @@ const getNodePurpose = (node) => {
     return `Covers what ${nodeName} means, how it works, and when to use it.`;
 };
 
+const isParentNode = (node) => Array.isArray(node?.children) && node.children.length > 0;
+
 const buildQuizPath = (node) => (
     `/dashboard/quizzes?skillTreeId=${encodeURIComponent(node.skillTreeId)}&nodeId=${encodeURIComponent(node.id)}`
 );
 
-const DEFAULT_POPOVER_WIDTH = 240;
-const DEFAULT_POPOVER_HEIGHT = 190;
-const POPOVER_MARGIN = 16;
+const DEFAULT_POPOVER_WIDTH = 220;
+const DEFAULT_POPOVER_HEIGHT = 150;
+const POPOVER_MARGIN = 12;
 
 export default function SkillTree() {
     const navigate = useNavigate();
@@ -102,6 +104,11 @@ export default function SkillTree() {
     const apiRef = useRef(null);
     const [isPlaceholder, setIsPlaceholder] = useState(false);
     const [activeNode, setActiveNode] = useState(null);
+    const [learnLesson, setLearnLesson] = useState(null);
+    const [learnSource, setLearnSource] = useState("");
+    const [isLearning, setIsLearning] = useState(false);
+    const [learnError, setLearnError] = useState("");
+    const [isLearnModalOpen, setIsLearnModalOpen] = useState(false);
 
     const clampPopoverPosition = useCallback((position) => {
         const canvas = canvasAreaRef.current;
@@ -209,6 +216,66 @@ export default function SkillTree() {
         });
     };
 
+    const handleLearn = async ({ forceRegenerate = false } = {}) => {
+        if (!activeNode?.skillTreeId || !activeNode?.id) return;
+        if (isParentNode(activeNode)) return;
+
+        setIsLearning(true);
+        setLearnError("");
+        setIsLearnModalOpen(true);
+        if (forceRegenerate) {
+            setLearnSource("");
+        }
+
+        try {
+            const result = await fetchLearnLesson({
+                skillTreeId: activeNode.skillTreeId,
+                nodeId: activeNode.id,
+                treeTitle: activeNode.skillTreeName,
+                nodeTitle: activeNode.name,
+                difficulty: activeNode.difficulty || "beginner",
+                forceRegenerate,
+            });
+
+            setLearnLesson(result.lesson);
+            setLearnSource(result.source || "");
+        } catch (error) {
+            setLearnError(error.message || "Could not load this lesson.");
+        } finally {
+            setIsLearning(false);
+        }
+    };
+
+    const closeLearnModal = () => {
+        setIsLearnModalOpen(false);
+        setLearnError("");
+    };
+
+    useEffect(() => {
+        if (!activeNode?.popoverPosition) return undefined;
+
+        const frameId = window.requestAnimationFrame(() => {
+            setActiveNode((prev) => {
+                if (!prev?.popoverPosition) return prev;
+
+                const nextPosition = clampPopoverPosition(prev.popoverPosition);
+                if (
+                    nextPosition.x === prev.popoverPosition.x
+                    && nextPosition.y === prev.popoverPosition.y
+                ) {
+                    return prev;
+                }
+
+                return {
+                    ...prev,
+                    popoverPosition: nextPosition,
+                };
+            });
+        });
+
+        return () => window.cancelAnimationFrame(frameId);
+    }, [activeNode?.popoverPosition, clampPopoverPosition]);
+
     useEffect(() => {
         if (!svgRef.current) return;
 
@@ -256,6 +323,10 @@ export default function SkillTree() {
                             purpose: getNodePurpose(node),
                             popoverPosition: placeNodePopover(pointer),
                         });
+                        setLearnLesson(null);
+                        setLearnSource("");
+                        setLearnError("");
+                        setIsLearnModalOpen(false);
                     },
                 );
             } catch (error) {
@@ -335,7 +406,13 @@ export default function SkillTree() {
             <div
                 ref={canvasAreaRef}
                 className={`${styles.canvasArea} ${isPlaceholder ? styles.canvasAreaPlaceholder : ''}`}
-                onClick={() => setActiveNode(null)}
+                onClick={() => {
+                    setActiveNode(null);
+                    setLearnLesson(null);
+                    setLearnSource("");
+                    setLearnError("");
+                    setIsLearnModalOpen(false);
+                }}
             >
                 {isPlaceholder && (
                     <div className={styles.placeholderOverlay}>
@@ -373,18 +450,94 @@ export default function SkillTree() {
                             <p className={styles.nodeEyebrow}>{activeNode.difficulty || "skill node"}</p>
                             <h3 className={styles.nodeTitle}>{activeNode.name}</h3>
                             <p className={styles.nodeDescription}>{activeNode.purpose}</p>
+                            {isParentNode(activeNode) && (
+                                <p className={styles.nodeHint}>Learn is available on individual topic nodes.</p>
+                            )}
                         </div>
-                        <button
-                            className={styles.nodeQuizButton}
-                            type="button"
-                            onClick={handleStartQuiz}
-                        >
-                            Start Quiz
-                        </button>
+                        <div className={styles.nodeActions}>
+                            <button
+                                className={styles.nodeLearnButton}
+                                type="button"
+                                onClick={() => handleLearn()}
+                                disabled={isLearning || isParentNode(activeNode)}
+                            >
+                                {isLearning ? "Loading..." : "Learn"}
+                            </button>
+                            <button
+                                className={styles.nodeQuizButton}
+                                type="button"
+                                onClick={handleStartQuiz}
+                            >
+                                Start Quiz
+                            </button>
+                        </div>
                     </div>
                 )}
                 <svg ref={svgRef}></svg>
             </div>
+            {isLearnModalOpen && (
+                <div className={styles.learnModalOverlay} onClick={closeLearnModal}>
+                    <div className={styles.learnModal} onClick={(event) => event.stopPropagation()}>
+                        <div className={styles.learnModalHeader}>
+                            <div>
+                                <p className={styles.learnModalEyebrow}>Learn</p>
+                                <h3>{learnLesson?.title || activeNode?.name || "Lesson"}</h3>
+                            </div>
+                            <div className={styles.learnModalActions}>
+                                {learnLesson && (
+                                    <button
+                                        className={styles.learnRegenerateButton}
+                                        type="button"
+                                        onClick={() => handleLearn({ forceRegenerate: true })}
+                                        disabled={isLearning}
+                                    >
+                                        {isLearning ? "Regenerating..." : "Regenerate"}
+                                    </button>
+                                )}
+                                <button className={styles.learnCloseButton} type="button" onClick={closeLearnModal}>
+                                    Close
+                                </button>
+                            </div>
+                        </div>
+                        {isLearning && <p className={styles.learnLoading}>Building the lesson...</p>}
+                        {learnError && <p className={styles.learnError}>{learnError}</p>}
+                        {learnLesson && (
+                            <div className={styles.learnPanel}>
+                                <div className={styles.learnHeader}>
+                                    <h4>{learnLesson.title}</h4>
+                                    {learnSource && <span>{learnSource}</span>}
+                                </div>
+                                <section className={styles.learnSection}>
+                                    <h5>What It Means</h5>
+                                    <p>{learnLesson.meaning}</p>
+                                </section>
+                                <section className={styles.learnSection}>
+                                    <h5>Why It Matters</h5>
+                                    <p>{learnLesson.whyItMatters}</p>
+                                </section>
+                                <section className={styles.learnSection}>
+                                    <h5>Example</h5>
+                                    <pre><code>{learnLesson.example.code}</code></pre>
+                                    <p>{learnLesson.example.explanation}</p>
+                                </section>
+                                <section className={styles.learnSection}>
+                                    <h5>Key Takeaways</h5>
+                                    <ul>
+                                        {learnLesson.keyTakeaways.map((takeaway) => (
+                                            <li key={takeaway}>{takeaway}</li>
+                                        ))}
+                                    </ul>
+                                </section>
+                                <section className={styles.learnSection}>
+                                    <h5>Common Mistake</h5>
+                                    <p><strong>{learnLesson.commonMistake.mistake}</strong></p>
+                                    <p>{learnLesson.commonMistake.explanation}</p>
+                                </section>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
         </section>
     );
 }

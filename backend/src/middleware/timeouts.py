@@ -98,13 +98,10 @@ async def with_ai_timeout(coro: Any, label: str = "AI call") -> Any:
 async def with_supabase_timeout(coro: Any, label: str = "Supabase call") -> Any:
     """Wrap a Supabase coroutine with SUPABASE_CALL_TIMEOUT_SECONDS.
 
-    The postgrest-py client is synchronous, so callers must wrap it in
-    asyncio.to_thread before passing it here:
+    The Supabase client is async, so callers pass the awaited execute helper:
 
         result = await with_supabase_timeout(
-            asyncio.to_thread(
-                lambda: supabase_client.table("quizzes").insert(payload).execute()
-            ),
+            execute_query(supabase_client.table("quizzes").insert(payload)),
             label="quiz insert",
         )
 
@@ -133,11 +130,11 @@ async def with_supabase_timeout(coro: Any, label: str = "Supabase call") -> Any:
 class SlowCallLogger:
     """Context manager that logs a warning if a block takes longer than threshold.
 
-    Use this around synchronous blocking calls that you cannot yet make async,
-    to surface hangs in logs without changing behaviour:
+    Use this around blocking work that cannot yet be made async, to surface
+    hangs in logs without changing behaviour:
 
-        with SlowCallLogger("supabase insert", threshold=2.0):
-            response = supabase_client.table(...).insert(payload).execute()
+        with SlowCallLogger("legacy operation", threshold=2.0):
+            run_legacy_operation()
     """
 
     def __init__(self, label: str, threshold: float = 2.0) -> None:
