@@ -45,6 +45,12 @@ def _load_json_payload(raw_text: str, error_message: str) -> dict:
     cleaned_text = (raw_text or "").strip()
     cleaned_text = re.sub(r"```json|```", "", cleaned_text, flags=re.IGNORECASE).strip()
     cleaned_text = re.sub(r"<think>.*?</think>", "", cleaned_text, flags=re.DOTALL).strip()
+    cleaned_text = re.sub(
+        r"<think>.*?(?:\n\s*\n|$)",
+        "",
+        cleaned_text,
+        flags=re.DOTALL | re.IGNORECASE,
+    ).strip()
 
     if not cleaned_text:
         raise ValueError(error_message)
@@ -52,14 +58,51 @@ def _load_json_payload(raw_text: str, error_message: str) -> dict:
     try:
         return json.loads(cleaned_text)
     except json.JSONDecodeError:
-        match = re.search(r"\{.*\}", cleaned_text, flags=re.DOTALL)
-        if not match:
+        json_object_text = _extract_first_json_object(cleaned_text)
+        if json_object_text is None:
             raise ValueError(error_message) from None
 
         try:
-            return json.loads(match.group(0))
+            return json.loads(json_object_text)
         except json.JSONDecodeError as exc:
             raise ValueError(error_message) from exc
+
+
+def _extract_first_json_object(text: str) -> str | None:
+    # Code examples and model preambles can include braces, so recover the first
+    # balanced object while respecting strings instead of using a greedy regex.
+    start = text.find("{")
+    if start == -1:
+        return None
+
+    depth = 0
+    in_string = False
+    escape_next = False
+
+    for index, char in enumerate(text[start:], start=start):
+        if escape_next:
+            escape_next = False
+            continue
+
+        if char == "\\" and in_string:
+            escape_next = True
+            continue
+
+        if char == '"':
+            in_string = not in_string
+            continue
+
+        if in_string:
+            continue
+
+        if char == "{":
+            depth += 1
+        elif char == "}":
+            depth -= 1
+            if depth == 0:
+                return text[start:index + 1]
+
+    return None
 
 
 # Parse the goal extraction response JSON and validate that it contains a usable goal.
