@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import styles from "@dashboard/styles/VisualPythonLab.module.css";
+import styles from "@dashboardStyles/pages/VisualPythonLab.module.css";
 import { explainVisualPythonCode, renderCanvas, simulateProjectile } from "./visualPythonApi";
 
 const LABS = {

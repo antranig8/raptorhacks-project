@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { FaTachometerAlt, FaClock } from 'react-icons/fa'
-import styles from '@dashboard/styles/TextArea.module.css'
+import styles from '@dashboardStyles/typing/TextArea.module.css'
 
 export default function TypingStats({ startTimestamp, active, completed, duration = 60, wpm = 0, onTimeUp }) {
     const [remaining, setRemaining] = useState(duration)

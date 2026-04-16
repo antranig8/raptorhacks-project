@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { FaMousePointer, FaRedo } from 'react-icons/fa'
-import styles from '@dashboard/styles/TextArea.module.css'
+import styles from '@dashboardStyles/typing/TextArea.module.css'
 import TypingStats from './TypingStats'
 
 export default function TextArea({ target = '', onChange, onActiveChange, onRequestNewTarget, onComplete }) {
@@ -104,7 +104,7 @@ export default function TextArea({ target = '', onChange, onActiveChange, onRequ
 
             const timeout = setTimeout(() => {
                 setTyped(entry.value)
-                
+
                 const elapsedMinutes = Math.max(1000, entry.timestamp - baseTimestamp) / 60000
                 const wpm = Math.round((entry.value.length / 5) / elapsedMinutes)
                 setLiveWpm(wpm)

@@ -1,4 +1,4 @@
-import styles from "@dashboard/styles/Coding.module.css";
+import styles from "@dashboardStyles/study/Coding.module.css";
 
 export default function Coding() {
     return (

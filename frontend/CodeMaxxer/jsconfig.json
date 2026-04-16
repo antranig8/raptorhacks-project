@@ -24,6 +24,9 @@
             "@d_support/*": [
                 "src/pages/Dashboard/components/support/*"
             ],
+            "@dashboardStyles/*": [
+                "src/styles/dashboard/*"
+            ],
             "@utils/*": [
                 "src/utils/*"
             ]

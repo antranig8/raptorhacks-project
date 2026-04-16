@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { FaAtom, FaGraduationCap, FaHome, FaSeedling, FaKeyboard, FaClipboardList, FaSignOutAlt, FaMapSigns } from 'react-icons/fa'
 import { CgDockLeft, CgDockRight } from 'react-icons/cg'
 import Logo from '@/components/Logo/Logo'
-import styles from '@dashboard/styles/DashboardNav.module.css'
+import styles from '@dashboardStyles/layout/DashboardNav.module.css'
 import supabase from '@utils/supabase'
 
 const navSections = [

@@ -1,5 +1,5 @@
 import React from 'react';
-import styles from '@dashboard/styles/SkillTreeHeader.module.css';
+import styles from '@dashboardStyles/skilltree/SkillTreeHeader.module.css';
 
 export default function SkillTreeHeader({ onZoomIn, onZoomOut, onReset, onUndo, onRedo, onTreesClick }) {
     return (

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import styles from '@dashboard/styles/Typing.module.css'
+import styles from '@dashboardStyles/typing/Typing.module.css'
 import TextArea from '@d_general/typing/TextArea'
 import { randomText } from './wordBank'
 import TypingEditor from './TypingEditor'

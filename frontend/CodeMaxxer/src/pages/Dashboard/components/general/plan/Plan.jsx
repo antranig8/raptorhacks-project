@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { createSkillTree, deleteSkillTree, listSkillTrees, setActiveSkillTree } from '@d_general/skilltree/skillTreeData'
-import styles from '@dashboard/styles/Plan.module.css'
+import styles from '@dashboardStyles/components/Plan.module.css'
 
 const EXPERIENCE_OPTIONS = [
     { value: 'beginner', label: 'Beginner', detail: 'Assume little or no prior background.' },

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import styles from '@dashboard/styles/TypingEditor.module.css';
+import styles from '@dashboardStyles/typing/TypingEditor.module.css';
 
 const LANGUAGES = [
     { id: 'javascript', label: 'JavaScript' },

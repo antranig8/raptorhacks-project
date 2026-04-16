@@ -8,8 +8,6 @@
 }
 
 html {
-  --global-font-scale: 1.5;
-  font-size: calc(100% * var(--global-font-scale));
   scrollbar-width: none !important;
   -ms-overflow-style: none !important;
   overflow: auto;
