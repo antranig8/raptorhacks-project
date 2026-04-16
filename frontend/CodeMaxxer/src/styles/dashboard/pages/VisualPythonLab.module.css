@@ -99,45 +99,58 @@
 }
 
 .labGrid {
-    display: grid;
-    grid-template-columns: minmax(320px, 0.9fr) minmax(420px, 1.4fr);
-    grid-template-rows: auto auto;
-    grid-template-areas:
-        "editor visual"
-        "explain visual";
+    display: flex;
     gap: 0.65rem;
-    /* allow the grid to size itself based on children */
-    flex: 0 0 auto;
-    height: auto;
-    overflow: visible;
+    /* left/right columns with similar proportions to the previous grid */
+    align-items: flex-start;
+}
+
+.leftCol {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    flex: 0 0 35%;
+    width: 35%;
+}
+
+.rightCol {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    flex: 0 0 65%;
+    width: 65%;
 }
 
 .editorPanel,
 .visualPanel,
-.explainPanel {
+.explainPanel,
+.actionsPanel,
+.statePanel {
     border: 1px solid #dbe4f0;
     border-radius: 8px;
     background: #f8fbff;
 }
 
 .editorPanel {
-    grid-area: editor;
     padding: 0.65rem 0.8rem 0.55rem;
     display: flex;
     flex-direction: column;
     overflow: visible;
     align-self: start;
+    width: 100%;
 }
 
 .visualPanel {
-    grid-area: visual;
     display: flex;
     flex-direction: column;
     min-height: 0;
     overflow: hidden;
+    height: 520px;
 }
 
-.explainPanel {
+.explainPanel,
+.actionsPanel,
+.statePanel {
     grid-area: explain;
     padding: 0.65rem;
     min-height: 0;
@@ -145,6 +158,8 @@
 }
 
 .explainPanel h3,
+.actionsPanel h3,
+.statePanel h3,
 .panelHeader h3 {
     margin: 0;
     color: #10233f;
@@ -184,6 +199,47 @@
 .codeEditor:focus {
     outline: 2px solid rgba(37, 99, 235, 0.28);
     border-color: #2563eb;
+}
+
+.codeTrace {
+    display: grid;
+    gap: 0.25rem;
+    margin-top: 0.5rem;
+    padding: 0.45rem;
+    border: 1px solid #cfd9e8;
+    border-radius: 8px;
+    background: #ffffff;
+}
+
+.codeLine {
+    display: grid;
+    grid-template-columns: 1.75rem minmax(0, 1fr);
+    gap: 0.45rem;
+    align-items: center;
+    min-height: 1.65rem;
+    padding: 0.25rem 0.35rem;
+    border-radius: 6px;
+    color: #52637a;
+    font-size: 0.74rem;
+}
+
+.codeLine span {
+    color: #8a99ad;
+    font-weight: 800;
+    text-align: right;
+}
+
+.codeLine code,
+.actionBlock code {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    color: inherit;
+    font-family: "Mona Sans", Consolas, monospace;
+}
+
+.codeLineActive {
+    color: #0f766e;
+    background: #dff7f2;
 }
 
 .primaryButton,
@@ -249,7 +305,7 @@
 .sketchHost {
     width: 100%;
     flex: 1;
-    min-height: 0;
+    min-height: 260px;
 }
 
 .sketchHost canvas {
@@ -269,6 +325,125 @@
     font-weight: 700;
 }
 
+.timelinePanel {
+    display: grid;
+    gap: 0.45rem;
+    padding: 0.55rem 0.65rem;
+    border-top: 1px solid #dbe4f0;
+    background: #ffffff;
+}
+
+.timelineButtons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.timelineButtons button {
+    border: 1px solid #cfd9e8;
+    border-radius: 8px;
+    padding: 0.35rem 0.55rem;
+    color: #10233f;
+    background: #f8fbff;
+    font: inherit;
+    font-size: 0.72rem;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.timelineButtons button:hover,
+.timelineButtons button:focus {
+    outline: none;
+    border-color: #0f766e;
+    background: #dff7f2;
+}
+
+.timelineButtons button:disabled {
+    color: #94a3b8;
+    cursor: not-allowed;
+}
+
+.scrubber {
+    display: grid;
+    gap: 0.25rem;
+    color: #334155;
+    font-size: 0.72rem;
+    font-weight: 800;
+}
+
+.scrubber input {
+    width: 100%;
+    accent-color: #0f766e;
+}
+
+.actionList {
+    display: grid;
+    gap: 0.45rem;
+    margin-top: 0.5rem;
+}
+
+.actionBlock {
+    display: grid;
+    gap: 0.25rem;
+    padding: 0.5rem;
+    border: 1px solid #dbe4f0;
+    border-radius: 8px;
+    color: #334155;
+    background: #ffffff;
+}
+
+.actionBlock strong {
+    color: #10233f;
+    font-size: 0.78rem;
+}
+
+.actionChange {
+    color: #0f766e;
+    font-size: 0.72rem;
+    font-weight: 900;
+}
+
+.actionStep,
+.activeStep {
+    color: #0f766e;
+    font-size: 0.68rem;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+.actionBlockActive {
+    border-color: #0f766e;
+    background: #dff7f2;
+}
+
+.stateGrid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.45rem;
+    margin-top: 0.55rem;
+}
+
+.stateCell {
+    display: grid;
+    gap: 0.2rem;
+    min-height: 3.4rem;
+    padding: 0.5rem;
+    border: 1px solid #dbe4f0;
+    border-radius: 8px;
+    background: #ffffff;
+}
+
+.stateCell span {
+    color: #52637a;
+    font-size: 0.68rem;
+    font-weight: 800;
+}
+
+.stateCell strong {
+    color: #10233f;
+    font-size: 0.9rem;
+}
+
 .error {
     color: #b91c1c !important;
     font-weight: 700;
@@ -281,21 +456,27 @@
     }
 
     .labGrid {
-        grid-template-columns: 1fr;
-        grid-template-rows: auto minmax(320px, 1fr) auto;
-        grid-template-areas:
-            "editor"
-            "visual"
-            "explain";
-        overflow: visible;
+        flex-direction: column;
+    }
+
+    .leftCol,
+    .rightCol {
+        flex: 0 0 auto;
+        min-width: 0;
+        width: 100%;
     }
 
     .visualPanel {
         min-height: 360px;
+        height: 460px;
     }
 
     .explainPanel {
         max-height: none;
+    }
+
+    .stateGrid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
 
@@ -311,5 +492,9 @@
 
     .statusRow {
         flex-direction: column;
+    }
+
+    .stateGrid {
+        grid-template-columns: 1fr;
     }
 }

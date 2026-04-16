@@ -1,6 +1,10 @@
 # CodeMaxxer
 
-CodeMaxxer is the RaptorHacks project: a coding-focused learning platform with a React frontend, a FastAPI backend, Supabase authentication and storage, Groq-powered AI features, and Piston-backed code execution.
+CodeMaxxer is a coding-focused learning platform with a React frontend, a FastAPI backend, Supabase authentication and storage, Groq-powered AI features, and Piston-backed code execution.
+
+## Recognition
+
+Winner of the UI/UX Track and Generative AI Track at RaptorHacks.
 
 ## Current State
 
@@ -13,6 +17,7 @@ Implemented:
 - Guided plan creation with saved-plan loading, activation, and deletion
 - Saved skill trees loaded from the backend
 - Skill tree rendering in the frontend with backend-driven XP values
+- AI-generated Learn lessons for individual skill-tree nodes, cached in Supabase
 - Node-linked quiz generation
 - Standalone quiz generation from a language + topic prompt
 - Quiz hint and explanation options, with hard mode disabling help
@@ -25,12 +30,13 @@ Implemented:
 - AI-generated branch advancement when node XP reaches unlock thresholds
 - Frontend dashboard XP charts linked to the authenticated user
 - Typing practice with live WPM/EPM charting
+- Visual Python labs for projectile motion and canvas-style plotting
 
 Still in progress:
 
 - Dashboard analytics beyond XP and quiz-completion summaries
 - Standalone coding/test page beyond placeholder scaffolding
-- Study-plan and topic-explanation style features
+- Study-plan features
 - Production hardening and deployment polish
 
 ## Stack
@@ -55,6 +61,7 @@ raptorhacks-project/
 
 - Project roadmap: [docs/README.md](docs/README.md)
 - Backend notes: [backend/README.md](backend/README.md)
+- Frontend notes: [frontend/CodeMaxxer/README.md](frontend/CodeMaxxer/README.md)
 
 ## Notes
 

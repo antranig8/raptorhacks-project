@@ -17,6 +17,7 @@ from ..middleware.timeouts import with_ai_timeout
 from ..telemetry.telemetry import insert_exp_event, insert_quiz_complete_event
 from ..auth.auth import get_current_user
 from ..auth.supabase import client as supabase_client
+from ..auth.supabase import execute_query
 from ..auth.user import User
 from ..dependencies.ai import advancement_platform, quiz_platform
 from ..piston.piston import piston
@@ -576,17 +577,16 @@ def _quiz_record_to_response(record: dict[str, Any]) -> QuizResponse:
     )
 
 
-def _get_skill_tree_record(skill_tree_id: str, current_user: User) -> dict[str, Any]:
+async def _get_skill_tree_record(skill_tree_id: str, current_user: User) -> dict[str, Any]:
     # Every request re-loads the tree from storage instead of trusting any
     # in-memory state, which keeps the quiz flow stateless.
     try:
-        response = (
+        response = await execute_query(
             supabase_client.table(SKILL_TREES_TABLE)
             .select("id, goal, title, tree_json")
             .eq("id", skill_tree_id)
             .eq("user_id", str(current_user.uuid))
             .limit(1)
-            .execute()
         )
     except Exception as exc:
         raise _handle_supabase_error(exc)
@@ -597,17 +597,16 @@ def _get_skill_tree_record(skill_tree_id: str, current_user: User) -> dict[str, 
     return response.data[0]
 
 
-def _get_quiz_record(quiz_id: str, current_user: User) -> dict[str, Any]:
+async def _get_quiz_record(quiz_id: str, current_user: User) -> dict[str, Any]:
     # quiz_id is the stateless handle for a saved quiz. Each validation request
     # resolves the full grading context from the database using this id.
     try:
-        response = (
+        response = await execute_query(
             supabase_client.table(QUIZ_TABLE)
             .select("id, user_id, skill_tree_id, node_id, title, data")
             .eq("id", quiz_id)
             .eq("user_id", str(current_user.uuid))
             .limit(1)
-            .execute()
         )
     except Exception as exc:
         raise _handle_supabase_error(exc)
@@ -618,16 +617,15 @@ def _get_quiz_record(quiz_id: str, current_user: User) -> dict[str, Any]:
     return response.data[0]
 
 
-def _get_quiz_record_for_node(skill_tree_id: str, node_id: str, current_user: User) -> dict[str, Any] | None:
+async def _get_quiz_record_for_node(skill_tree_id: str, node_id: str, current_user: User) -> dict[str, Any] | None:
     try:
-        response = (
+        response = await execute_query(
             supabase_client.table(QUIZ_TABLE)
             .select("id, skill_tree_id, node_id, title, data")
             .eq("user_id", str(current_user.uuid))
             .eq("skill_tree_id", skill_tree_id)
             .eq("node_id", node_id)
             .limit(1)
-            .execute()
         )
     except Exception as exc:
         raise _handle_supabase_error(exc)
@@ -635,33 +633,32 @@ def _get_quiz_record_for_node(skill_tree_id: str, node_id: str, current_user: Us
     return response.data[0] if response.data else None
 
 
-def _record_quiz_completion(quiz_id: str, exp_gained: int, current_user: User) -> None:
+async def _record_quiz_completion(quiz_id: str, exp_gained: int, current_user: User) -> None:
     payload = {
         "user": str(current_user.uuid),
         "quiz_id": quiz_id,
         "exp_gained": exp_gained,
     }
 
-    insert_exp_event(user_id=current_user.uuid, quiz_id=uuid.UUID(quiz_id), exp_gained=exp_gained)
+    await insert_exp_event(user_id=current_user.uuid, quiz_id=uuid.UUID(quiz_id), exp_gained=exp_gained)
 
     try:
-        supabase_client.table(QUIZ_DONE_TABLE).insert(payload).execute()
+        await execute_query(supabase_client.table(QUIZ_DONE_TABLE).insert(payload))
     except Exception as exc:
         raise _handle_supabase_error(exc)
 
 
-def _persist_skill_tree_progress(
+async def _persist_skill_tree_progress(
     skill_tree_id: str,
     tree: SkillTreeNode,
     current_user: User,
 ) -> None:
     try:
-        response = (
+        response = await execute_query(
             supabase_client.table(SKILL_TREES_TABLE)
             .update({"tree_json": canonicalize_skill_tree(tree).model_dump()})
             .eq("id", skill_tree_id)
             .eq("user_id", str(current_user.uuid))
-            .execute()
         )
     except Exception as exc:
         raise _handle_supabase_error(exc)
@@ -670,10 +667,10 @@ def _persist_skill_tree_progress(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Skill tree not found.")
 
 
-def _get_answer_context(request: QuizAnswerRequest, current_user: User) -> tuple[QuizQuestion, bool, bool]:
+async def _get_answer_context(request: QuizAnswerRequest, current_user: User) -> tuple[QuizQuestion, bool, bool]:
     # Validate that the submitted node_id still matches the stored quiz before
     # we grade anything, so node-linked quizzes cannot be mixed up.
-    record = _get_quiz_record(request.quiz_id, current_user)
+    record = await _get_quiz_record(request.quiz_id, current_user)
 
     if record["node_id"] != request.node_id:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Quiz does not match node_id.")
@@ -685,8 +682,8 @@ def _get_answer_context(request: QuizAnswerRequest, current_user: User) -> tuple
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Question index is out of range.") from exc
 
 
-def _get_hint_context(request: QuizHintRequest, current_user: User) -> tuple[QuizQuestion, bool]:
-    record = _get_quiz_record(request.quiz_id, current_user)
+async def _get_hint_context(request: QuizHintRequest, current_user: User) -> tuple[QuizQuestion, bool]:
+    record = await _get_quiz_record(request.quiz_id, current_user)
 
     if record["node_id"] != request.node_id:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Quiz does not match node_id.")
@@ -701,7 +698,7 @@ def _get_hint_context(request: QuizHintRequest, current_user: User) -> tuple[Qui
 async def _evaluate_answer(request: QuizAnswerRequest, current_user: User) -> QuizAnswerResult:
     # This is the single grading path for both per-question checks and final
     # submission. It keeps grading logic consistent across the API.
-    question, _allow_hints, allow_explanations = _get_answer_context(request, current_user)
+    question, _allow_hints, allow_explanations = await _get_answer_context(request, current_user)
 
     if question.type == "Coding":
         # Coding questions are validated by executing the submitted code inside
@@ -770,7 +767,7 @@ async def get_or_create_quiz_for_node(
         )
         skill_tree_title = request.skill_tree_name or "Mock Skill Tree"
     else:
-        skill_tree_record = _get_skill_tree_record(request.skill_tree_id, current_user)
+        skill_tree_record = await _get_skill_tree_record(request.skill_tree_id, current_user)
 
         tree = canonicalize_skill_tree(SkillTreeNode.model_validate(skill_tree_record["tree_json"]))
         node = _find_node_by_id(tree, request.node_id)
@@ -778,7 +775,7 @@ async def get_or_create_quiz_for_node(
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Node not found in skill tree.")
         skill_tree_title = skill_tree_record.get("title") or skill_tree_record.get("goal") or node.name
 
-    existing_record = _get_quiz_record_for_node(request.skill_tree_id, request.node_id, current_user)
+    existing_record = await _get_quiz_record_for_node(request.skill_tree_id, request.node_id, current_user)
 
     # Enforce the "one quiz per node" behavior by reusing the existing quiz
     # unless the frontend explicitly requests regeneration.
@@ -801,19 +798,18 @@ async def get_or_create_quiz_for_node(
         if existing_record:
             # Regeneration overwrites the saved quiz for this node instead of
             # creating duplicates, while keeping the flow stateless.
-            response = (
+            response = await execute_query(
                 supabase_client.table(QUIZ_TABLE)
                 .update(payload)
                 .eq("id", existing_record["id"])
                 .eq("user_id", str(current_user.uuid))
-                .execute()
             )
         else:
             payload["id"] = str(uuid.uuid4())
-            response = supabase_client.table(QUIZ_TABLE).insert(payload).execute()
+            response = await execute_query(supabase_client.table(QUIZ_TABLE).insert(payload))
     except Exception as exc:
         if not existing_record and _is_duplicate_quiz_for_node_error(exc):
-            duplicate_record = _get_quiz_record_for_node(request.skill_tree_id, request.node_id, current_user)
+            duplicate_record = await _get_quiz_record_for_node(request.skill_tree_id, request.node_id, current_user)
             if duplicate_record:
                 return _quiz_record_to_response(duplicate_record)
         raise _handle_supabase_error(exc)
@@ -864,7 +860,7 @@ async def generate_quiz(
     }
 
     try:
-        response = supabase_client.table(QUIZ_TABLE).insert(payload).execute()
+        response = await execute_query(supabase_client.table(QUIZ_TABLE).insert(payload))
     except Exception as exc:
         raise _handle_supabase_error(exc)
 
@@ -898,7 +894,7 @@ async def get_quiz_hint(
     request: QuizHintRequest,
     current_user: User = Depends(get_current_user),
 ):
-    question, allow_hints = _get_hint_context(request, current_user)
+    question, allow_hints = await _get_hint_context(request, current_user)
     hint = _hint_for_wrong_answer(question, allow_hints)
     if hint is None:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Hints are not enabled for this quiz.")
@@ -913,7 +909,7 @@ async def submit_quiz(
 ):
     # Final submission reuses the same grading path but evaluates the full
     # answer set and returns an aggregated summary for the UI.
-    record = _get_quiz_record(request.quiz_id, current_user)
+    record = await _get_quiz_record(request.quiz_id, current_user)
     if record["node_id"] != request.node_id:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Quiz does not match node_id.")
     definition = QuizDefinition.model_validate(record["data"])
@@ -926,13 +922,13 @@ async def submit_quiz(
 
     correct_answers = sum(1 for result in results if result.correct)
     exp_gained = _calculate_submission_xp(correct_answers)
-    _record_quiz_completion(request.quiz_id, exp_gained, current_user)
-    insert_quiz_complete_event(user_id=current_user.uuid, quiz_id=uuid.UUID(request.quiz_id), right_questions=correct_answers, total_questions=len(results))
+    await _record_quiz_completion(request.quiz_id, exp_gained, current_user)
+    await insert_quiz_complete_event(user_id=current_user.uuid, quiz_id=uuid.UUID(request.quiz_id), right_questions=correct_answers, total_questions=len(results))
 
     total_node_xp = 0
     unlocked_children: list[SkillTreeNode] = []
     if record["skill_tree_id"] != MOCK_SKILL_TREE_ID:
-        skill_tree_record = _get_skill_tree_record(str(record["skill_tree_id"]), current_user)
+        skill_tree_record = await _get_skill_tree_record(str(record["skill_tree_id"]), current_user)
         skill_tree = canonicalize_skill_tree(SkillTreeNode.model_validate(skill_tree_record["tree_json"]))
         updated_tree, total_node_xp, unlocked_children = await _update_tree_for_node_progress(
             skill_tree,
@@ -940,7 +936,7 @@ async def submit_quiz(
             exp_gained,
             str(skill_tree_record.get("goal") or skill_tree_record.get("title") or request.node_id),
         )
-        _persist_skill_tree_progress(str(record["skill_tree_id"]), updated_tree, current_user)
+        await _persist_skill_tree_progress(str(record["skill_tree_id"]), updated_tree, current_user)
 
     return QuizSubmissionResult(
         quiz_id=request.quiz_id,

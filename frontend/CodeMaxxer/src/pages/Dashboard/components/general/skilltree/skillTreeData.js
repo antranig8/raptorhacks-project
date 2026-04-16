@@ -122,6 +122,27 @@ export async function deleteSkillTree(skillTreeId) {
     }
 }
 
+export async function fetchLearnLesson({
+    skillTreeId,
+    nodeId,
+    treeTitle,
+    nodeTitle,
+    difficulty,
+    forceRegenerate = false,
+}) {
+    // Learn lessons are cached server-side; the same endpoint returns cache hits or fresh AI generations.
+    return requestSkillTrees(`/skill-trees/${encodeURIComponent(skillTreeId)}/learn`, {
+        method: "POST",
+        body: JSON.stringify({
+            node_id: nodeId,
+            tree_title: treeTitle,
+            node_title: nodeTitle,
+            difficulty: difficulty || "beginner",
+            force_regenerate: forceRegenerate,
+        }),
+    });
+}
+
 export async function createSkillTree(input) {
     const payload = typeof input === 'object' && input !== null
         ? input

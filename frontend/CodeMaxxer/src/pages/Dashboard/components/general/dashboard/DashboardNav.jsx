@@ -52,6 +52,7 @@ export default function DashboardNav() {
     const navigate = useNavigate()
 
     const handleLogout = async () => {
+        setIsDocked(true)
         const { error } = await supabase.auth.signOut()
         if (error) {
             console.error('Error logging out:', error.message)
@@ -100,7 +101,13 @@ export default function DashboardNav() {
                                     {!isDocked && <span>{item.label}</span>}
                                 </button>
                             ) : (
-                                <Link key={item.label} to={item.route} className={styles.navItem} title={isDocked ? item.label : ''}>
+                                <Link
+                                    key={item.label}
+                                    to={item.route}
+                                    className={styles.navItem}
+                                    title={isDocked ? item.label : ''}
+                                    onClick={() => setIsDocked(true)}
+                                >
                                     <span className={styles.iconWrapper}>
                                         <span className={styles.icon}>{item.icon}</span>
                                         {item.notification?.enabled && (

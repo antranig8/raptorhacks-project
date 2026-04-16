@@ -24,16 +24,68 @@ class ProjectileSimulationRequest(BaseModel):
         return value
 
 
+class ProjectileStep(BaseModel):
+    line: int
+    code: str
+    target: str
+    before: float
+    after: float
+    description: str
+
+
 class ProjectileFrame(BaseModel):
     t: float
     x: float
     y: float
     vx: float
     vy: float
+    steps: list[ProjectileStep] = Field(default_factory=list)
 
 
 class ProjectileSimulationResponse(BaseModel):
     frames: list[ProjectileFrame]
+    message: str
+
+
+class CanvasRenderRequest(BaseModel):
+    code: str = Field(min_length=1, max_length=1200)
+
+    @field_validator("code")
+    @classmethod
+    def _strip_code(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("Canvas code cannot be blank.")
+        return value
+
+
+class CanvasObject(BaseModel):
+    type: str
+    x: float | None = None
+    y: float | None = None
+    x1: float | None = None
+    y1: float | None = None
+    x2: float | None = None
+    y2: float | None = None
+    width: float | None = None
+    height: float | None = None
+    radius: float | None = None
+
+
+class CanvasStep(BaseModel):
+    line: int
+    code: str
+    command: str
+    description: str
+    target: str | None = None
+    before: float | None = None
+    after: float | None = None
+
+
+class CanvasRenderResponse(BaseModel):
+    objects: list[CanvasObject]
+    steps: list[CanvasStep]
+    variables: dict[str, float] = Field(default_factory=dict)
     message: str
 
 

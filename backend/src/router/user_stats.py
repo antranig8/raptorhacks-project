@@ -43,6 +43,6 @@ class UserStats(BaseModel):
 async def get_user_stats(current_user: User = Depends(get_current_user),
                          range: str = Query("24h")):
     delta = parse_range(range)
-    exp = get_exp_events(user_id=current_user.uuid, delta=delta)
-    quiz_complete = get_quiz_complete_events(user_id=current_user.uuid, delta=delta)
+    exp = await get_exp_events(user_id=current_user.uuid, delta=delta)
+    quiz_complete = await get_quiz_complete_events(user_id=current_user.uuid, delta=delta)
     return UserStats(exp=exp, quiz_complete=quiz_complete)

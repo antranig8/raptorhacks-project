@@ -103,7 +103,7 @@ export default function Quizzes() {
         return () => {
             isCancelled = true;
         };
-    }, [hasNodeLinkedContext, skillTreeId, nodeId]);
+    }, [hasNodeLinkedContext, skillTreeId, nodeId, nodeName, skillTreeName]);
 
     const handleGenerateQuiz = async ({ language, prompt, configs = [] }) => {
         // The standalone editor now calls the backend so freeform quizzes use

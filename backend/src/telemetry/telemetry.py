@@ -5,6 +5,7 @@ from pydantic import BaseModel, Field, TypeAdapter
 from supabase import PostgrestAPIError
 
 from ..auth.supabase import client as supabase_client
+from ..auth.supabase import execute_query
 from datetime import datetime, timedelta, timezone
 from uuid import UUID
 EVENT_TABLE = "events"
@@ -57,16 +58,15 @@ def _parse_events(rows: list[dict]) -> list[EventUnion]:
     normalized = [_normalize_event(r) for r in rows]
     return event_adapter.validate_python(normalized)
 
-def get_quiz_complete_events(user_id: UUID, delta: timedelta) -> Events:
+async def get_quiz_complete_events(user_id: UUID, delta: timedelta) -> Events:
     now = datetime.now(timezone.utc)
     since = now - delta
-    response = (
+    response = await execute_query(
         supabase_client.table(EVENT_TABLE)
         .select("user_id, scope, data, created_at")
         .eq("user_id", str(user_id))
         .eq("scope", "quiz_complete")
         .gte("created_at", since.isoformat())
-        .execute()
     )
 
     if not response.data:
@@ -77,7 +77,7 @@ def get_quiz_complete_events(user_id: UUID, delta: timedelta) -> Events:
     return Events(events=events)
 
 
-def insert_exp_event(user_id: UUID, quiz_id: UUID, exp_gained: int):
+async def insert_exp_event(user_id: UUID, quiz_id: UUID, exp_gained: int):
     payload = {
         "user_id": str(user_id),
         "scope": "exp",
@@ -85,12 +85,12 @@ def insert_exp_event(user_id: UUID, quiz_id: UUID, exp_gained: int):
     }
 
     try:
-        supabase_client.table(EVENT_TABLE).insert(payload).execute()
+        await execute_query(supabase_client.table(EVENT_TABLE).insert(payload))
     except Exception as exc:
         raise _handle_supabase_error(exc)
     
 
-def insert_quiz_complete_event(user_id: UUID, quiz_id: UUID, right_questions: int, total_questions: int):
+async def insert_quiz_complete_event(user_id: UUID, quiz_id: UUID, right_questions: int, total_questions: int):
     payload = {
         "user_id": str(user_id),
         "scope": "quiz_complete",
@@ -98,20 +98,19 @@ def insert_quiz_complete_event(user_id: UUID, quiz_id: UUID, right_questions: in
     }
 
     try:
-        supabase_client.table(EVENT_TABLE).insert(payload).execute()
+        await execute_query(supabase_client.table(EVENT_TABLE).insert(payload))
     except Exception as exc:
         raise _handle_supabase_error(exc)
 
-def get_exp_events(user_id: UUID, delta: timedelta) -> Events:
+async def get_exp_events(user_id: UUID, delta: timedelta) -> Events:
     now = datetime.now(timezone.utc)
     since = now - delta
-    response = (
+    response = await execute_query(
         supabase_client.table(EVENT_TABLE)
         .select("user_id, scope, data, created_at")
         .eq("user_id", str(user_id))
         .eq("scope", "exp")
         .gte("created_at", since.isoformat())
-        .execute()
     )
 
     if not response.data:

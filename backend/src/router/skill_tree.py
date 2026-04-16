@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime, timezone
 from typing import Any, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -8,9 +9,12 @@ from postgrest import APIError as PostgrestAPIError
 
 from ..auth.auth import get_current_user
 from ..auth.supabase import client as supabase_client
+from ..auth.supabase import execute_query
 from ..auth.user import User
 from ..dependencies.ai import get_ai_platform
 from ..schemas.ai import SkillTreeNode
+from ..schemas.learn import LEARN_LESSON_VERSION, LearnLesson, LearnLessonRequest, LearnLessonResponse
+from ..services.learn import generate_learn_lesson
 from ..services.skill_tree import (
     build_skill_tree_user_prompt,
     canonicalize_skill_tree,
@@ -19,10 +23,12 @@ from ..services.skill_tree import (
     parse_skill_tree_response,
     resolve_skill_tree_goal,
 )
+from ..services.prompts import load_prompt
 
 
 # Supabase table expected by these routes.
 SKILL_TREES_TABLE = "skill_trees"
+LEARN_LESSONS_TABLE = "learn_lessons"
 
 router = APIRouter()
 
@@ -126,6 +132,19 @@ def _record_to_response(record: dict[str, Any]) -> SkillTreeRecord:
     )
 
 
+def _lesson_record_to_response(record: dict[str, Any]) -> LearnLessonResponse:
+    # Supabase stores the lesson as JSONB; validate it before trusting the cached payload.
+    try:
+        lesson = LearnLesson.model_validate(record.get("lesson"))
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Cached learn lesson data is invalid.",
+        ) from exc
+
+    return LearnLessonResponse(lesson=lesson, source="cache")
+
+
 # Map lower-level storage exceptions into stable HTTP responses.
 def _handle_supabase_error(exc: Exception) -> HTTPException:
     # Convert lower-level storage errors into API-friendly HTTP errors.
@@ -141,19 +160,135 @@ def _handle_supabase_error(exc: Exception) -> HTTPException:
     )
 
 
-def _list_skill_tree_records_for_user(current_user: User) -> list[dict[str, Any]]:
+async def _list_skill_tree_records_for_user(current_user: User) -> list[dict[str, Any]]:
     try:
-        response = (
+        response = await execute_query(
             supabase_client.table(SKILL_TREES_TABLE)
             .select("*")
             .eq("user_id", str(current_user.uuid))
             .order("created_at", desc=True)
-            .execute()
         )
     except Exception as exc:
         raise _handle_supabase_error(exc)
 
     return response.data or []
+
+
+async def _get_owned_skill_tree_record(skill_tree_id: str, current_user: User) -> dict[str, Any]:
+    try:
+        response = await execute_query(
+            supabase_client.table(SKILL_TREES_TABLE)
+            .select("id,title,goal")
+            .eq("id", skill_tree_id)
+            .eq("user_id", str(current_user.uuid))
+            .limit(1)
+        )
+    except Exception as exc:
+        raise _handle_supabase_error(exc)
+
+    if not response.data:
+        raise HTTPException(status_code=404, detail="Skill tree not found.")
+
+    return response.data[0]
+
+
+async def _get_cached_learn_lesson(
+    skill_tree_id: str,
+    node_id: str,
+    current_user: User,
+    version: int = LEARN_LESSON_VERSION,
+) -> dict[str, Any] | None:
+    try:
+        response = await execute_query(
+            supabase_client.table(LEARN_LESSONS_TABLE)
+            .select("*")
+            .eq("user_id", str(current_user.uuid))
+            .eq("skill_tree_id", skill_tree_id)
+            .eq("node_id", node_id)
+            .eq("version", version)
+            .limit(1)
+        )
+    except Exception as exc:
+        raise _handle_supabase_error(exc)
+
+    if not response.data:
+        return None
+
+    return response.data[0]
+
+
+async def _insert_learn_lesson(
+    skill_tree_id: str,
+    request: LearnLessonRequest,
+    current_user: User,
+    lesson: LearnLesson,
+    tree_title: str,
+) -> dict[str, Any]:
+    payload = {
+        "user_id": str(current_user.uuid),
+        "skill_tree_id": skill_tree_id,
+        "node_id": request.node_id,
+        "tree_title": tree_title,
+        "node_title": request.node_title,
+        "difficulty": request.difficulty,
+        "lesson": lesson.model_dump(),
+        "version": LEARN_LESSON_VERSION,
+    }
+
+    try:
+        response = await execute_query(
+            supabase_client.table(LEARN_LESSONS_TABLE)
+            .insert(payload)
+        )
+    except Exception as exc:
+        raise _handle_supabase_error(exc)
+
+    if not response.data:
+        raise HTTPException(status_code=500, detail="Learn lesson was not cached.")
+
+    return response.data[0]
+
+
+async def _update_learn_lesson(
+    cached_record: dict[str, Any],
+    request: LearnLessonRequest,
+    current_user: User,
+    lesson: LearnLesson,
+    tree_title: str,
+) -> dict[str, Any]:
+    payload = {
+        "tree_title": tree_title,
+        "node_title": request.node_title,
+        "difficulty": request.difficulty,
+        "lesson": lesson.model_dump(),
+        "updated_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+    }
+
+    try:
+        response = await execute_query(
+            supabase_client.table(LEARN_LESSONS_TABLE)
+            .update(payload)
+            .eq("id", cached_record["id"])
+            .eq("user_id", str(current_user.uuid))
+        )
+    except Exception as exc:
+        raise _handle_supabase_error(exc)
+
+    if not response.data:
+        raise HTTPException(status_code=500, detail="Learn lesson was not updated.")
+
+    return response.data[0]
+
+
+def _generate_learn_lesson(tree_title: str, node_title: str, difficulty: str) -> LearnLesson:
+    ai_platform = get_ai_platform()
+
+    try:
+        return generate_learn_lesson(ai_platform, tree_title, node_title, difficulty)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail="AI provider request failed.") from exc
 
 
 # Generate a new skill tree from either a normalized goal or a free-form user prompt.
@@ -192,13 +327,20 @@ async def create_skill_tree(
         "goal": resolved_goal,
         "title": request.name,
         "tree_json": tree.model_dump(),
+        "is_active": True,
     }
 
     try:
-        response = (
+        # A newly created tree becomes the user's current roadmap immediately.
+        await execute_query(
+            supabase_client.table(SKILL_TREES_TABLE)
+            .update({"is_active": False})
+            .eq("user_id", str(current_user.uuid))
+        )
+
+        response = await execute_query(
             supabase_client.table(SKILL_TREES_TABLE)
             .insert(payload)
-            .execute()
         )
     except Exception as exc:
         raise _handle_supabase_error(exc)
@@ -212,20 +354,20 @@ async def create_skill_tree(
 @router.get("/skill-trees", response_model=list[SkillTreeRecord])
 async def list_skill_trees(current_user: User = Depends(get_current_user)):
     # Return all saved trees for the logged-in user, newest first.
-    return [_record_to_response(record) for record in _list_skill_tree_records_for_user(current_user)]
+    records = await _list_skill_tree_records_for_user(current_user)
+    return [_record_to_response(record) for record in records]
 
 # Fetch one saved skill tree if it belongs to the current user.
 @router.get("/skill-trees/{skill_tree_id}", response_model=SkillTreeRecord)
 async def get_skill_tree(skill_tree_id: str, current_user: User = Depends(get_current_user)):
     # Load one saved tree, but only if it belongs to the current user.
     try:
-        response = (
+        response = await execute_query(
             supabase_client.table(SKILL_TREES_TABLE)
             .select("*")
             .eq("id", skill_tree_id)
             .eq("user_id", str(current_user.uuid))
             .limit(1)
-            .execute()
         )
     except Exception as exc:
         raise _handle_supabase_error(exc)
@@ -234,6 +376,30 @@ async def get_skill_tree(skill_tree_id: str, current_user: User = Depends(get_cu
         raise HTTPException(status_code=404, detail="Skill tree not found.")
 
     return _record_to_response(response.data[0])
+
+
+@router.post("/skill-trees/{skill_tree_id}/learn", response_model=LearnLessonResponse)
+async def get_learn_lesson(
+    skill_tree_id: str,
+    request: LearnLessonRequest,
+    current_user: User = Depends(get_current_user),
+):
+    # Guard the cache lookup with tree ownership so users cannot probe another user's roadmap.
+    tree_record = await _get_owned_skill_tree_record(skill_tree_id, current_user)
+    tree_title = request.tree_title or tree_record.get("title") or tree_record.get("goal") or "Skill tree"
+
+    # Fast path: return the validated JSONB lesson unless the user explicitly asks for a new one.
+    cached_lesson = await _get_cached_learn_lesson(skill_tree_id, request.node_id, current_user)
+    if cached_lesson is not None and not request.force_regenerate:
+        return _lesson_record_to_response(cached_lesson)
+
+    # Cache miss or regeneration: generate, validate, then insert or replace the cached payload.
+    generated_lesson = _generate_learn_lesson(tree_title, request.node_title, request.difficulty)
+    if cached_lesson is not None:
+        await _update_learn_lesson(cached_lesson, request, current_user, generated_lesson, tree_title)
+    else:
+        await _insert_learn_lesson(skill_tree_id, request, current_user, generated_lesson, tree_title)
+    return LearnLessonResponse(lesson=generated_lesson, source="ai")
 
 # Update mutable fields on a saved skill tree owned by the current user.
 @router.patch("/skill-trees/{skill_tree_id}", response_model=SkillTreeRecord)
@@ -263,20 +429,18 @@ async def update_skill_tree(
     try:
         if request.is_active is True:
             # Keep one active plan at a time by clearing the flag on the user's other saved trees.
-            (
+            await execute_query(
                 supabase_client.table(SKILL_TREES_TABLE)
                 .update({"is_active": False})
                 .eq("user_id", str(current_user.uuid))
-                .execute()
             )
 
         # Update only the matching row that belongs to the current authenticated user.
-        response = (
+        response = await execute_query(
             supabase_client.table(SKILL_TREES_TABLE)
             .update(updates)
             .eq("id", skill_tree_id)
             .eq("user_id", str(current_user.uuid))
-            .execute()
         )
     except Exception as exc:
         raise _handle_supabase_error(exc)
@@ -292,12 +456,11 @@ async def update_skill_tree(
 @router.delete("/skill-trees/{skill_tree_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_skill_tree(skill_tree_id: str, current_user: User = Depends(get_current_user)):
     try:
-        response = (
+        response = await execute_query(
             supabase_client.table(SKILL_TREES_TABLE)
             .delete()
             .eq("id", skill_tree_id)
             .eq("user_id", str(current_user.uuid))
-            .execute()
         )
     except Exception as exc:
         raise _handle_supabase_error(exc)
