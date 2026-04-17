@@ -11,6 +11,14 @@ const cardData = [
         description: 'Open any skill node and generate a quiz focused on that exact concept instead of generic trivia.',
     },
     {
+        title: 'AI Lessons',
+        description: 'Learn each skill-tree topic with generated lessons that explain the concept before you practice.',
+    },
+    {
+        title: 'Hints and Explanations',
+        description: 'Get help when you need it, or turn on hard mode when you want the quiz to stay strict.',
+    },
+    {
         title: 'Code Challenges',
         description: 'Practice coding questions with runnable snippets, expected output, and answer validation.',
     },
@@ -25,6 +33,10 @@ const cardData = [
     {
         title: 'Instant Feedback',
         description: 'See whether your answers were correct right away and keep moving without losing momentum.',
+    },
+    {
+        title: 'XP Progression',
+        description: 'Earn XP from completed quizzes and watch your progress build across each roadmap.',
     },
 ]
 

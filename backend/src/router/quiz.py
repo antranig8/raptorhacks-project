@@ -54,6 +54,8 @@ SKILL_TREES_TABLE = "skill_trees"
 QUIZ_DONE_TABLE = "quiz_done"
 MOCK_SKILL_TREE_ID = "mock-skill-tree"
 XP_PER_CORRECT_ANSWER = 25
+QUIZ_GENERATION_MAX_TOKENS = 1750
+ADVANCEMENT_MAX_TOKENS = 500
 
 # Single source of truth for languages the execution backend supports.
 # Keep in sync with the language reference .md file merged into the quiz
@@ -353,7 +355,7 @@ async def _build_advancement_children(skill_tree_goal: str, node: SkillTreeNode)
                     advancement_platform.chat_messages,
                     [{"role": "user", "content": prompt}],
                     temperature=0.2,
-                    max_tokens=3000,
+                    max_tokens=ADVANCEMENT_MAX_TOKENS,
                 ),
                 label="advancement children creation",
             )
@@ -530,7 +532,7 @@ async def _generate_quiz_definition(
                     quiz_platform.chat_messages,
                     [{"role": "user", "content": prompt}],
                     temperature=0.2,
-                    max_tokens=3000,
+                    max_tokens=QUIZ_GENERATION_MAX_TOKENS,
                 ),
                 label="quiz generation",
             )

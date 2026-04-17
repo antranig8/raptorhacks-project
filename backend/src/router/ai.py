@@ -13,6 +13,7 @@ from ..services.skill_tree import (
 )
 
 router = APIRouter()
+SKILL_TREE_GENERATION_MAX_TOKENS = 1250
 
 
 @router.post("/chat", response_model=ChatResponse, dependencies=[Depends(rate_limit_chat)])
@@ -60,7 +61,11 @@ async def generate_skill_tree(request: SkillTreeGenerateRequest):
 
     try:
         # Ask the model for a structured skill tree, then validate that the response is usable JSON.
-        response_text, _ = ai_platform.chat_messages(messages, temperature=0.2, max_tokens=1200)
+        response_text, _ = ai_platform.chat_messages(
+            messages,
+            temperature=0.2,
+            max_tokens=SKILL_TREE_GENERATION_MAX_TOKENS,
+        )
         generated_tree = parse_skill_tree_response(response_text)
     except ValueError as exc:
         raise HTTPException(status_code=502, detail=str(exc)) from exc

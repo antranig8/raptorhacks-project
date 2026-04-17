@@ -12,6 +12,7 @@ from src.auth import throttling as throttling_module
 from src.auth.user import User
 from src.main import app
 from src.router import skill_tree as skill_tree_router
+from src.services import learn as learn_service
 from src.services.skill_tree import parse_skill_tree_response
 
 
@@ -129,9 +130,11 @@ class FakeAIPlatform:
         else:
             self.response_queue = [response_text]
         self.messages = []
+        self.max_tokens_calls: list[int] = []
 
     def chat_messages(self, messages, temperature: float, max_tokens: int):
         self.messages.append(messages)
+        self.max_tokens_calls.append(max_tokens)
         if not self.response_queue:
             raise AssertionError("No fake AI responses left in the queue.")
         return self.response_queue.pop(0), None
@@ -205,6 +208,7 @@ class SkillTreeRouterTests(TestCase):
         self.assertEqual(len(child_ids), len(set(child_ids)))
         self.assertEqual(self.fake_supabase.skill_trees[0]["title"], "Python Roadmap")
         self.assertEqual(fake_ai.messages[-1][-1]["content"], "Learn Python")
+        self.assertEqual(fake_ai.max_tokens_calls, [skill_tree_router.SKILL_TREE_GENERATION_MAX_TOKENS])
 
     def test_create_tree_still_accepts_legacy_title_field(self):
         fake_ai = FakeAIPlatform(
@@ -585,6 +589,7 @@ extra footer with {not json}
         self.assertEqual(len(self.fake_supabase.learn_lessons), 1)
         self.assertEqual(self.fake_supabase.learn_lessons[0]["node_id"], "variables")
         self.assertEqual(self.fake_supabase.learn_lessons[0]["lesson"]["title"], "C Variables")
+        self.assertEqual(fake_ai.max_tokens_calls, [learn_service.LEARN_LESSON_MAX_TOKENS])
         self.assertIn("Skill tree: C Roadmap", fake_ai.messages[0][1]["content"])
         self.assertIn("Clicked node: Variables", fake_ai.messages[0][1]["content"])
 

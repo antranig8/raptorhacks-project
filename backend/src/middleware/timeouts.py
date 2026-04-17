@@ -77,7 +77,7 @@ async def with_ai_timeout(coro: Any, label: str = "AI call") -> Any:
 
     Usage (inside an async function):
         response_text, usage = await with_ai_timeout(
-            asyncio.to_thread(ai_platform.chat_messages, messages, temperature=0.2, max_tokens=3000),
+            asyncio.to_thread(ai_platform.chat_messages, messages, temperature=0.2, max_tokens=1200),
             label="quiz generation",
         )
 

@@ -11,6 +11,7 @@ from .prompts import load_prompt
 
 
 LEARN_LESSON_PROMPT = "learn_lesson_prompt.md"
+LEARN_LESSON_MAX_TOKENS = 750
 
 
 def load_learn_lesson_json(raw_text: str) -> dict[str, Any]:
@@ -161,5 +162,5 @@ def build_learn_lesson_messages(
 
 def generate_learn_lesson(ai_platform: Any, tree_title: str, node_title: str, difficulty: str) -> LearnLesson:
     messages = build_learn_lesson_messages(tree_title, node_title, difficulty)
-    response_text, _ = ai_platform.chat_messages(messages, temperature=0.2, max_tokens=900)
+    response_text, _ = ai_platform.chat_messages(messages, temperature=0.2, max_tokens=LEARN_LESSON_MAX_TOKENS)
     return parse_learn_lesson_response(response_text)

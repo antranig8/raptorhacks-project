@@ -25,6 +25,7 @@ from ..schemas.visual_python import (
 
 
 router = APIRouter()
+VISUAL_EXPLANATION_MAX_TOKENS = 160
 
 ALLOWED_VARIABLES = {
     "x",
@@ -427,7 +428,11 @@ async def explain_visual_python_code(request: VisualPythonExplainRequest):
     ]
 
     try:
-        response_text, _usage = ai_platform.chat_messages(messages, temperature=0.2, max_tokens=220)
+        response_text, _usage = ai_platform.chat_messages(
+            messages,
+            temperature=0.2,
+            max_tokens=VISUAL_EXPLANATION_MAX_TOKENS,
+        )
     except Exception as exc:
         raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail="AI provider request failed.") from exc
 

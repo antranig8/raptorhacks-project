@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { FaAtom, FaGraduationCap, FaHome, FaSeedling, FaKeyboard, FaClipboardList, FaSignOutAlt, FaMapSigns } from 'react-icons/fa'
 import { CgDockLeft, CgDockRight } from 'react-icons/cg'
 import Logo from '@/components/Logo/Logo'
@@ -46,10 +46,33 @@ const navSections = [
     },
 ]
 
+const QUIZ_PROGRESS_STORAGE_KEY = "quiz-progress-in-flight"
+
 export default function DashboardNav() {
     const [user, setUser] = useState(null)
     const [isDocked, setIsDocked] = useState(false)
+    const location = useLocation()
     const navigate = useNavigate()
+
+    const handleNavClick = (event, item) => {
+        const isLeavingQuizWithProgress =
+            location.pathname === '/dashboard/quizzes' &&
+            item.route !== location.pathname &&
+            sessionStorage.getItem(QUIZ_PROGRESS_STORAGE_KEY) === 'true'
+
+        if (isLeavingQuizWithProgress) {
+            const shouldNavigate = window.confirm(
+                `You have quiz progress that will be lost. Do you really want to go to ${item.label}?`,
+            )
+
+            if (!shouldNavigate) {
+                event.preventDefault()
+                return
+            }
+        }
+
+        setIsDocked(true)
+    }
 
     const handleLogout = async () => {
         setIsDocked(true)
@@ -106,7 +129,7 @@ export default function DashboardNav() {
                                     to={item.route}
                                     className={styles.navItem}
                                     title={isDocked ? item.label : ''}
-                                    onClick={() => setIsDocked(true)}
+                                    onClick={(event) => handleNavClick(event, item)}
                                 >
                                     <span className={styles.iconWrapper}>
                                         <span className={styles.icon}>{item.icon}</span>

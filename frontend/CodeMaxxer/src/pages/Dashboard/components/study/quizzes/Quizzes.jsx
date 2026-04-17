@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useLocation, useSearchParams } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 
 import styles from "@dashboardStyles/study/Quizzes.module.css";
 import ProgressSummary from "./ProgressSummary";
@@ -10,9 +10,11 @@ import { evaluateMockAnswer } from "./mockQuizData";
 import questionData from "./questions.json";
 
 const STATIC_MOCK_QUESTIONS = questionData.questions;
+const QUIZ_PROGRESS_STORAGE_KEY = "quiz-progress-in-flight";
 
 export default function Quizzes() {
     const location = useLocation();
+    const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const skillTreeId = searchParams.get("skillTreeId");
     const nodeId = searchParams.get("nodeId");
@@ -45,6 +47,15 @@ export default function Quizzes() {
     const activeQuestions = quiz?.questions || STATIC_MOCK_QUESTIONS;
     const currentQuestion = activeQuestions[currentIdx] || null;
     const total = activeQuestions.length;
+
+    useEffect(() => {
+        const hasProgress = Object.keys(answers).length > 0 && !isQuizComplete;
+        sessionStorage.setItem(QUIZ_PROGRESS_STORAGE_KEY, hasProgress ? "true" : "false");
+
+        return () => {
+            sessionStorage.removeItem(QUIZ_PROGRESS_STORAGE_KEY);
+        };
+    }, [answers, isQuizComplete]);
 
     useEffect(() => {
         // Keep the original mock quizzes page behavior by default, but switch
@@ -379,6 +390,13 @@ export default function Quizzes() {
                                     )}
                                 </>
                             )}
+                            <button
+                                className={styles.placeholderButton}
+                                onClick={() => navigate("/dashboard/skill-tree")}
+                                type="button"
+                            >
+                                Back to Skill Tree
+                            </button>
                         </div>
                     ) : currentQuestion ? (
                         <>

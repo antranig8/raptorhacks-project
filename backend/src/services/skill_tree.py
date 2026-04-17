@@ -16,6 +16,8 @@ from ..schemas.ai import (
 )
 from .prompts import load_prompt
 
+GOAL_EXTRACTION_MAX_TOKENS = 150
+
 
 # Load the system prompt template used for AI skill tree generation.
 def load_skill_tree_system_prompt() -> Optional[str]:
@@ -140,7 +142,11 @@ def resolve_skill_tree_goal(ai_platform: AIPlatform, goal: Optional[str], prompt
 
     try:
         # Run the lightweight normalization pass before sending anything into the tree builder.
-        response_text, _ = ai_platform.chat_messages(messages, temperature=0.1, max_tokens=200)
+        response_text, _ = ai_platform.chat_messages(
+            messages,
+            temperature=0.1,
+            max_tokens=GOAL_EXTRACTION_MAX_TOKENS,
+        )
         extracted_goal = parse_goal_extraction_response(response_text)
     except ValueError:
         raise

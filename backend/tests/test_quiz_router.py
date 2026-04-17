@@ -90,9 +90,11 @@ class FakeQuizPlatform:
     def __init__(self, response_text: str):
         self.response_text = response_text
         self.calls = 0
+        self.max_tokens_calls: list[int] = []
 
     def chat_messages(self, messages, temperature: float, max_tokens: int):
         self.calls += 1
+        self.max_tokens_calls.append(max_tokens)
         return self.response_text, None
 
 
@@ -237,6 +239,7 @@ class QuizRouterTests(TestCase):
         self.assertEqual(len(self.fake_supabase.quizzes), 1)
         self.assertEqual(self.fake_supabase.quizzes[0]["node_id"], "functions")
         self.assertEqual(fake_ai.calls, 1)
+        self.assertEqual(fake_ai.max_tokens_calls, [quiz_router.QUIZ_GENERATION_MAX_TOKENS])
 
     def test_by_node_reuses_saved_quiz_without_regenerating(self):
         self.fake_supabase.quizzes.append(
@@ -606,6 +609,7 @@ class QuizRouterTests(TestCase):
         self.assertEqual(len(self.fake_supabase.quizzes), 1)
         self.assertEqual(self.fake_supabase.quizzes[0]["title"], "rust Quiz")
         self.assertEqual(fake_ai.calls, 1)
+        self.assertEqual(fake_ai.max_tokens_calls, [quiz_router.QUIZ_GENERATION_MAX_TOKENS])
 
     def test_generate_rejects_coding_question_with_wrong_language(self):
         fake_ai = FakeQuizPlatform(
@@ -875,6 +879,7 @@ class QuizRouterTests(TestCase):
         self.assertEqual(updated_node["metadata"]["xp"], 100)
         self.assertEqual(updated_node["metadata"]["advancement_count"], 1)
         self.assertEqual(len(updated_node["children"]), 2)
+        self.assertEqual(fake_advancement.max_tokens_calls, [quiz_router.ADVANCEMENT_MAX_TOKENS])
 
     def test_submit_does_not_unlock_after_three_advancements(self):
         self.fake_supabase.skill_trees[0]["tree_json"]["children"][0]["metadata"] = {

@@ -29,6 +29,7 @@ from ..services.prompts import load_prompt
 # Supabase table expected by these routes.
 SKILL_TREES_TABLE = "skill_trees"
 LEARN_LESSONS_TABLE = "learn_lessons"
+SKILL_TREE_GENERATION_MAX_TOKENS = 1250
 
 router = APIRouter()
 
@@ -304,7 +305,11 @@ def _generate_skill_tree(goal: Optional[str], prompt: Optional[str]) -> tuple[st
     messages.append({"role": "user", "content": build_skill_tree_user_prompt(resolved_goal)})
 
     try:
-        response_text, _ = ai_platform.chat_messages(messages, temperature=0.2, max_tokens=1200)
+        response_text, _ = ai_platform.chat_messages(
+            messages,
+            temperature=0.2,
+            max_tokens=SKILL_TREE_GENERATION_MAX_TOKENS,
+        )
         generated_tree = parse_skill_tree_response(response_text)
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=str(exc)) from exc
