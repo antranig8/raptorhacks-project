@@ -467,6 +467,127 @@ extra footer with {not json}
         self.assertFalse(self.fake_supabase.skill_trees[0]["is_active"])
         self.assertTrue(self.fake_supabase.skill_trees[1]["is_active"])
 
+    def test_create_tree_restores_previous_active_tree_when_insert_fails(self):
+        self.fake_supabase.skill_trees.append(
+            {
+                "id": "tree-1",
+                "user_id": str(self.user.uuid),
+                "goal": "Learn Python",
+                "title": "Python Roadmap",
+                "tree_json": {"id": "python", "name": "Learn Python", "children": []},
+                "completed_node_ids": [],
+                "is_active": True,
+                "created_at": "2026-04-07T12:00:00Z",
+                "updated_at": "2026-04-07T12:00:00Z",
+            }
+        )
+        fake_ai = FakeAIPlatform(
+            json.dumps(
+                {
+                    "goal": "Learn FastAPI",
+                    "skills": [
+                        {
+                            "name": "HTTP",
+                            "subskills": [
+                                {"name": "Methods", "difficulty": "beginner"},
+                                {"name": "Status Codes", "difficulty": "beginner"},
+                            ],
+                        },
+                        {
+                            "name": "FastAPI",
+                            "subskills": [
+                                {"name": "Routes", "difficulty": "beginner"},
+                                {"name": "Dependencies", "difficulty": "intermediate"},
+                            ],
+                        },
+                        {
+                            "name": "Deployment",
+                            "subskills": [
+                                {"name": "ASGI", "difficulty": "intermediate"},
+                                {"name": "Env Vars", "difficulty": "beginner"},
+                            ],
+                        },
+                    ],
+                }
+            )
+        )
+
+        original_execute_query = skill_tree_router.execute_query
+        insert_seen = False
+
+        async def failing_execute_query(query):
+            nonlocal insert_seen
+            if getattr(query, "_payload", None) is not None and "lesson" not in query._payload:
+                insert_seen = True
+                raise RuntimeError("insert failed")
+            return await original_execute_query(query)
+
+        with patch.object(skill_tree_router, "supabase_client", self.fake_supabase), patch.object(
+            skill_tree_router, "get_ai_platform", return_value=fake_ai
+        ), patch.object(skill_tree_router, "execute_query", side_effect=failing_execute_query):
+            client = TestClient(app)
+            response = client.post(
+                "/api/v1/private/skill-trees",
+                json={"name": "API Roadmap", "goal": "Learn FastAPI"},
+            )
+
+        self.assertTrue(insert_seen)
+        self.assertEqual(response.status_code, 500)
+        self.assertEqual(len(self.fake_supabase.skill_trees), 1)
+        self.assertTrue(self.fake_supabase.skill_trees[0]["is_active"])
+
+    def test_update_tree_restores_previous_active_tree_when_target_update_fails(self):
+        self.fake_supabase.skill_trees.extend(
+            [
+                {
+                    "id": "tree-1",
+                    "user_id": str(self.user.uuid),
+                    "goal": "Learn Python",
+                    "title": "Python Roadmap",
+                    "tree_json": {"id": "python", "name": "Learn Python", "children": []},
+                    "completed_node_ids": [],
+                    "is_active": True,
+                    "created_at": "2026-04-07T12:00:00Z",
+                    "updated_at": "2026-04-07T12:00:00Z",
+                },
+                {
+                    "id": "tree-2",
+                    "user_id": str(self.user.uuid),
+                    "goal": "Learn FastAPI",
+                    "title": "API Roadmap",
+                    "tree_json": {"id": "fastapi", "name": "Learn FastAPI", "children": []},
+                    "completed_node_ids": [],
+                    "is_active": False,
+                    "created_at": "2026-04-08T12:00:00Z",
+                    "updated_at": "2026-04-08T12:00:00Z",
+                },
+            ]
+        )
+
+        original_execute_query = skill_tree_router.execute_query
+
+        async def failing_execute_query(query):
+            if (
+                getattr(query, "_updates", None) is not None
+                and query._updates.get("is_active") is True
+                and ("id", "tree-2") in getattr(query, "_filters", [])
+            ):
+                raise RuntimeError("target update failed")
+            return await original_execute_query(query)
+
+        with patch.object(skill_tree_router, "supabase_client", self.fake_supabase), patch.object(
+            skill_tree_router, "execute_query", side_effect=failing_execute_query
+        ):
+            client = TestClient(app)
+            response = client.patch(
+                "/api/v1/private/skill-trees/tree-2",
+                json={"is_active": True},
+            )
+
+        self.assertEqual(response.status_code, 500)
+        self.assertTrue(self.fake_supabase.skill_trees[0]["is_active"])
+        self.assertFalse(self.fake_supabase.skill_trees[1]["is_active"])
+
     def test_get_learn_lesson_returns_cached_lesson_for_owned_tree(self):
         self.fake_supabase.skill_trees.append(
             {

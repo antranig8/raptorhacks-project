@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from typing import Any, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import AliasChoices, BaseModel, Field, field_validator, model_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 from postgrest import APIError as PostgrestAPIError
 
 from ..auth.auth import get_current_user
@@ -36,13 +36,20 @@ router = APIRouter()
 
 class SkillTreeCreateRequest(BaseModel):
     # The frontend supplies a display name and either a normalized goal or a raw prompt.
-    name: str = Field(
-        min_length=1,
-        max_length=120,
-        validation_alias=AliasChoices("name", "title"),
-    )
+    name: str = Field(min_length=1, max_length=120)
     goal: Optional[str] = Field(default=None, min_length=3, max_length=300)
-    prompt: Optional[str]= Field(default=None, min_length=3, max_length=800)
+    prompt: Optional[str] = Field(default=None, min_length=3, max_length=800)
+
+    @model_validator(mode="before")
+    @classmethod
+    def _normalize_legacy_keys(cls, data: Any) -> Any:
+        if not isinstance(data, dict):
+            return data
+
+        normalized = dict(data)
+        if normalized.get("name") is None and normalized.get("title") is not None:
+            normalized["name"] = normalized["title"]
+        return normalized
 
     @field_validator("name")
     @classmethod
@@ -72,13 +79,20 @@ class SkillTreeCreateRequest(BaseModel):
 
 class SkillTreeUpdateRequest(BaseModel):
     # All fields are optional here so PATCH can update only the changed pieces.
-    name: Optional[str] = Field(
-        default=None,
-        max_length=120,
-        validation_alias=AliasChoices("name", "title"),
-    )
+    name: Optional[str] = Field(default=None, max_length=120)
     tree: Optional[SkillTreeNode] = None
     is_active: Optional[bool] = None
+
+    @model_validator(mode="before")
+    @classmethod
+    def _normalize_legacy_keys(cls, data: Any) -> Any:
+        if not isinstance(data, dict):
+            return data
+
+        normalized = dict(data)
+        if normalized.get("name") is None and normalized.get("title") is not None:
+            normalized["name"] = normalized["title"]
+        return normalized
 
     @field_validator("name")
     @classmethod
@@ -173,6 +187,38 @@ async def _list_skill_tree_records_for_user(current_user: User) -> list[dict[str
         raise _handle_supabase_error(exc)
 
     return response.data or []
+
+
+async def _list_active_skill_tree_ids_for_user(current_user: User) -> list[str]:
+    try:
+        response = await execute_query(
+            supabase_client.table(SKILL_TREES_TABLE)
+            .select("id")
+            .eq("user_id", str(current_user.uuid))
+            .eq("is_active", True)
+        )
+    except Exception as exc:
+        raise _handle_supabase_error(exc)
+
+    return [str(record["id"]) for record in (response.data or []) if record.get("id") is not None]
+
+
+async def _set_skill_tree_active_state(skill_tree_id: str, current_user: User, is_active: bool) -> None:
+    try:
+        await execute_query(
+            supabase_client.table(SKILL_TREES_TABLE)
+            .update({"is_active": is_active})
+            .eq("id", skill_tree_id)
+            .eq("user_id", str(current_user.uuid))
+        )
+    except Exception:
+        # Best-effort rollback helper; callers already know the primary failure cause.
+        pass
+
+
+async def _restore_active_skill_trees(skill_tree_ids: list[str], current_user: User) -> None:
+    for skill_tree_id in skill_tree_ids:
+        await _set_skill_tree_active_state(skill_tree_id, current_user, True)
 
 
 async def _get_owned_skill_tree_record(skill_tree_id: str, current_user: User) -> dict[str, Any]:
@@ -326,6 +372,7 @@ async def create_skill_tree(
 ):
     # Generate and persist a new tree from either the explicit goal or the raw user prompt.
     resolved_goal, tree = _generate_skill_tree(request.goal, request.prompt)
+    previous_active_ids = await _list_active_skill_tree_ids_for_user(current_user)
 
     payload = {
         "user_id": str(current_user.uuid),
@@ -348,9 +395,11 @@ async def create_skill_tree(
             .insert(payload)
         )
     except Exception as exc:
+        await _restore_active_skill_trees(previous_active_ids, current_user)
         raise _handle_supabase_error(exc)
 
     if not response.data:
+        await _restore_active_skill_trees(previous_active_ids, current_user)
         raise HTTPException(status_code=500, detail="Skill tree was not created.")
 
     return _record_to_response(response.data[0])
@@ -431,8 +480,10 @@ async def update_skill_tree(
         # Reject empty PATCH requests so the client knows nothing was actually changed.
         raise HTTPException(status_code=400, detail="No skill tree changes were provided.")
 
+    previous_active_ids: list[str] = []
     try:
         if request.is_active is True:
+            previous_active_ids = await _list_active_skill_tree_ids_for_user(current_user)
             # Keep one active plan at a time by clearing the flag on the user's other saved trees.
             await execute_query(
                 supabase_client.table(SKILL_TREES_TABLE)
@@ -448,10 +499,14 @@ async def update_skill_tree(
             .eq("user_id", str(current_user.uuid))
         )
     except Exception as exc:
+        if request.is_active is True:
+            await _restore_active_skill_trees(previous_active_ids, current_user)
         raise _handle_supabase_error(exc)
 
     if not response.data:
         # If Supabase returns no rows, either the id does not exist or it is not owned by this user.
+        if request.is_active is True:
+            await _restore_active_skill_trees(previous_active_ids, current_user)
         raise HTTPException(status_code=404, detail="Skill tree not found.")
 
     # Return the updated record in the same API shape used by create/list/get.
