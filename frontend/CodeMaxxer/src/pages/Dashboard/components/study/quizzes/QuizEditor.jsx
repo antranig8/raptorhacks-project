@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import styles from '@dashboardStyles/study/QuizEditor.module.css';
+import { useMemo, useState } from 'react'
+import styles from '@dashboardStyles/study/QuizEditor.module.css'
 
 const LANGUAGES = [
     'haskell',
@@ -86,54 +86,52 @@ const LANGUAGES = [
     'pyth',
     'c',
     'brainfuck',
-];
-
-const QUESTION_AMOUNTS = [5, 10, 15, 20];
+]
 
 const CONFIG_OPTIONS = [
     { id: 'hints', label: 'Allow Hints' },
     { id: 'explanations', label: 'Show Explanations' },
     { id: 'timing', label: 'Timed Quiz' },
     { id: 'hard', label: 'Hard Mode' }
-];
+]
 
 export default function QuizEditor({ onGenerate, isGenerating = false, error = "" }) {
-    const [language, setLanguage] = useState('python');
-    const [amount, setAmount] = useState(10);
-    const [configs, setConfigs] = useState([]);
-    const [prompt, setPrompt] = useState('');
-    const [localError, setLocalError] = useState('');
-    const [isLanguageOpen, setIsLanguageOpen] = useState(false);
+    const [language, setLanguage] = useState('python')
+    const [amount] = useState(10)
+    const [configs, setConfigs] = useState([])
+    const [prompt, setPrompt] = useState('')
+    const [localError, setLocalError] = useState('')
+    const [isLanguageOpen, setIsLanguageOpen] = useState(false)
 
     const filteredLanguages = useMemo(() => {
-        const query = language.trim().toLowerCase();
+        const query = language.trim().toLowerCase()
         return query
             ? LANGUAGES.filter((lang) => lang.includes(query))
-            : LANGUAGES;
-    }, [language]);
+            : LANGUAGES
+    }, [language])
 
     const toggleConfig = (id) => {
         setConfigs(prev =>
             prev.includes(id) ? prev.filter(c => c !== id) : [...prev, id]
-        );
-    };
+        )
+    }
 
     const handleGenerate = () => {
-        const normalizedLanguage = language.trim().toLowerCase();
+        const normalizedLanguage = language.trim().toLowerCase()
         if (!normalizedLanguage || !prompt.trim()) {
-            setLocalError('Enter both a language and a topic before generating a quiz.');
-            return;
+            setLocalError('Enter both a language and a topic before generating a quiz.')
+            return
         }
-        setLocalError('');
+        setLocalError('')
         if (onGenerate) {
-            onGenerate({ language: normalizedLanguage, amount, configs, prompt });
+            onGenerate({ language: normalizedLanguage, amount, configs, prompt })
         }
-    };
+    }
 
     const handleSelectLanguage = (nextLanguage) => {
-        setLanguage(nextLanguage);
-        setIsLanguageOpen(false);
-    };
+        setLanguage(nextLanguage)
+        setIsLanguageOpen(false)
+    }
 
     return (
         <div className={styles.editorContainer}>
@@ -218,5 +216,5 @@ export default function QuizEditor({ onGenerate, isGenerating = false, error = "
             </button>
             {(localError || error) && <p className={styles.errorText}>{localError || error}</p>}
         </div>
-    );
+    )
 }

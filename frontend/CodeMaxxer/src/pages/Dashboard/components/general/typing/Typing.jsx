@@ -2,13 +2,11 @@ import { useState, useEffect, useRef } from 'react'
 import styles from '@dashboardStyles/typing/Typing.module.css'
 import TextArea from '@d_general/typing/TextArea'
 import { randomText } from './wordBank'
-import TypingEditor from './TypingEditor'
 import CustomLineChart from '@d_general/dashboard/CustomLineChart'
 
 // Typing chart will use live session data provided by the TextArea
 
 export default function Typing() {
-    const [input, setInput] = useState('')
     const [isTopActive, setIsTopActive] = useState(false)
     const [isMobile, setIsMobile] = useState(false)
     const [realtimeChartData, setRealtimeChartData] = useState(null)
@@ -23,9 +21,6 @@ export default function Typing() {
         window.addEventListener('resize', checkMobile)
         return () => window.removeEventListener('resize', checkMobile)
     }, [])
-
-    const handleStart = () => {
-    }
 
     const [practiceTemplate, setPracticeTemplate] = useState(() => randomText())
 
@@ -116,8 +111,7 @@ export default function Typing() {
                 <div className={styles.typingAreaContent}>
                     <TextArea
                         target={practiceTemplate}
-                        onChange={(next, history) => {
-                            setInput(next)
+                        onChange={(_next, history) => {
                             const now = Date.now()
                             if (history && history.length > 0 && now - lastChartUpdate.current > 1000) {
                                 const chart = buildRealtimeFromHistory(history)
@@ -150,7 +144,6 @@ export default function Typing() {
                     data={realtimeChartData}
                 />
             </div>
-            {/* <TypingEditor onStart={handleStart} isTablet={false} /> */}
         </section>
     )
 }

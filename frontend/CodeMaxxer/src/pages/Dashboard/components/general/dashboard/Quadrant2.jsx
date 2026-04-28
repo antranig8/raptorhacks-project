@@ -17,10 +17,6 @@ function startOfDay(value) {
     return date
 }
 
-function toDayKey(value) {
-    return startOfDay(value).toISOString().slice(0, 10)
-}
-
 function to10SecKey(value) {
     const date = new Date(value)
     date.setMilliseconds(0)
