@@ -22,7 +22,6 @@ This roadmap reflects the current state of the project based on the code in the 
 - AI-based branch advancement for nodes that reach the XP threshold
 - Dashboard XP charts linked to the authenticated user
 - Typing practice page with live WPM/EPM charting
-- Visual Python labs for projectile motion and canvas-style plotting
 
 ## In Progress
 

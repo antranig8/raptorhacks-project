@@ -10,7 +10,6 @@ import Test from '@dashboard/components/Test.jsx'
 import Settings from '@d_support/settings/Settings.jsx'
 import Help from '@d_support/help/Help.jsx'
 import Typing from '@d_general/typing/Typing.jsx'
-import VisualPythonLab from '@d_general/visualpython/VisualPythonLab.jsx'
 import Coding from '@d_study/coding/Coding.jsx'
 import Quizzes from '@d_study/quizzes/Quizzes.jsx'
 import ProtectedRoute from '@/components/ProtectedRoute.jsx'
@@ -36,7 +35,6 @@ function App() {
               <Route path="settings" element={<Settings />} />
               <Route path="help" element={<Help />} />
               <Route path="typing" element={<Typing />} />
-              <Route path="visual-python" element={<VisualPythonLab />} />
             </Route>
           </Route>
         </Routes>

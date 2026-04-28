@@ -30,13 +30,12 @@ Implemented:
 - AI-generated branch advancement when node XP reaches unlock thresholds
 - Frontend dashboard XP charts linked to the authenticated user
 - Typing practice with live WPM/EPM charting
-- Visual Python labs for projectile motion and canvas-style plotting
 
 Still in progress:
 
 - Dashboard analytics beyond XP and quiz-completion summaries
 - Standalone coding/test page beyond placeholder scaffolding
-- Study-plan features
+- Plan authoring and saved-plan workflows
 - Production hardening and deployment polish
 
 ## Stack

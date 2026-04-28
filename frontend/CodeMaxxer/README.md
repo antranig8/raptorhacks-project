@@ -14,7 +14,6 @@ Current app areas:
 - Quiz hints, explanations, hard mode, per-question validation, and final submission
 - Dashboard XP charts backed by the backend user-stats API
 - Typing practice with live WPM/EPM charting
-- Visual Python labs for projectile motion and canvas-style plotting
 
 ## Run Locally
 

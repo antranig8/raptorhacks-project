@@ -12,7 +12,6 @@ This is the FastAPI backend for CodeMaxxer, the RaptorHacks project.
 - AI-generated Learn lessons for skill-tree nodes, with Supabase caching
 - Saved skill tree creation, listing, activation, updates, and deletion
 - Code execution for coding quiz validation through Piston
-- Visual Python simulation and canvas rendering endpoints
 - Quiz XP and completion analytics written to Supabase
 - User stats reads from Supabase event rows
 - AI-driven skill-tree branch advancement tied to node XP
@@ -35,8 +34,6 @@ Current private routes include:
 - `POST /api/v1/private/quiz/hint`
 - `POST /api/v1/private/quiz/submit-answer`
 - `POST /api/v1/private/quiz/submit`
-- `POST /api/v1/private/visual-python/projectile`
-- `POST /api/v1/private/visual-python/canvas`
 - `GET /api/v1/private/user_stats/`
 - protected test/private endpoints, including `GET /api/v1/private/test/` and `GET /api/v1/private/test_code/`
 
@@ -63,6 +60,8 @@ Run the backend tests from the `backend/` directory:
 ```bash
 pytest
 ```
+
+`pytest` now resolves the local `src` package through `backend/pytest.ini`, so it can be run directly from the backend folder without manually setting `PYTHONPATH`.
 
 ## Environment Variables
 
